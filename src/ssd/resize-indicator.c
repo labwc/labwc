@@ -12,6 +12,8 @@
 #include "ssd.h"
 #include "theme.h"
 #include "view.h"
+#include "common/borderset.h"
+#include "buffer.h"
 
 #define PADDING rc.theme->osd_window_switcher_classic.padding
 
@@ -50,7 +52,58 @@ resize_indicator_init(struct view *view)
 		indicator->tree, 0, 0, rc.theme->osd_border_color);
 	indicator->background = lab_wlr_scene_rect_create(
 		indicator->tree, 0, 0, rc.theme->osd_bg_color);
+
+	if (rc.theme->beveled_border) {				
+		float r = rc.theme->osd_border_color[0];
+		float g = rc.theme->osd_border_color[1];
+		float b = rc.theme->osd_border_color[2];
+		float a = rc.theme->osd_border_color[3];
+		int bw = rc.theme->osd_border_width;
+
+		uint32_t colour32 = (uint32_t)(a*255) << 24 | (uint32_t)(r*255) << 16 | (uint32_t)(g*255) << 8 | (uint32_t)(b*255);
+		struct borderset * renderedborders = getBorders(colour32, bw, 1, 0);		
+		struct lab_data_buffer *ttexture_buffer =
+			buffer_create_from_data(renderedborders->top, 1, 1, 4);
+		indicator->top = wlr_scene_buffer_create(indicator->tree, &ttexture_buffer->base);
+
+		struct lab_data_buffer *ltexture_buffer =
+			buffer_create_from_data(renderedborders->left, 1, 1, 4);
+		indicator->left = wlr_scene_buffer_create(indicator->tree, &ltexture_buffer->base);
+
+		struct lab_data_buffer *rtexture_buffer =
+			buffer_create_from_data(renderedborders->right, 1, 1, 4);
+		indicator->right = wlr_scene_buffer_create(indicator->tree, &rtexture_buffer->base);
+
+		struct lab_data_buffer *btexture_buffer =
+			buffer_create_from_data(renderedborders->bottom, 1, 1, 4);
+		indicator->bottom = wlr_scene_buffer_create(indicator->tree, &btexture_buffer->base);
+
+
+		struct lab_data_buffer *tltexture_buffer =
+			buffer_create_from_data(renderedborders->tl, bw, bw, 4*bw);
+		indicator->tl = wlr_scene_buffer_create(indicator->tree, &tltexture_buffer->base);
+
+
+		struct lab_data_buffer *trtexture_buffer =
+			buffer_create_from_data(renderedborders->tr, bw, bw, 4*bw);
+		indicator->tr = wlr_scene_buffer_create(indicator->tree, &trtexture_buffer->base);
+
+
+		struct lab_data_buffer *bltexture_buffer =
+			buffer_create_from_data(renderedborders->bl, bw, bw, 4*bw);
+		indicator->bl = wlr_scene_buffer_create(indicator->tree, &bltexture_buffer->base);
+
+		struct lab_data_buffer *brtexture_buffer =
+			buffer_create_from_data(renderedborders->br, bw, bw, 4*bw);
+		indicator->br = wlr_scene_buffer_create(indicator->tree, &brtexture_buffer->base);
+		
+		
+		
+	}
+		
+		
 	indicator->text = scaled_font_buffer_create(indicator->tree);
+	
 
 	wlr_scene_node_set_enabled(&indicator->tree->node, false);
 	resize_indicator_reconfigure_view(indicator);
@@ -117,6 +170,60 @@ resize_indicator_set_size(struct resize_indicator *indicator, int width)
 	wlr_scene_rect_set_size(indicator->background,
 		indicator->width - 2 * rc.theme->osd_border_width,
 		indicator->height - 2 * rc.theme->osd_border_width);
+		
+	if (rc.theme->beveled_border) {
+	
+		int height = indicator->height;
+		int border_width = rc.theme->osd_border_width;
+	
+		wlr_scene_buffer_set_dest_size(indicator->top,
+				indicator->width, border_width);		
+		wlr_scene_node_set_position(&indicator->top->node,
+				0,0);	
+				
+		wlr_scene_buffer_set_dest_size(indicator->bottom,
+				indicator->width, border_width);		
+		wlr_scene_node_set_position(&indicator->bottom->node,
+				 0, height - border_width);
+				
+
+		wlr_scene_buffer_set_dest_size(indicator->left,
+				border_width, height - border_width * 2);
+		wlr_scene_node_set_position(&indicator->left->node,
+				0, border_width);	
+				
+		wlr_scene_buffer_set_dest_size(indicator->right,
+				border_width, height - border_width * 2);
+		wlr_scene_node_set_position(&indicator->right->node,
+				indicator->width - border_width, border_width);	
+				
+				
+				
+	
+	
+		wlr_scene_buffer_set_dest_size(indicator->tl,
+			border_width, border_width);		
+		wlr_scene_node_set_position(&indicator->tl->node,
+			0,0);	
+
+		wlr_scene_buffer_set_dest_size(indicator->tr,
+			border_width, border_width);		
+		wlr_scene_node_set_position(&indicator->tr->node,
+			indicator->width-border_width, 0);	
+
+
+		wlr_scene_buffer_set_dest_size(indicator->br,
+			border_width, border_width);		
+		wlr_scene_node_set_position(&indicator->br->node,
+			indicator->width-border_width , height-border_width);	
+
+
+		wlr_scene_buffer_set_dest_size(indicator->bl,
+			border_width, border_width);		
+		wlr_scene_node_set_position(&indicator->bl->node,
+			0, height-border_width);	
+	
+	}
 }
 
 void

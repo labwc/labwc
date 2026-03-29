@@ -210,6 +210,19 @@ jobs:
             meson compile -C build-gcc-no-feature
           ' | $TARGET
 
+      # No backend build, run on Arch only
+      - name: Build with gcc - no-backends test
+        if: matrix.name == 'Arch'
+        run: |
+          echo '
+            cd "$GITHUB_WORKSPACE"
+            export CC=gcc
+            meson setup build-gcc-no-backends \
+              -Dwlroots:backends= -Dwlroots:session=disabled --werror \
+              --force-fallback-for=wlroots
+            meson compile -C build-gcc-no-backends
+          ' | $TARGET
+
       # Unit tests, run on Arch only
       - name: Build with gcc - unit test
         if: matrix.name == 'Arch'

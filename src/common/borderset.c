@@ -4,9 +4,24 @@
 #include "common/macros.h"
 #include "buffer.h"
 
+
 struct borderset * getBorders(uint32_t id, int size, enum border_type type, int bevelSize) {
 	struct borderset * current = borderCache;
 	struct borderset * last;
+	
+	// Preventing building nonsense borders:
+	// If you try for a double bevel but it's so deep they would overlap, convert to a single bevel
+	if (type == BORDER_DOUBLE && (bevelSize > size/2)) {
+		type = BORDER_SINGLE;
+	}
+	
+	// Anything with a size of 0 is converted to a 1-pixel flat border so as to prevent empty allocations
+	
+	if (size < 1) {
+		type = BORDER_FLAT;
+		size = 1;
+	}
+	
 	while (current != NULL) {
 		if (current->size == size && current->id == id && current->type == type) {
 			return current;

@@ -10,11 +10,10 @@
 #include "output.h"
 #include <assert.h>
 #include <strings.h>
-#include <wlr/backend/drm.h>
+#include <wlr/backend/session.h>
 #include <wlr/backend/wayland.h>
 #include <wlr/config.h>
 #include <wlr/types/wlr_cursor.h>
-#include <wlr/types/wlr_drm_lease_v1.h>
 #include <wlr/types/wlr_ext_workspace_v1.h>
 #include <wlr/types/wlr_gamma_control_v1.h>
 #include <wlr/types/wlr_output.h>
@@ -39,7 +38,14 @@
 #include "xwayland.h"
 
 #if WLR_HAS_X11_BACKEND
-#include <wlr/backend/x11.h>
+	#include <wlr/backend/x11.h>
+#endif
+
+#if WLR_HAS_DRM_BACKEND
+	#include <wlr/backend/drm.h>
+	#include <wlr/types/wlr_drm_lease_v1.h>
+#else
+	#define wlr_output_is_drm(output) (false)
 #endif
 
 bool
@@ -452,14 +458,8 @@ handle_new_output(struct wl_listener *listener, void *data)
 	 * This is also useful for debugging the DRM parts of
 	 * another compositor.
 	 *
-	 * All drm leasing is disabled due to a UAF bug in wlroots.
-	 * We assume that the fix will be backported to 0.19.1 and thus
-	 * check for a version >= 0.19.1. See following link for the fix status:
-	 * https://gitlab.freedesktop.org/wlroots/wlroots/-/merge_requests/5104
-	 *
-	 * TODO: remove once labwc starts tracking 0.20.x and the fix has been merged.
 	 */
-#if LAB_WLR_VERSION_AT_LEAST(0, 19, 1)
+#if WLR_HAS_DRM_BACKEND
 	if (server.drm_lease_manager && wlr_output_is_drm(wlr_output)) {
 		wlr_drm_lease_v1_manager_offer_output(
 			server.drm_lease_manager, wlr_output);

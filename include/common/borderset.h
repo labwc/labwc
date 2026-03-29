@@ -11,14 +11,14 @@ struct borderset {
 	uint32_t id;		// Base colour, but could be used as a tracking hash for images or whatever in the future
 	int size;		// width (since I suspect a 2px border scaled up to 20px might look weird)
 	enum border_type type;			// Single or double bevel
-	uint32_t * top;
-	uint32_t * left;
-	uint32_t * right;
-	uint32_t * bottom;
-	uint32_t * tl;
-	uint32_t * tr;
-	uint32_t * bl;
-	uint32_t * br;
+	struct lab_data_buffer *top;
+	struct lab_data_buffer *left;
+	struct lab_data_buffer *right;
+	struct lab_data_buffer *bottom;
+	struct lab_data_buffer *tl;
+	struct lab_data_buffer *tr;
+	struct lab_data_buffer *bl;
+	struct lab_data_buffer *br;
 	struct borderset * next;
 };
 

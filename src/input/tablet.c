@@ -2,7 +2,7 @@
 #include "input/tablet.h"
 #include <stdlib.h>
 #include <linux/input-event-codes.h>
-#include "wlr/backend/libinput.h"
+#include <wlr/config.h>
 #include <wlr/types/wlr_cursor.h>
 #include <wlr/types/wlr_tablet_tool.h>
 #include <wlr/types/wlr_tablet_v2.h>
@@ -21,6 +21,10 @@
 #include "idle.h"
 #include "action.h"
 #include "view.h"
+
+#if WLR_HAS_LIBINPUT_BACKEND
+	#include <wlr/backend/libinput.h>
+#endif
 
 bool
 tablet_tool_has_focused_surface(struct seat *seat)
@@ -338,6 +342,7 @@ handle_tablet_tool_proximity(struct wl_listener *listener, void *data)
 		tool = tablet_tool_create(tablet->seat, ev->tool);
 	}
 
+#if WLR_HAS_LIBINPUT_BACKEND
 	struct libinput_tablet_tool *libinput_tool =
 		wlr_libinput_get_tablet_tool_handle(tool->tool_v2->wlr_tool);
 
@@ -358,6 +363,7 @@ handle_tablet_tool_proximity(struct wl_listener *listener, void *data)
 				rc.tablet_tool.min_pressure, rc.tablet_tool.max_pressure);
 		}
 	}
+#endif
 
 	/*
 	 * Enforce mouse emulation when the current tool is a tablet mouse.

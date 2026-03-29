@@ -2,7 +2,7 @@
 #include <assert.h>
 #include <stdbool.h>
 #include <strings.h>
-#include <wlr/backend/libinput.h>
+#include <wlr/config.h>
 #include <wlr/types/wlr_cursor.h>
 #include <wlr/types/wlr_input_device.h>
 #include <wlr/types/wlr_keyboard.h>
@@ -31,6 +31,12 @@
 #include "session-lock.h"
 #include "view.h"
 
+#if WLR_HAS_LIBINPUT_BACKEND
+	#include <wlr/backend/libinput.h>
+#else
+	#define wlr_input_device_is_libinput(device) (false)
+#endif
+
 static void
 input_device_destroy(struct wl_listener *listener, void *data)
 {
@@ -48,6 +54,7 @@ input_device_destroy(struct wl_listener *listener, void *data)
 	free(input);
 }
 
+#if WLR_HAS_LIBINPUT_BACKEND
 static enum lab_libinput_device_type
 device_type_from_wlr_device(struct wlr_input_device *wlr_input_device)
 {
@@ -101,6 +108,7 @@ get_category(struct wlr_input_device *device)
 	/* Use default profile as a fallback */
 	return libinput_category_get_default();
 }
+#endif
 
 static void
 configure_libinput(struct wlr_input_device *wlr_input_device)
@@ -135,7 +143,7 @@ configure_libinput(struct wlr_input_device *wlr_input_device)
 		input->scroll_factor = 1.0;
 		return;
 	}
-
+#if WLR_HAS_LIBINPUT_BACKEND
 	struct libinput_device *libinput_dev =
 		wlr_libinput_get_device_handle(wlr_input_device);
 	if (!libinput_dev) {
@@ -347,6 +355,7 @@ configure_libinput(struct wlr_input_device *wlr_input_device)
 
 	wlr_log(WLR_INFO, "scroll factor configured (%g)", dc->scroll_factor);
 	input->scroll_factor = dc->scroll_factor;
+#endif
 }
 
 static struct wlr_output *

@@ -10,7 +10,6 @@
 #include "output.h"
 #include <assert.h>
 #include <strings.h>
-#include <wlr/backend/session.h>
 #include <wlr/backend/wayland.h>
 #include <wlr/config.h>
 #include <wlr/types/wlr_cursor.h>
@@ -46,6 +45,10 @@
 	#include <wlr/types/wlr_drm_lease_v1.h>
 #else
 	#define wlr_output_is_drm(output) (false)
+#endif
+
+#if WLR_HAS_SESSION
+	#include <wlr/backend/session.h>
 #endif
 
 bool
@@ -99,12 +102,14 @@ handle_output_frame(struct wl_listener *listener, void *data)
 		return;
 	}
 
+#if WLR_HAS_SESSION
 	/*
 	 * skip painting the session when it exists but is not active.
 	 */
 	if (server.session && !server.session->active) {
 		return;
 	}
+#endif
 
 	struct wlr_scene_output *scene_output = output->scene_output;
 	struct wlr_output_state *pending = &output->pending;

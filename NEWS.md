@@ -9,7 +9,7 @@ The format is based on [Keep a Changelog]
 
 | Date       | All Changes   | wlroots version | lines-of-code |
 |------------|---------------|-----------------|---------------|
-| 2026-03-15 | [unreleased]  | 0.19.2          | 29244         |
+| 2026-03-31 | [unreleased]  | 0.20.0          | 27402         |
 | 2026-03-15 | [0.9.6]       | 0.19.2          | 29271         |
 | 2026-03-04 | [0.9.5]       | 0.19.2          | 29251         |
 | 2026-02-27 | [0.9.4]       | 0.19.2          | 29225         |
@@ -115,8 +115,27 @@ There are some regression warnings worth noting for the switch to wlroots 0.19:
 
 [unreleased-commits]
 
+The codebase has been ported to wlroots 0.20 [#2956] @Consolatis
+
+### Added
+
+- Add configuration option `<tabletTool minPressure="0.0" maxPressure="1.0" />`
+  to enable tablet tool pressure range libinput settings [#2916] @jp7677
+- Add `wl_fixes` interface [#2956] @kode54
+
 ### Fixed
 
+- Gracefully handle missing XWayland packages, so that a labwc compositor which
+  has been built with XWayland support (which is optional) can be run even if
+  XWayland is not installed. [#3401] @quite
+- Rework how XWayland window initial geometry is set to ensure that the natural
+  geometry does not exceed the usable output area when handling initial
+  maximize/fullscreen requests. [#3439] @jlindgren90.
+- For XWayland windows, sync always-on-top state back to X.Org Server. This
+  makes `wmctrl -b toggle,above` work. [#3446] @jlindgren90
+- Fix missing title and icon with XWayland client override-redirect toggle.
+  There are no known issues with clients, so this is purely for preventative
+  purposes. [#3450] @jlindgren90
 - Update titlebar title when set to empty and fix an associated issue causing
   the title to be misplaced outside of the titlebar when the window is resized.
   [#3443] @tokyo4j
@@ -126,6 +145,10 @@ There are some regression warnings worth noting for the switch to wlroots 0.19:
   destroyed. [#3440] @marler8997
 - Allow policy-based placement to apply when an initially-maximized/fullscreen
   view is restored to floating geometry. [#3387] @jlindgren90
+
+### Changed
+
+- Drop cosmic-workspace protocol [#3031] @tokyo4j
 
 ## 0.9.6 - 2026-03-15
 
@@ -3098,6 +3121,7 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
 [#2909]: https://github.com/labwc/labwc/pull/2909
 [#2910]: https://github.com/labwc/labwc/pull/2910
 [#2914]: https://github.com/labwc/labwc/pull/2914
+[#2916]: https://github.com/labwc/labwc/pull/2916
 [#2933]: https://github.com/labwc/labwc/pull/2933
 [#2937]: https://github.com/labwc/labwc/pull/2937
 [#2939]: https://github.com/labwc/labwc/pull/2939
@@ -3105,6 +3129,7 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
 [#2943]: https://github.com/labwc/labwc/pull/2943
 [#2944]: https://github.com/labwc/labwc/pull/2944
 [#2948]: https://github.com/labwc/labwc/pull/2948
+[#2956]: https://github.com/labwc/labwc/pull/2956
 [#2965]: https://github.com/labwc/labwc/pull/2965
 [#2967]: https://github.com/labwc/labwc/pull/2967
 [#2970]: https://github.com/labwc/labwc/pull/2970
@@ -3122,6 +3147,7 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
 [#3020]: https://github.com/labwc/labwc/pull/3020
 [#3024]: https://github.com/labwc/labwc/pull/3024
 [#3028]: https://github.com/labwc/labwc/pull/3028
+[#3031]: https://github.com/labwc/labwc/pull/3031
 [#3033]: https://github.com/labwc/labwc/pull/3033
 [#3039]: https://github.com/labwc/labwc/pull/3039
 [#3042]: https://github.com/labwc/labwc/pull/3042
@@ -3189,6 +3215,7 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
 [#3373]: https://github.com/labwc/labwc/pull/3373
 [#3387]: https://github.com/labwc/labwc/pull/3387
 [#3400]: https://github.com/labwc/labwc/pull/3400
+[#3401]: https://github.com/labwc/labwc/pull/3401
 [#3406]: https://github.com/labwc/labwc/pull/3406
 [#3410]: https://github.com/labwc/labwc/pull/3410
 [#3411]: https://github.com/labwc/labwc/pull/3411
@@ -3198,7 +3225,10 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
 [#3428]: https://github.com/labwc/labwc/pull/3428
 [#3429]: https://github.com/labwc/labwc/pull/3429
 [#3430]: https://github.com/labwc/labwc/pull/3430
+[#3439]: https://github.com/labwc/labwc/pull/3439
 [#3440]: https://github.com/labwc/labwc/pull/3440
 [#3441]: https://github.com/labwc/labwc/pull/3441
 [#3443]: https://github.com/labwc/labwc/pull/3443
 [#3445]: https://github.com/labwc/labwc/pull/3445
+[#3446]: https://github.com/labwc/labwc/pull/3446
+[#3450]: https://github.com/labwc/labwc/pull/3450

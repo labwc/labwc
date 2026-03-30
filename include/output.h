@@ -71,6 +71,9 @@ struct wlr_box output_usable_area_in_layout_coords(struct output *output);
 void handle_output_power_manager_set_mode(struct wl_listener *listener,
 	void *data);
 void output_enable_adaptive_sync(struct output *output, bool enabled);
+void output_enable_hdr(struct output *output, struct wlr_output_state *os,
+	bool enabled, bool silent);
+void output_state_setup_hdr(struct output *output, bool silent);
 
 /**
  * Notifies whether a fullscreen view is displayed on the given output.

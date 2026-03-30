@@ -273,7 +273,6 @@ struct server {
 	struct wl_listener renderer_lost;
 
 	struct wlr_gamma_control_manager_v1 *gamma_control_manager_v1;
-	struct wl_listener gamma_control_set_gamma;
 
 	struct session_lock_manager *session_lock_manager;
 

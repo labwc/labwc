@@ -83,35 +83,6 @@ output_get_tearing_allowance(struct output *output)
 }
 
 static void
-output_apply_gamma(struct output *output)
-{
-	assert(output);
-	assert(output->gamma_lut_changed);
-
-	struct wlr_scene_output *scene_output = output->scene_output;
-
-	struct wlr_output_state pending;
-	wlr_output_state_init(&pending);
-
-	output->gamma_lut_changed = false;
-	struct wlr_gamma_control_v1 *gamma_control =
-		wlr_gamma_control_manager_v1_get_control(
-			server.gamma_control_manager_v1,
-			output->wlr_output);
-
-	if (!wlr_gamma_control_v1_apply(gamma_control, &pending)) {
-		wlr_output_state_finish(&pending);
-		return;
-	}
-
-	if (!lab_wlr_scene_output_commit(scene_output, &pending)) {
-		wlr_gamma_control_v1_send_failed_and_destroy(gamma_control);
-	}
-
-	wlr_output_state_finish(&pending);
-}
-
-static void
 handle_output_frame(struct wl_listener *listener, void *data)
 {
 	/*
@@ -130,23 +101,12 @@ handle_output_frame(struct wl_listener *listener, void *data)
 		return;
 	}
 
-	if (output->gamma_lut_changed) {
-		/*
-		 * We are not mixing the gamma state with
-		 * other pending output changes to make it
-		 * easier to handle a failed output commit
-		 * due to gamma without impacting other
-		 * unrelated output changes.
-		 */
-		output_apply_gamma(output);
-	} else {
-		struct wlr_scene_output *scene_output = output->scene_output;
-		struct wlr_output_state *pending = &output->pending;
+	struct wlr_scene_output *scene_output = output->scene_output;
+	struct wlr_output_state *pending = &output->pending;
 
-		pending->tearing_page_flip = output_get_tearing_allowance(output);
+	pending->tearing_page_flip = output_get_tearing_allowance(output);
 
-		lab_wlr_scene_output_commit(scene_output, pending);
-	}
+	lab_wlr_scene_output_commit(scene_output, pending);
 
 	struct timespec now = { 0 };
 	clock_gettime(CLOCK_MONOTONIC, &now);
@@ -601,6 +561,8 @@ output_init(void)
 {
 	server.gamma_control_manager_v1 =
 		wlr_gamma_control_manager_v1_create(server.wl_display);
+	wlr_scene_set_gamma_control_manager_v1(server.scene,
+		server.gamma_control_manager_v1);
 
 	server.new_output.notify = handle_new_output;
 	wl_signal_add(&server.backend->events.new_output, &server.new_output);
@@ -913,19 +875,6 @@ handle_output_layout_change(struct wl_listener *listener, void *data)
 }
 
 static void
-handle_gamma_control_set_gamma(struct wl_listener *listener, void *data)
-{
-	const struct wlr_gamma_control_manager_v1_set_gamma_event *event = data;
-
-	struct output *output = event->output->data;
-	if (!output_is_usable(output)) {
-		return;
-	}
-	output->gamma_lut_changed = true;
-	wlr_output_schedule_frame(output->wlr_output);
-}
-
-static void
 output_manager_init(void)
 {
 	server.output_manager = wlr_output_manager_v1_create(server.wl_display);
@@ -941,10 +890,6 @@ output_manager_init(void)
 	server.output_manager_test.notify = handle_output_manager_test;
 	wl_signal_add(&server.output_manager->events.test,
 		&server.output_manager_test);
-
-	server.gamma_control_set_gamma.notify = handle_gamma_control_set_gamma;
-	wl_signal_add(&server.gamma_control_manager_v1->events.set_gamma,
-		&server.gamma_control_set_gamma);
 }
 
 static void
@@ -953,7 +898,6 @@ output_manager_finish(void)
 	wl_list_remove(&server.output_layout_change.link);
 	wl_list_remove(&server.output_manager_apply.link);
 	wl_list_remove(&server.output_manager_test.link);
-	wl_list_remove(&server.gamma_control_set_gamma.link);
 }
 
 struct output *

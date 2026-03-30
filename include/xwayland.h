@@ -53,6 +53,7 @@ struct xwayland_view {
 	struct wl_listener set_override_redirect;
 	struct wl_listener set_strut_partial;
 	struct wl_listener set_window_type;
+	struct wl_listener set_icon;
 	struct wl_listener focus_in;
 
 	/* Not (yet) implemented */

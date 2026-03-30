@@ -26,13 +26,11 @@
 #include "workspaces.h"
 
 enum atoms {
-	ATOM_NET_WM_ICON = 0,
 
 	ATOM_COUNT,
 };
 
 static const char * const atom_names[] = {
-	[ATOM_NET_WM_ICON] = "_NET_WM_ICON",
 };
 
 static_assert(ARRAY_SIZE(atom_names) == ATOM_COUNT, "atom names out of sync");
@@ -448,6 +446,7 @@ handle_destroy(struct wl_listener *listener, void *data)
 	wl_list_remove(&xwayland_view->set_override_redirect.link);
 	wl_list_remove(&xwayland_view->set_strut_partial.link);
 	wl_list_remove(&xwayland_view->set_window_type.link);
+	wl_list_remove(&xwayland_view->set_icon.link);
 	wl_list_remove(&xwayland_view->focus_in.link);
 
 	wl_list_remove(&xwayland_view->on_view.always_on_top.link);
@@ -670,29 +669,20 @@ handle_set_strut_partial(struct wl_listener *listener, void *data)
 }
 
 static void
-update_icon(struct xwayland_view *xwayland_view)
+handle_set_icon(struct wl_listener *listener, void *data)
 {
-	if (!xwayland_view->xwayland_surface) {
-		return;
-	}
+	struct xwayland_view *xwayland_view =
+		wl_container_of(listener, xwayland_view, set_icon);
 
-	xcb_window_t window_id = xwayland_view->xwayland_surface->window_id;
-
-	xcb_connection_t *xcb_conn = wlr_xwayland_get_xwm_connection(server.xwayland);
-	xcb_get_property_cookie_t cookie = xcb_get_property(xcb_conn, 0,
-		window_id, atoms[ATOM_NET_WM_ICON], XCB_ATOM_CARDINAL, 0, 0x10000);
-	xcb_get_property_reply_t *reply = xcb_get_property_reply(xcb_conn, cookie, NULL);
-	if (!reply) {
-		return;
-	}
-	xcb_ewmh_get_wm_icon_reply_t icon;
-	if (!xcb_ewmh_get_wm_icon_from_reply(&icon, reply)) {
+	xcb_ewmh_get_wm_icon_reply_t icon_reply = {0};
+	if (!wlr_xwayland_surface_fetch_icon(xwayland_view->xwayland_surface,
+			&icon_reply)) {
 		wlr_log(WLR_INFO, "Invalid x11 icon");
 		view_set_icon(&xwayland_view->base, NULL, NULL);
 		goto out;
 	}
 
-	xcb_ewmh_wm_icon_iterator_t iter = xcb_ewmh_get_wm_icon_iterator(&icon);
+	xcb_ewmh_wm_icon_iterator_t iter = xcb_ewmh_get_wm_icon_iterator(&icon_reply);
 	struct wl_array buffers;
 	wl_array_init(&buffers);
 	for (; iter.rem; xcb_ewmh_get_wm_icon_next(&iter)) {
@@ -722,7 +712,7 @@ update_icon(struct xwayland_view *xwayland_view)
 	wl_array_release(&buffers);
 
 out:
-	free(reply);
+	xcb_ewmh_get_wm_icon_reply_wipe(&icon_reply);
 }
 
 static void
@@ -1051,6 +1041,7 @@ xwayland_view_create(struct wlr_xwayland_surface *xsurface, bool mapped)
 	CONNECT_SIGNAL(xsurface, xwayland_view, set_override_redirect);
 	CONNECT_SIGNAL(xsurface, xwayland_view, set_strut_partial);
 	CONNECT_SIGNAL(xsurface, xwayland_view, set_window_type);
+	CONNECT_SIGNAL(xsurface, xwayland_view, set_icon);
 	CONNECT_SIGNAL(xsurface, xwayland_view, focus_in);
 
 	/* Events from the view itself */
@@ -1064,13 +1055,10 @@ xwayland_view_create(struct wlr_xwayland_surface *xsurface, bool mapped)
 		/*
 		 * If a surface is already associated, then we've
 		 * missed the various initial set_* events as well.
-		 *
-		 * TODO: update_icon() -> handle_set_icon() after
-		 * https://github.com/labwc/labwc/pull/2760
 		 */
 		handle_set_title(&view->set_title, NULL);
 		handle_set_class(&xwayland_view->set_class, NULL);
-		update_icon(xwayland_view);
+		handle_set_icon(&xwayland_view->set_icon, NULL);
 	}
 	if (mapped) {
 		handle_map(&xwayland_view->base.mappable.map, NULL);
@@ -1117,16 +1105,6 @@ handle_x11_event(struct wlr_xwayland *wlr_xwayland, xcb_generic_event_t *event)
 	switch (event->response_type & XCB_EVENT_RESPONSE_TYPE_MASK) {
 	case XCB_PROPERTY_NOTIFY: {
 		xcb_property_notify_event_t *ev = (void *)event;
-		if (ev->atom == atoms[ATOM_NET_WM_ICON]) {
-			struct xwayland_view *xwayland_view =
-				xwayland_view_from_window_id(ev->window);
-			if (xwayland_view) {
-				update_icon(xwayland_view);
-			} else {
-				wlr_log(WLR_DEBUG, "icon property changed for unknown window");
-			}
-			return true;
-		}
 		break;
 	}
 	default:

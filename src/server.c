@@ -502,7 +502,17 @@ server_init(void)
 	 * The renderer is responsible for defining the various pixel formats it
 	 * supports for shared memory, this configures that for clients.
 	 */
-	server.renderer = wlr_renderer_autocreate(server.backend);
+#ifdef __ANDROID__
+	/* Android: accept externally created renderer (e.g. GLES2 via
+	 * eglGetDisplay + wlr_egl_create_with_context) */
+	extern struct wlr_renderer *android_renderer;
+	if (android_renderer) {
+		server.renderer = android_renderer;
+	} else
+#endif
+	{
+		server.renderer = wlr_renderer_autocreate(server.backend);
+	}
 	if (!server.renderer) {
 		wlr_log(WLR_ERROR, "unable to create renderer");
 		exit(EXIT_FAILURE);
@@ -541,8 +551,16 @@ server_init(void)
 	 * the renderer and the backend. It handles the buffer creation,
 	 * allowing wlroots to render onto the screen
 	 */
-	server.allocator = wlr_allocator_autocreate(
-		server.backend, server.renderer);
+#ifdef __ANDROID__
+	extern struct wlr_allocator *android_allocator;
+	if (android_allocator) {
+		server.allocator = android_allocator;
+	} else
+#endif
+	{
+		server.allocator = wlr_allocator_autocreate(
+			server.backend, server.renderer);
+	}
 	if (!server.allocator) {
 		wlr_log(WLR_ERROR, "unable to create allocator");
 		exit(EXIT_FAILURE);

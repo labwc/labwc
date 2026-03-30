@@ -206,6 +206,16 @@ static void
 get_text_size(cairo_t *cairo, const PangoFontDescription *desc, int *width, int *height,
 		int *baseline, double scale, bool markup, const char *fmt, ...)
 {
+	if (width) {
+		*width = 0;
+	}
+	if (height) {
+		*height = 0;
+	}
+	if (baseline) {
+		*baseline = 0;
+	}
+
 	va_list args;
 	va_start(args, fmt);
 	gchar *buf = g_strdup_vprintf(fmt, args);

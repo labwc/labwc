@@ -42,7 +42,6 @@
 
 #if HAVE_XWAYLAND
 #include <wlr/xwayland.h>
-#include "xwayland-shell-v1-protocol.h"
 #endif
 
 #include "action.h"
@@ -308,7 +307,11 @@ server_global_filter(const struct wl_client *client, const struct wl_global *glo
 		? server.xwayland->server->client
 		: NULL;
 
-	if (client != xwayland_client && !strcmp(iface->name, xwayland_shell_v1_interface.name)) {
+	/*
+	 * The interface name `xwayland_shell_v1_interface.name` is hard-coded
+	 * here to avoid generating and including `xwayland-shell-v1-protocol.h`
+	 */
+	if (client != xwayland_client && !strcmp(iface->name, "xwayland_shell_v1")) {
 		/* Filter out the xwayland shell for usual clients */
 		return false;
 	}

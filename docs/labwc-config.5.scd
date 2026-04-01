@@ -845,7 +845,7 @@ References:
   A-Space - show window menu
 ```
 
-	Audio and MonBrightness keys are also bound to amixer and
+	Audio and MonBrightness keys are also bound to pactl and
 	brightnessctl, respectively.
 
 *<keyboard><repeatRate>*

@@ -217,9 +217,9 @@ If you have not created an rc.xml config file, default bindings will be:
 | `super`-`mouse-right`    | resize window
 | `super`-`arrow`          | resize window to fill half the output
 | `alt`-`space`            | show the window menu
-| `XF86AudioLowerVolume`   | amixer sset Master 5%-
-| `XF86AudioRaiseVolume`   | amixer sset Master 5%+
-| `XF86AudioMute`          | amixer sset Master toggle
+| `XF86AudioLowerVolume`   | pactl set-sink-volume @DEFAULT_SINK@ -5%
+| `XF86AudioRaiseVolume`   | pactl set-sink-volume @DEFAULT_SINK@ +5%
+| `XF86AudioMute`          | pactl set-sink-mute @DEFAULT_SINK@ toggle
 | `XF86MonBrightnessUp`    | brightnessctl set +10%
 | `XF86MonBrightnessDown`  | brightnessctl set 10%-
 

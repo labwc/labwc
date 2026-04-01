@@ -243,13 +243,14 @@ struct server {
 		struct wl_list all;  /* struct workspace.link */
 		struct workspace *current;
 		struct workspace *last;
-		struct lab_cosmic_workspace_manager *cosmic_manager;
-		struct lab_cosmic_workspace_group *cosmic_group;
-		struct lab_ext_workspace_manager *ext_manager;
-		struct lab_ext_workspace_group *ext_group;
+		struct wlr_ext_workspace_manager_v1 *ext_manager;
+		struct wlr_ext_workspace_group_handle_v1 *ext_group;
 		struct {
 			struct wl_listener layout_output_added;
 		} on;
+		struct {
+			struct wl_listener commit;
+		} on_ext_manager;
 	} workspaces;
 
 	struct wl_list outputs;
@@ -273,7 +274,6 @@ struct server {
 	struct wl_listener renderer_lost;
 
 	struct wlr_gamma_control_manager_v1 *gamma_control_manager_v1;
-	struct wl_listener gamma_control_set_gamma;
 
 	struct session_lock_manager *session_lock_manager;
 

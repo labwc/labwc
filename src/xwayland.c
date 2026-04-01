@@ -25,20 +25,6 @@
 #include "window-rules.h"
 #include "workspaces.h"
 
-enum atoms {
-	ATOM_NET_WM_ICON = 0,
-
-	ATOM_COUNT,
-};
-
-static const char * const atom_names[] = {
-	[ATOM_NET_WM_ICON] = "_NET_WM_ICON",
-};
-
-static_assert(ARRAY_SIZE(atom_names) == ATOM_COUNT, "atom names out of sync");
-
-static xcb_atom_t atoms[ATOM_COUNT] = {0};
-
 static void set_surface(struct view *view, struct wlr_surface *surface);
 static void handle_map(struct wl_listener *listener, void *data);
 static void handle_unmap(struct wl_listener *listener, void *data);
@@ -360,11 +346,53 @@ handle_associate(struct wl_listener *listener, void *data)
 {
 	struct xwayland_view *xwayland_view =
 		wl_container_of(listener, xwayland_view, associate);
-	assert(xwayland_view->xwayland_surface &&
-		xwayland_view->xwayland_surface->surface);
+	struct view *view = &xwayland_view->base;
+	struct wlr_xwayland_surface *xsurface = xwayland_view->xwayland_surface;
+	assert(xsurface && xsurface->surface);
 
-	set_surface(&xwayland_view->base,
-		xwayland_view->xwayland_surface->surface);
+	set_surface(view, xsurface->surface);
+
+	/*
+	 * Empirically, the associate event is always seen just after
+	 * map_request but before surface map. Window properties are
+	 * also read by wlroots just before emitting associate. So after
+	 * some trial and error, this seems to be the best place to set
+	 * initial view states and compute initial placement.
+	 */
+	ensure_initial_geometry_and_output(view);
+
+	/*
+	 * Per the Extended Window Manager Hints (EWMH) spec: "The Window
+	 * Manager SHOULD honor _NET_WM_STATE whenever a withdrawn window
+	 * requests to be mapped."
+	 *
+	 * The following order of operations is intended to reduce the
+	 * number of resize (Configure) events:
+	 *   1. set fullscreen state
+	 *   2. set decorations (depends on fullscreen state)
+	 *   3. set maximized (geometry depends on decorations)
+	 */
+	view_set_fullscreen(view, xsurface->fullscreen);
+	if (!view->been_mapped) {
+		if (want_deco(xsurface)) {
+			view_set_ssd_mode(view, LAB_SSD_MODE_FULL);
+		} else {
+			view_set_ssd_mode(view, LAB_SSD_MODE_NONE);
+		}
+	}
+	enum view_axis axis = VIEW_AXIS_NONE;
+	if (xsurface->maximized_horz) {
+		axis |= VIEW_AXIS_HORIZONTAL;
+	}
+	if (xsurface->maximized_vert) {
+		axis |= VIEW_AXIS_VERTICAL;
+	}
+	view_maximize(view, axis);
+
+	if (window_rules_get_property(view, "allowAlwaysOnTop") == LAB_PROP_TRUE) {
+		view_set_layer(view, xsurface->above
+		? VIEW_LAYER_ALWAYS_ON_TOP : VIEW_LAYER_NORMAL);
+	}
 }
 
 static void
@@ -406,8 +434,8 @@ handle_destroy(struct wl_listener *listener, void *data)
 	wl_list_remove(&xwayland_view->set_override_redirect.link);
 	wl_list_remove(&xwayland_view->set_strut_partial.link);
 	wl_list_remove(&xwayland_view->set_window_type.link);
+	wl_list_remove(&xwayland_view->set_icon.link);
 	wl_list_remove(&xwayland_view->focus_in.link);
-	wl_list_remove(&xwayland_view->map_request.link);
 
 	wl_list_remove(&xwayland_view->on_view.always_on_top.link);
 
@@ -629,29 +657,20 @@ handle_set_strut_partial(struct wl_listener *listener, void *data)
 }
 
 static void
-update_icon(struct xwayland_view *xwayland_view)
+handle_set_icon(struct wl_listener *listener, void *data)
 {
-	if (!xwayland_view->xwayland_surface) {
-		return;
-	}
+	struct xwayland_view *xwayland_view =
+		wl_container_of(listener, xwayland_view, set_icon);
 
-	xcb_window_t window_id = xwayland_view->xwayland_surface->window_id;
-
-	xcb_connection_t *xcb_conn = wlr_xwayland_get_xwm_connection(server.xwayland);
-	xcb_get_property_cookie_t cookie = xcb_get_property(xcb_conn, 0,
-		window_id, atoms[ATOM_NET_WM_ICON], XCB_ATOM_CARDINAL, 0, 0x10000);
-	xcb_get_property_reply_t *reply = xcb_get_property_reply(xcb_conn, cookie, NULL);
-	if (!reply) {
-		return;
-	}
-	xcb_ewmh_get_wm_icon_reply_t icon;
-	if (!xcb_ewmh_get_wm_icon_from_reply(&icon, reply)) {
+	xcb_ewmh_get_wm_icon_reply_t icon_reply = {0};
+	if (!wlr_xwayland_surface_fetch_icon(xwayland_view->xwayland_surface,
+			&icon_reply)) {
 		wlr_log(WLR_INFO, "Invalid x11 icon");
 		view_set_icon(&xwayland_view->base, NULL, NULL);
 		goto out;
 	}
 
-	xcb_ewmh_wm_icon_iterator_t iter = xcb_ewmh_get_wm_icon_iterator(&icon);
+	xcb_ewmh_wm_icon_iterator_t iter = xcb_ewmh_get_wm_icon_iterator(&icon_reply);
 	struct wl_array buffers;
 	wl_array_init(&buffers);
 	for (; iter.rem; xcb_ewmh_get_wm_icon_next(&iter)) {
@@ -681,7 +700,7 @@ update_icon(struct xwayland_view *xwayland_view)
 	wl_array_release(&buffers);
 
 out:
-	free(reply);
+	xcb_ewmh_get_wm_icon_reply_wipe(&icon_reply);
 }
 
 static void
@@ -712,63 +731,6 @@ handle_focus_in(struct wl_listener *listener, void *data)
 
 	if (view->surface != seat->wlr_seat->keyboard_state.focused_surface) {
 		seat_focus_surface(seat, view->surface);
-	}
-}
-
-/*
- * Sets the initial geometry of maximized/fullscreen views before
- * actually mapping them, so that they can do their initial layout and
- * drawing with the correct geometry. This avoids visual glitches and
- * also avoids undesired layout changes with some apps (e.g. HomeBank).
- */
-static void
-handle_map_request(struct wl_listener *listener, void *data)
-{
-	struct xwayland_view *xwayland_view =
-		wl_container_of(listener, xwayland_view, map_request);
-	struct view *view = &xwayland_view->base;
-	struct wlr_xwayland_surface *xsurface = xwayland_view->xwayland_surface;
-
-	if (view->mapped) {
-		/* Probably shouldn't happen, but be sure */
-		return;
-	}
-
-	/* Keep the view invisible until actually mapped */
-	wlr_scene_node_set_enabled(&view->scene_tree->node, false);
-	ensure_initial_geometry_and_output(view);
-
-	/*
-	 * Per the Extended Window Manager Hints (EWMH) spec: "The Window
-	 * Manager SHOULD honor _NET_WM_STATE whenever a withdrawn window
-	 * requests to be mapped."
-	 *
-	 * The following order of operations is intended to reduce the
-	 * number of resize (Configure) events:
-	 *   1. set fullscreen state
-	 *   2. set decorations (depends on fullscreen state)
-	 *   3. set maximized (geometry depends on decorations)
-	 */
-	view_set_fullscreen(view, xsurface->fullscreen);
-	if (!view->been_mapped) {
-		if (want_deco(xsurface)) {
-			view_set_ssd_mode(view, LAB_SSD_MODE_FULL);
-		} else {
-			view_set_ssd_mode(view, LAB_SSD_MODE_NONE);
-		}
-	}
-	enum view_axis axis = VIEW_AXIS_NONE;
-	if (xsurface->maximized_horz) {
-		axis |= VIEW_AXIS_HORIZONTAL;
-	}
-	if (xsurface->maximized_vert) {
-		axis |= VIEW_AXIS_VERTICAL;
-	}
-	view_maximize(view, axis);
-
-	if (window_rules_get_property(view, "allowAlwaysOnTop") == LAB_PROP_TRUE) {
-		view_set_layer(view, xsurface->above
-			? VIEW_LAYER_ALWAYS_ON_TOP : VIEW_LAYER_NORMAL);
 	}
 }
 
@@ -814,14 +776,6 @@ handle_map(struct wl_listener *listener, void *data)
 	if (view->mapped) {
 		return;
 	}
-
-	/*
-	 * The map_request event may not be received when an unmanaged
-	 * (override-redirect) surface becomes managed. To make sure we
-	 * have valid geometry in that case, call handle_map_request()
-	 * explicitly (calling it twice is harmless).
-	 */
-	handle_map_request(&xwayland_view->map_request, NULL);
 
 	view->mapped = true;
 
@@ -1051,6 +1005,7 @@ xwayland_view_create(struct wlr_xwayland_surface *xsurface, bool mapped)
 	view->workspace = server.workspaces.current;
 	view->scene_tree = lab_wlr_scene_tree_create(
 		view->workspace->view_trees[VIEW_LAYER_NORMAL]);
+	wlr_scene_node_set_enabled(&view->scene_tree->node, false);
 	node_descriptor_create(&view->scene_tree->node,
 		LAB_NODE_VIEW, view, /*data*/ NULL);
 
@@ -1074,8 +1029,8 @@ xwayland_view_create(struct wlr_xwayland_surface *xsurface, bool mapped)
 	CONNECT_SIGNAL(xsurface, xwayland_view, set_override_redirect);
 	CONNECT_SIGNAL(xsurface, xwayland_view, set_strut_partial);
 	CONNECT_SIGNAL(xsurface, xwayland_view, set_window_type);
+	CONNECT_SIGNAL(xsurface, xwayland_view, set_icon);
 	CONNECT_SIGNAL(xsurface, xwayland_view, focus_in);
-	CONNECT_SIGNAL(xsurface, xwayland_view, map_request);
 
 	/* Events from the view itself */
 	CONNECT_SIGNAL(view, &xwayland_view->on_view, always_on_top);
@@ -1088,13 +1043,10 @@ xwayland_view_create(struct wlr_xwayland_surface *xsurface, bool mapped)
 		/*
 		 * If a surface is already associated, then we've
 		 * missed the various initial set_* events as well.
-		 *
-		 * TODO: update_icon() -> handle_set_icon() after
-		 * https://github.com/labwc/labwc/pull/2760
 		 */
 		handle_set_title(&view->set_title, NULL);
 		handle_set_class(&xwayland_view->set_class, NULL);
-		update_icon(xwayland_view);
+		handle_set_icon(&xwayland_view->set_icon, NULL);
 	}
 	if (mapped) {
 		handle_map(&xwayland_view->base.mappable.map, NULL);
@@ -1117,91 +1069,11 @@ handle_new_surface(struct wl_listener *listener, void *data)
 	}
 }
 
-static struct xwayland_view *
-xwayland_view_from_window_id(xcb_window_t id)
-{
-	struct view *view;
-	wl_list_for_each(view, &server.views, link) {
-		if (view->type != LAB_XWAYLAND_VIEW) {
-			continue;
-		}
-		struct xwayland_view *xwayland_view = xwayland_view_from_view(view);
-		if (xwayland_view->xwayland_surface
-				&& xwayland_view->xwayland_surface->window_id == id) {
-			return xwayland_view;
-		}
-	}
-	return NULL;
-}
-
-#define XCB_EVENT_RESPONSE_TYPE_MASK 0x7f
-static bool
-handle_x11_event(struct wlr_xwayland *wlr_xwayland, xcb_generic_event_t *event)
-{
-	switch (event->response_type & XCB_EVENT_RESPONSE_TYPE_MASK) {
-	case XCB_PROPERTY_NOTIFY: {
-		xcb_property_notify_event_t *ev = (void *)event;
-		if (ev->atom == atoms[ATOM_NET_WM_ICON]) {
-			struct xwayland_view *xwayland_view =
-				xwayland_view_from_window_id(ev->window);
-			if (xwayland_view) {
-				update_icon(xwayland_view);
-			} else {
-				wlr_log(WLR_DEBUG, "icon property changed for unknown window");
-			}
-			return true;
-		}
-		break;
-	}
-	default:
-		break;
-	}
-
-	return false;
-}
-
-static void
-sync_atoms(void)
-{
-	xcb_connection_t *xcb_conn =
-		wlr_xwayland_get_xwm_connection(server.xwayland);
-	assert(xcb_conn);
-
-	wlr_log(WLR_DEBUG, "Syncing X11 atoms");
-	xcb_intern_atom_cookie_t cookies[ATOM_COUNT];
-
-	/* First request everything and then loop over the results to reduce latency */
-	for (size_t i = 0; i < ATOM_COUNT; i++) {
-		cookies[i] = xcb_intern_atom(xcb_conn, 0,
-			strlen(atom_names[i]), atom_names[i]);
-	}
-
-	for (size_t i = 0; i < ATOM_COUNT; i++) {
-		xcb_generic_error_t *err = NULL;
-		xcb_intern_atom_reply_t *reply =
-			xcb_intern_atom_reply(xcb_conn, cookies[i], &err);
-		if (reply) {
-			atoms[i] = reply->atom;
-			wlr_log(WLR_DEBUG, "Got X11 atom for %s: %u",
-				atom_names[i], reply->atom);
-		}
-		if (err) {
-			atoms[i] = XCB_ATOM_NONE;
-			wlr_log(WLR_INFO, "Failed to get X11 atom for %s",
-				atom_names[i]);
-		}
-		free(reply);
-		free(err);
-	}
-}
-
 static void
 handle_server_ready(struct wl_listener *listener, void *data)
 {
 	/* Fire an Xwayland startup script if one (or many) can be found */
 	session_run_script("xinitrc");
-
-	sync_atoms();
 }
 
 static void
@@ -1218,8 +1090,9 @@ xwayland_server_init(struct wlr_compositor *compositor)
 		wlr_xwayland_create(server.wl_display,
 			compositor, /* lazy */ !rc.xwayland_persistence);
 	if (!server.xwayland) {
-		wlr_log(WLR_ERROR, "cannot create xwayland server");
-		exit(EXIT_FAILURE);
+		wlr_log(WLR_ERROR, "failed to create xwayland server, continuing without");
+		unsetenv("DISPLAY");
+		return;
 	}
 	server.xwayland_new_surface.notify = handle_new_surface;
 	wl_signal_add(&server.xwayland->events.new_surface,
@@ -1233,8 +1106,6 @@ xwayland_server_init(struct wlr_compositor *compositor)
 	wl_signal_add(&server.xwayland->events.ready,
 		&server.xwayland_xwm_ready);
 
-	server.xwayland->user_event_handler = handle_x11_event;
-
 	if (setenv("DISPLAY", server.xwayland->display_name, true) < 0) {
 		wlr_log_errno(WLR_ERROR, "unable to set DISPLAY for xwayland");
 	} else {
@@ -1247,60 +1118,11 @@ xwayland_server_init(struct wlr_compositor *compositor)
 		server.seat.xcursor_manager, XCURSOR_DEFAULT, 1);
 	if (xcursor) {
 		struct wlr_xcursor_image *image = xcursor->images[0];
-		wlr_xwayland_set_cursor(server.xwayland, image->buffer,
-			image->width * 4, image->width,
-			image->height, image->hotspot_x,
-			image->hotspot_y);
-	}
-}
-
-void
-xwayland_reset_cursor(void)
-{
-	/*
-	 * As xwayland caches the pixel data when not yet started up
-	 * due to the delayed lazy startup approach, we do have to
-	 * re-set the xwayland cursor image. Otherwise the first X11
-	 * client connected will cause the xwayland server to use
-	 * the cached (and potentially destroyed) pixel data.
-	 *
-	 * Calling this function after reloading the cursor theme
-	 * ensures that the cached pixel data keeps being valid.
-	 *
-	 * To reproduce:
-	 * - Compile with b_sanitize=address,undefined
-	 * - Start labwc (nothing in autostart that could create
-	 *   a X11 connection, e.g. no GTK or X11 application)
-	 * - Reconfigure
-	 * - Start some X11 client
-	 */
-
-	if (!server.xwayland) {
-		return;
-	}
-
-	struct wlr_xcursor *xcursor = wlr_xcursor_manager_get_xcursor(
-		server.seat.xcursor_manager, XCURSOR_DEFAULT, 1);
-
-	if (xcursor && !server.xwayland->xwm) {
-		/* Prevents setting the cursor on an active xwayland server */
-		struct wlr_xcursor_image *image = xcursor->images[0];
-		wlr_xwayland_set_cursor(server.xwayland, image->buffer,
-			image->width * 4, image->width,
-			image->height, image->hotspot_x,
-			image->hotspot_y);
-		return;
-	}
-
-	if (server.xwayland->cursor) {
-		/*
-		 * The previous configured theme has set the
-		 * default cursor or the xwayland server is
-		 * currently running but still has a cached
-		 * xcursor set that will be used on the next
-		 * xwayland destroy -> lazy startup cycle.
-		 */
-		zfree(server.xwayland->cursor);
+		struct wlr_buffer *cursor_buffer = wlr_xcursor_image_get_buffer(image);
+		if (cursor_buffer) {
+			wlr_xwayland_set_cursor(server.xwayland, cursor_buffer,
+				image->hotspot_x, image->hotspot_y);
+		}
 	}
 }
 
@@ -1308,6 +1130,11 @@ void
 xwayland_server_finish(void)
 {
 	struct wlr_xwayland *xwayland = server.xwayland;
+
+	if (!xwayland) {
+		return;
+	}
+
 	wl_list_remove(&server.xwayland_new_surface.link);
 	wl_list_remove(&server.xwayland_server_ready.link);
 	wl_list_remove(&server.xwayland_xwm_ready.link);

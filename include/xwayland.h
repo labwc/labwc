@@ -53,8 +53,8 @@ struct xwayland_view {
 	struct wl_listener set_override_redirect;
 	struct wl_listener set_strut_partial;
 	struct wl_listener set_window_type;
+	struct wl_listener set_icon;
 	struct wl_listener focus_in;
-	struct wl_listener map_request;
 
 	/* Not (yet) implemented */
 /*	struct wl_listener set_role; */
@@ -79,8 +79,6 @@ void xwayland_adjust_usable_area(struct view *view,
 	struct wlr_box *usable);
 
 void xwayland_update_workarea(void);
-
-void xwayland_reset_cursor(void);
 
 void xwayland_flush(void);
 

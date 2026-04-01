@@ -6,17 +6,18 @@
 #include <sys/wait.h>
 #include <wlr/backend/headless.h>
 #include <wlr/backend/multi.h>
+#include <wlr/config.h>
 #include <wlr/render/allocator.h>
 #include <wlr/types/wlr_alpha_modifier_v1.h>
 #include <wlr/types/wlr_data_control_v1.h>
 #include <wlr/types/wlr_data_device.h>
 #include <wlr/types/wlr_drm.h>
-#include <wlr/types/wlr_drm_lease_v1.h>
 #include <wlr/types/wlr_export_dmabuf_v1.h>
 #include <wlr/types/wlr_ext_data_control_v1.h>
 #include <wlr/types/wlr_ext_foreign_toplevel_list_v1.h>
 #include <wlr/types/wlr_ext_image_capture_source_v1.h>
 #include <wlr/types/wlr_ext_image_copy_capture_v1.h>
+#include <wlr/types/wlr_fixes.h>
 #include <wlr/types/wlr_foreign_toplevel_management_v1.h>
 #include <wlr/types/wlr_fractional_scale_v1.h>
 #include <wlr/types/wlr_input_method_v2.h>
@@ -40,8 +41,11 @@
 #include <wlr/types/wlr_xdg_foreign_v2.h>
 
 #if HAVE_XWAYLAND
-#include <wlr/xwayland.h>
-#include "xwayland-shell-v1-protocol.h"
+	#include <wlr/xwayland.h>
+#endif
+
+#if WLR_HAS_DRM_BACKEND
+	#include <wlr/types/wlr_drm_lease_v1.h>
 #endif
 
 #include "action.h"
@@ -197,6 +201,7 @@ handle_sigchld(int signal, void *data)
 	return 0;
 }
 
+#if WLR_HAS_DRM_BACKEND
 static void
 handle_drm_lease_request(struct wl_listener *listener, void *data)
 {
@@ -208,6 +213,7 @@ handle_drm_lease_request(struct wl_listener *listener, void *data)
 		return;
 	}
 }
+#endif
 
 static bool
 protocol_is_privileged(const struct wl_interface *iface)
@@ -226,7 +232,6 @@ protocol_is_privileged(const struct wl_interface *iface)
 		"zwlr_data_control_manager_v1",
 		"wp_security_context_manager_v1",
 		"ext_idle_notifier_v1",
-		"zcosmic_workspace_manager_v1",
 		"zwlr_foreign_toplevel_manager_v1",
 		"ext_foreign_toplevel_list_v1",
 		"ext_session_lock_manager_v1",
@@ -260,6 +265,7 @@ allow_for_sandbox(const struct wlr_security_context_v1_state *security_state,
 		"wl_data_device_manager", /* would be great if we could drop this one */
 		"wl_seat",
 		"xdg_wm_base",
+		"wl_fixes",
 		/* enhanced */
 		"wl_output",
 		"wl_drm",
@@ -312,7 +318,11 @@ server_global_filter(const struct wl_client *client, const struct wl_global *glo
 		? server.xwayland->server->client
 		: NULL;
 
-	if (client != xwayland_client && !strcmp(iface->name, xwayland_shell_v1_interface.name)) {
+	/*
+	 * The interface name `xwayland_shell_v1_interface.name` is hard-coded
+	 * here to avoid generating and including `xwayland-shell-v1-protocol.h`
+	 */
+	if (client != xwayland_client && !strcmp(iface->name, "xwayland_shell_v1")) {
 		/* Filter out the xwayland shell for usual clients */
 		return false;
 	}
@@ -437,6 +447,8 @@ server_init(void)
 
 	wl_display_set_global_filter(server.wl_display, server_global_filter, NULL);
 	server.wl_event_loop = wl_display_get_event_loop(server.wl_display);
+
+	wlr_fixes_create(server.wl_display, 1);
 
 	/* Catch signals */
 	server.sighup_source = wl_event_loop_add_signal(
@@ -588,6 +600,8 @@ server_init(void)
 	server.workspace_tree = lab_wlr_scene_tree_create(&server.scene->tree);
 	server.xdg_popup_tree = lab_wlr_scene_tree_create(&server.scene->tree);
 #if HAVE_XWAYLAND
+	// Creating/setting this is harmless when xwayland support is built-in
+	// but xwayland could not be successfully started.
 	server.unmanaged_tree = lab_wlr_scene_tree_create(&server.scene->tree);
 #endif
 	server.menu_tree = lab_wlr_scene_tree_create(&server.scene->tree);
@@ -689,6 +703,7 @@ server_init(void)
 
 	session_lock_init();
 
+#if WLR_HAS_DRM_BACKEND
 	server.drm_lease_manager = wlr_drm_lease_v1_manager_create(
 		server.wl_display, server.backend);
 	if (server.drm_lease_manager) {
@@ -699,6 +714,7 @@ server_init(void)
 		wlr_log(WLR_DEBUG, "Failed to create wlr_drm_lease_device_v1");
 		wlr_log(WLR_INFO, "VR will not be available");
 	}
+#endif
 
 	server.output_power_manager_v1 =
 		wlr_output_power_manager_v1_create(server.wl_display);

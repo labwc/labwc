@@ -51,9 +51,9 @@ endif
 add_project_arguments('-DLABWC_VERSION=@0@'.format(version), language: 'c')
 
 wlroots = dependency(
-  'wlroots-0.19',
+  'wlroots-0.20',
   default_options: ['default_library=static', 'examples=false'],
-  version: ['>=0.19.0', '<0.20.0'],
+  version: ['>=0.20.0', '<0.21.0'],
 )
 
 wlroots_has_xwayland = wlroots.get_variable('have_xwayland') == 'true'
@@ -65,13 +65,13 @@ xkbcommon = dependency('xkbcommon')
 xcb = dependency('xcb', required: get_option('xwayland'))
 xcb_ewmh = dependency('xcb-ewmh', required: get_option('xwayland'))
 xcb_icccm = dependency('xcb-icccm', required: get_option('xwayland'))
-drm_full = dependency('libdrm')
+drm_full = dependency('libdrm', required: wlroots.get_variable('have_drm_backend') == 'true')
 drm = drm_full.partial_dependency(compile_args: true, includes: true)
 xml2 = dependency('libxml-2.0')
 glib = dependency('glib-2.0')
 cairo = dependency('cairo')
 pangocairo = dependency('pangocairo')
-input = dependency('libinput', version: '>=1.14')
+input = dependency('libinput', version: '>=1.26', required: wlroots.get_variable('have_libinput_backend') == 'true')
 pixman = dependency('pixman-1')
 math = cc.find_library('m')
 png = dependency('libpng')

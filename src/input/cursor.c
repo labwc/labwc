@@ -3,7 +3,7 @@
 #include "input/cursor.h"
 #include <assert.h>
 #include <time.h>
-#include <wlr/backend/libinput.h>
+#include <wlr/config.h>
 #include <wlr/types/wlr_cursor.h>
 #include <wlr/types/wlr_cursor_shape_v1.h>
 #include <wlr/types/wlr_data_device.h>
@@ -37,6 +37,10 @@
 #include "ssd.h"
 #include "view.h"
 #include "xwayland.h"
+
+#if WLR_HAS_LIBINPUT_BACKEND
+	#include <wlr/backend/libinput.h>
+#endif
 
 #define LAB_CURSOR_SHAPE_V1_VERSION 1
 
@@ -898,6 +902,7 @@ preprocess_cursor_motion(struct seat *seat, struct wlr_pointer *pointer,
 
 static double get_natural_scroll_factor(struct wlr_input_device *wlr_input_device)
 {
+#if WLR_HAS_LIBINPUT_BACKEND
 	if (wlr_input_device_is_libinput(wlr_input_device)) {
 		struct libinput_device *libinput_device =
 			wlr_libinput_get_device_handle(wlr_input_device);
@@ -905,7 +910,7 @@ static double get_natural_scroll_factor(struct wlr_input_device *wlr_input_devic
 			return -1.0;
 		}
 	}
-
+#endif
 	return 1.0;
 }
 
@@ -1166,7 +1171,7 @@ cursor_process_button_press(struct seat *seat, uint32_t button, uint32_t time_ms
 		if (layer && layer->current.keyboard_interactive) {
 			layer_try_set_focus(seat, layer);
 		}
-#ifdef HAVE_XWAYLAND
+#if HAVE_XWAYLAND
 	} else if (ctx.type == LAB_NODE_UNMANAGED) {
 		desktop_focus_view_or_surface(seat, NULL, ctx.surface,
 			/*raise*/ false);
@@ -1604,9 +1609,6 @@ void
 cursor_reload(struct seat *seat)
 {
 	cursor_load(seat);
-#if HAVE_XWAYLAND
-	xwayland_reset_cursor();
-#endif
 	cursor_update_image(seat);
 }
 

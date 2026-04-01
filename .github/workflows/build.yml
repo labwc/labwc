@@ -82,7 +82,7 @@ jobs:
         run: |
           pacman-key --init
           pacman -Syu --noconfirm
-          pacman -S --noconfirm git meson clang wlroots0.19 libdrm libinput \
+          pacman -S --noconfirm git meson clang wlroots0.20 libdrm libinput \
             wayland-protocols cairo pango libxml2 xorg-xwayland librsvg \
             libdisplay-info gdb ttf-dejavu foot libsfdo cmocka
 
@@ -95,6 +95,7 @@ jobs:
           apt-get install -y git gcc clang gdb xwayland
           apt-get build-dep -y labwc
           apt-get build-dep -y libwlroots-0.19-dev
+          apt-get build-dep -y libxkbcommon-dev
 
       - name: Install FreeBSD dependencies
         if: matrix.name == 'FreeBSD'
@@ -106,7 +107,7 @@ jobs:
             pkg set -yn pkg:mesa-dri # hack to skip llvm dependency
             pkg install -y git pcre2 meson gcc pkgconf cairo pango evdev-proto \
               hwdata wayland-protocols libdisplay-info libepoll-shim \
-              wlroots019
+              wlroots020
           run: echo "setup done"
 
       - name: Install Void Linux dependencies
@@ -121,7 +122,7 @@ jobs:
           xbps-install -y git meson gcc clang pkg-config scdoc \
             cairo-devel glib-devel libpng-devel librsvg-devel libxml2-devel \
             pango-devel wlroots0.19-devel gdb bash xorg-server-xwayland \
-            dejavu-fonts-ttf libsfdo-devel foot
+            dejavu-fonts-ttf libsfdo-devel foot hwids
 
       # These builds are executed on all runners
       - name: Build with gcc
@@ -207,6 +208,19 @@ jobs:
             meson setup build-gcc-no-feature -Dxwayland=disabled \
               -Dicon=disabled -Dsvg=disabled --werror
             meson compile -C build-gcc-no-feature
+          ' | $TARGET
+
+      # No backend build, run on Arch only
+      - name: Build with gcc - no-backends test
+        if: matrix.name == 'Arch'
+        run: |
+          echo '
+            cd "$GITHUB_WORKSPACE"
+            export CC=gcc
+            meson setup build-gcc-no-backends \
+              -Dwlroots:backends= -Dwlroots:session=disabled --werror \
+              --force-fallback-for=wlroots
+            meson compile -C build-gcc-no-backends
           ' | $TARGET
 
       # Unit tests, run on Arch only

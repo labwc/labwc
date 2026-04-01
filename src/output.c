@@ -10,11 +10,10 @@
 #include "output.h"
 #include <assert.h>
 #include <strings.h>
-#include <wlr/backend/drm.h>
 #include <wlr/backend/wayland.h>
 #include <wlr/config.h>
 #include <wlr/types/wlr_cursor.h>
-#include <wlr/types/wlr_drm_lease_v1.h>
+#include <wlr/types/wlr_ext_workspace_v1.h>
 #include <wlr/types/wlr_gamma_control_v1.h>
 #include <wlr/types/wlr_output.h>
 #include <wlr/types/wlr_output_management_v1.h>
@@ -32,15 +31,24 @@
 #include "node.h"
 #include "output-state.h"
 #include "output-virtual.h"
-#include "protocols/cosmic-workspaces.h"
-#include "protocols/ext-workspace.h"
 #include "regions.h"
 #include "session-lock.h"
 #include "view.h"
 #include "xwayland.h"
 
 #if WLR_HAS_X11_BACKEND
-#include <wlr/backend/x11.h>
+	#include <wlr/backend/x11.h>
+#endif
+
+#if WLR_HAS_DRM_BACKEND
+	#include <wlr/backend/drm.h>
+	#include <wlr/types/wlr_drm_lease_v1.h>
+#else
+	#define wlr_output_is_drm(output) (false)
+#endif
+
+#if WLR_HAS_SESSION
+	#include <wlr/backend/session.h>
 #endif
 
 bool
@@ -83,35 +91,6 @@ output_get_tearing_allowance(struct output *output)
 }
 
 static void
-output_apply_gamma(struct output *output)
-{
-	assert(output);
-	assert(output->gamma_lut_changed);
-
-	struct wlr_scene_output *scene_output = output->scene_output;
-
-	struct wlr_output_state pending;
-	wlr_output_state_init(&pending);
-
-	output->gamma_lut_changed = false;
-	struct wlr_gamma_control_v1 *gamma_control =
-		wlr_gamma_control_manager_v1_get_control(
-			server.gamma_control_manager_v1,
-			output->wlr_output);
-
-	if (!wlr_gamma_control_v1_apply(gamma_control, &pending)) {
-		wlr_output_state_finish(&pending);
-		return;
-	}
-
-	if (!lab_wlr_scene_output_commit(scene_output, &pending)) {
-		wlr_gamma_control_v1_send_failed_and_destroy(gamma_control);
-	}
-
-	wlr_output_state_finish(&pending);
-}
-
-static void
 handle_output_frame(struct wl_listener *listener, void *data)
 {
 	/*
@@ -123,30 +102,21 @@ handle_output_frame(struct wl_listener *listener, void *data)
 		return;
 	}
 
+#if WLR_HAS_SESSION
 	/*
 	 * skip painting the session when it exists but is not active.
 	 */
 	if (server.session && !server.session->active) {
 		return;
 	}
+#endif
 
-	if (output->gamma_lut_changed) {
-		/*
-		 * We are not mixing the gamma state with
-		 * other pending output changes to make it
-		 * easier to handle a failed output commit
-		 * due to gamma without impacting other
-		 * unrelated output changes.
-		 */
-		output_apply_gamma(output);
-	} else {
-		struct wlr_scene_output *scene_output = output->scene_output;
-		struct wlr_output_state *pending = &output->pending;
+	struct wlr_scene_output *scene_output = output->scene_output;
+	struct wlr_output_state *pending = &output->pending;
 
-		pending->tearing_page_flip = output_get_tearing_allowance(output);
+	pending->tearing_page_flip = output_get_tearing_allowance(output);
 
-		lab_wlr_scene_output_commit(scene_output, pending);
-	}
+	lab_wlr_scene_output_commit(scene_output, pending);
 
 	struct timespec now = { 0 };
 	clock_gettime(CLOCK_MONOTONIC, &now);
@@ -285,9 +255,7 @@ add_output_to_layout(struct output *output)
 			layout_output, output->scene_output);
 	}
 
-	lab_cosmic_workspace_group_output_enter(
-		server.workspaces.cosmic_group, output->wlr_output);
-	lab_ext_workspace_group_output_enter(
+	wlr_ext_workspace_group_handle_v1_output_enter(
 		server.workspaces.ext_group, output->wlr_output);
 
 	/* (Re-)create regions from config */
@@ -495,14 +463,8 @@ handle_new_output(struct wl_listener *listener, void *data)
 	 * This is also useful for debugging the DRM parts of
 	 * another compositor.
 	 *
-	 * All drm leasing is disabled due to a UAF bug in wlroots.
-	 * We assume that the fix will be backported to 0.19.1 and thus
-	 * check for a version >= 0.19.1. See following link for the fix status:
-	 * https://gitlab.freedesktop.org/wlroots/wlroots/-/merge_requests/5104
-	 *
-	 * TODO: remove once labwc starts tracking 0.20.x and the fix has been merged.
 	 */
-#if LAB_WLR_VERSION_AT_LEAST(0, 19, 1)
+#if WLR_HAS_DRM_BACKEND
 	if (server.drm_lease_manager && wlr_output_is_drm(wlr_output)) {
 		wlr_drm_lease_v1_manager_offer_output(
 			server.drm_lease_manager, wlr_output);
@@ -601,6 +563,8 @@ output_init(void)
 {
 	server.gamma_control_manager_v1 =
 		wlr_gamma_control_manager_v1_create(server.wl_display);
+	wlr_scene_set_gamma_control_manager_v1(server.scene,
+		server.gamma_control_manager_v1);
 
 	server.new_output.notify = handle_new_output;
 	wl_signal_add(&server.backend->events.new_output, &server.new_output);
@@ -729,9 +693,7 @@ output_config_apply(struct wlr_output_configuration_v1 *config)
 		} else if (was_in_layout) {
 			regions_evacuate_output(output);
 
-			lab_cosmic_workspace_group_output_leave(
-				server.workspaces.cosmic_group, output->wlr_output);
-			lab_ext_workspace_group_output_leave(
+			wlr_ext_workspace_group_handle_v1_output_leave(
 				server.workspaces.ext_group, output->wlr_output);
 
 			/*
@@ -913,19 +875,6 @@ handle_output_layout_change(struct wl_listener *listener, void *data)
 }
 
 static void
-handle_gamma_control_set_gamma(struct wl_listener *listener, void *data)
-{
-	const struct wlr_gamma_control_manager_v1_set_gamma_event *event = data;
-
-	struct output *output = event->output->data;
-	if (!output_is_usable(output)) {
-		return;
-	}
-	output->gamma_lut_changed = true;
-	wlr_output_schedule_frame(output->wlr_output);
-}
-
-static void
 output_manager_init(void)
 {
 	server.output_manager = wlr_output_manager_v1_create(server.wl_display);
@@ -941,10 +890,6 @@ output_manager_init(void)
 	server.output_manager_test.notify = handle_output_manager_test;
 	wl_signal_add(&server.output_manager->events.test,
 		&server.output_manager_test);
-
-	server.gamma_control_set_gamma.notify = handle_gamma_control_set_gamma;
-	wl_signal_add(&server.gamma_control_manager_v1->events.set_gamma,
-		&server.gamma_control_set_gamma);
 }
 
 static void
@@ -953,7 +898,6 @@ output_manager_finish(void)
 	wl_list_remove(&server.output_layout_change.link);
 	wl_list_remove(&server.output_manager_apply.link);
 	wl_list_remove(&server.output_manager_test.link);
-	wl_list_remove(&server.gamma_control_set_gamma.link);
 }
 
 struct output *

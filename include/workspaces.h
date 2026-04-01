@@ -17,20 +17,7 @@ struct workspace {
 	struct wlr_scene_tree *tree;
 	struct wlr_scene_tree *view_trees[3];
 
-	struct lab_cosmic_workspace *cosmic_workspace;
-	struct {
-		struct wl_listener activate;
-		struct wl_listener deactivate;
-		struct wl_listener remove;
-	} on_cosmic;
-
-	struct lab_ext_workspace *ext_workspace;
-	struct {
-		struct wl_listener activate;
-		struct wl_listener deactivate;
-		struct wl_listener assign;
-		struct wl_listener remove;
-	} on_ext;
+	struct wlr_ext_workspace_handle_v1 *ext_workspace;
 };
 
 void workspaces_init(void);

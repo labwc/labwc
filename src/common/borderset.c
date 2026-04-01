@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <wlr/types/wlr_scene.h>
 #include "common/borderset.h"
 #include "common/mem.h"
@@ -43,6 +44,7 @@ struct borderset * getBorders(uint32_t id, int size, enum border_type type, int 
 
 struct borderset * createBuffer(uint32_t id, int size, 	enum border_type type, int bevelSize) {
 	struct borderset *newBorderset = znew(*newBorderset);
+
 	
 	newBorderset->next = NULL;
 	newBorderset->id = id;
@@ -75,29 +77,35 @@ struct borderset * createBuffer(uint32_t id, int size, 	enum border_type type, i
 	
 
 	// All borders have NxN corners
-	newBorderset->tl = znew_n(uint32_t, size*size);
-	newBorderset->tr = znew_n(uint32_t, size*size);
-	newBorderset->bl = znew_n(uint32_t, size*size);
-	newBorderset->br = znew_n(uint32_t, size*size);
-			
+	uint32_t *tl = znew_n(uint32_t, size*size);
+	uint32_t *tr = znew_n(uint32_t, size*size);
+	uint32_t *bl = znew_n(uint32_t, size*size);
+	uint32_t *br = znew_n(uint32_t, size*size);
+	uint32_t *top = NULL;
+	uint32_t *left = NULL;
+	uint32_t *right = NULL;
+	uint32_t *bottom = NULL;
+	size_t side_size = 0;
+
 	switch(type) {
 		case BORDER_SINGLE:  // Single bevel borders have 1x1 sides
-			newBorderset->top = znew(uint32_t);
-			newBorderset->left = znew(uint32_t);
-			newBorderset->right = znew(uint32_t);		
-			newBorderset->bottom = znew(uint32_t);
-			*newBorderset->top = hl32;
-			*newBorderset->left = hl32;
-			*newBorderset->right = ll32;
-			*newBorderset->bottom = ll32;
+			top = znew(uint32_t);
+			left = znew(uint32_t);
+			right = znew(uint32_t);
+			bottom = znew(uint32_t);
+			side_size = 1;
+			*top = hl32;
+			*left = hl32;
+			*right = ll32;
+			*bottom = ll32;
 			
 			// Fill with solid
 			for (int j=0; j<size;j++) {
 				for (int k=0; k<size;k++) {
-					newBorderset->tl[PIXEL(j, k, size)] = hl32;
-					newBorderset->tr[PIXEL(size - 1 - j, k, size)] = (j > k) ? hl32 : ll32;
-					newBorderset->bl[PIXEL(size - 1 -j, k, size)] = (j > k) ? hl32 : ll32;
-					newBorderset->br[PIXEL(j, k, size)] = ll32;
+					tl[PIXEL(j, k, size)] = hl32;
+					tr[PIXEL(size - 1 - j, k, size)] = (j > k) ? hl32 : ll32;
+					bl[PIXEL(size - 1 -j, k, size)] = (j > k) ? hl32 : ll32;
+					br[PIXEL(j, k, size)] = ll32;
 				}
 			}
 		
@@ -107,39 +115,40 @@ struct borderset * createBuffer(uint32_t id, int size, 	enum border_type type, i
 
 
 		case BORDER_DOUBLE:
-			newBorderset->top = znew_n(uint32_t, size);
-			newBorderset->left = znew_n(uint32_t, size);
-			newBorderset->right = znew_n(uint32_t, size);
-			newBorderset->bottom = znew_n(uint32_t, size);
+			top = znew_n(uint32_t, size);
+			left = znew_n(uint32_t, size);
+			right = znew_n(uint32_t, size);
+			bottom = znew_n(uint32_t, size);
+			side_size = size;
 
 			for (int i = 0; i < size; i++) {
 				if (i<bevelSize) {
-					newBorderset->left[i] = hl32;
-					newBorderset->top[i] = hl32;
-					newBorderset->right[i] = hl32;
-					newBorderset->bottom[i] = hl32;
+					left[i] = hl32;
+					top[i] = hl32;
+					right[i] = hl32;
+					bottom[i] = hl32;
 
 				} else if (i > (size-bevelSize-1)) {
-					newBorderset->left[i] = ll32;
-					newBorderset->top[i] = ll32;
-					newBorderset->right[i] = ll32;
-					newBorderset->bottom[i] = ll32;
+					left[i] = ll32;
+					top[i] = ll32;
+					right[i] = ll32;
+					bottom[i] = ll32;
 
 				} else {
-					newBorderset->left[i] = id;
-					newBorderset->top[i] = id;
-					newBorderset->right[i] = id;
-					newBorderset->bottom[i] = id;					
+					left[i] = id;
+					top[i] = id;
+					right[i] = id;
+					bottom[i] = id;
 				}
 			}
 
 			// Blank corners...
 			for (int i=0; i<size;i++) {
 				for (int j=0; j<size;j++) {
-					newBorderset->tl[PIXEL(i, j, size)] = id;
-					newBorderset->tr[PIXEL(i, j, size)] = id;
-					newBorderset->bl[PIXEL(i, j, size)] = id;
-					newBorderset->br[PIXEL(i, j, size)] = id;
+					tl[PIXEL(i, j, size)] = id;
+					tr[PIXEL(i, j, size)] = id;
+					bl[PIXEL(i, j, size)] = id;
+					br[PIXEL(i, j, size)] = id;
 				}
 			}
 
@@ -150,25 +159,25 @@ struct borderset * createBuffer(uint32_t id, int size, 	enum border_type type, i
 				// Solid bar parts
 				for (int j=0; j<size; j++) {
 					// Top left corner:  Entire "bevel size" top rows are highlighted
-					newBorderset->tl[PIXEL(j, i, size)] = hl32;
+					tl[PIXEL(j, i, size)] = hl32;
 					// First "bevel size" top columns are highlighted
-					newBorderset->tl[PIXEL(i, j, size)] = hl32;
+					tl[PIXEL(i, j, size)] = hl32;
 									
 					// Bottom Right corner:  Entire "bevel size" last rows are lowlight
-					newBorderset->br[PIXEL(j, (size-1-i), size)] = ll32;
+					br[PIXEL(j, (size-1-i), size)] = ll32;
 					// Last "bevel size" columns are lowlight
-					newBorderset->br[PIXEL((size-1-i), j, size)] = ll32;
+					br[PIXEL((size-1-i), j, size)] = ll32;
 				
 				
 					// Bottom left corner:  Entire "bevel size" last rows are lowlight
-					newBorderset->bl[PIXEL(j, (size-1-i), size)] = ll32;
+					bl[PIXEL(j, (size-1-i), size)] = ll32;
 					// First "bevel size" columns are highlight, except for the bottom right corner
-					newBorderset->bl[PIXEL(i, j, size)] = hl32;
+					bl[PIXEL(i, j, size)] = hl32;
 					
 					// Top Right corner:  Entire "bevel size" first rows are highlight
-					newBorderset->tr[PIXEL(j, i, size)] = hl32;
+					tr[PIXEL(j, i, size)] = hl32;
 					// Last "bevel size" columns are lowlight, except for the top left
-					newBorderset->tr[PIXEL((size-1-i), j, size)] = ll32;					
+					tr[PIXEL((size-1-i), j, size)] = ll32;
 
 				}
 			}
@@ -179,27 +188,27 @@ struct borderset * createBuffer(uint32_t id, int size, 	enum border_type type, i
    		                // Outer Corners
 					// Bottom left corner: 
 					// First "bevel size" columns are highlight, except for the bottom right corner
-					newBorderset->bl[PIXEL(i, (size - 1 - j), size)] = (j >= i) ? hl32 : ll32;
+					bl[PIXEL(i, (size - 1 - j), size)] = (j >= i) ? hl32 : ll32;
 					
 					// Top Right corner:
 					// Last "bevel size" columns are lowlight, except for the top left
-					newBorderset->tr[PIXEL((size-1-i), j, size)] = (j > i) ? ll32 : hl32;
+					tr[PIXEL((size-1-i), j, size)] = (j > i) ? ll32 : hl32;
 					
 					
 				// Inner Corners
 					// Top left corner:  Bottom right is all dark
-					newBorderset->tl[PIXEL((size-1-i), (size - 1 - j), size)] = ll32;
+					tl[PIXEL((size-1-i), (size - 1 - j), size)] = ll32;
 					
                                         // Bottom Right corner:  Top left is all light
-					newBorderset->br[PIXEL(i, j, size)] = hl32;
+					br[PIXEL(i, j, size)] = hl32;
 					
 					// Top Right corner:
 					// Interior bottom left is dark on top, light on bottom
-					newBorderset->tr[PIXEL(i, (size-1-j), size)] = (i > j) ? hl32 : ll32;						
+					tr[PIXEL(i, (size-1-j), size)] = (i > j) ? hl32 : ll32;
 					
 					// Bottom Left corner:
 					// Interior top right is dark on top, light on bottom
-					newBorderset->bl[PIXEL((size-1-i), j, size)] = (i > j) ? ll32 : hl32;						
+					bl[PIXEL((size-1-i), j, size)] = (i > j) ? ll32 : hl32;	
 
 											
 
@@ -214,22 +223,23 @@ struct borderset * createBuffer(uint32_t id, int size, 	enum border_type type, i
 		break;
 		
 		case BORDER_FLAT:  // Placeholder that uses buffers but for a flat colour
-			newBorderset->top = znew(uint32_t);
-			newBorderset->left = znew(uint32_t);
-			newBorderset->right = znew(uint32_t);		
-			newBorderset->bottom = znew(uint32_t);
-			*newBorderset->top = id;
-			*newBorderset->left = id;
-			*newBorderset->right = id;
-			*newBorderset->bottom = id;
+			top = znew(uint32_t);
+			left = znew(uint32_t);
+			right = znew(uint32_t);
+			bottom = znew(uint32_t);
+			side_size = 1;
+			*top = id;
+			*left = id;
+			*right = id;
+			*bottom = id;
 			
 			// Fill with solid
 			for (int j=0; j<size;j++) {
 				for (int k=0; k<size;k++) {
-					newBorderset->tl[PIXEL(j, k, size)] = id;
-					newBorderset->tr[PIXEL(size - 1 - j, k, size)] = id;
-					newBorderset->bl[PIXEL(size - 1 -j, k, size)] = id;
-					newBorderset->br[PIXEL(j, k, size)] = id;
+					tl[PIXEL(j, k, size)] = id;
+					tr[PIXEL(size - 1 - j, k, size)] = id;
+					bl[PIXEL(size - 1 -j, k, size)] = id;
+					br[PIXEL(j, k, size)] = id;
 				}
 			}
 		
@@ -238,22 +248,23 @@ struct borderset * createBuffer(uint32_t id, int size, 	enum border_type type, i
 		break;
 		
 		case BORDER_INSET:  // Sunken Single bevel borders have 1x1 sides
-			newBorderset->top = znew(uint32_t);
-			newBorderset->left = znew(uint32_t);
-			newBorderset->right = znew(uint32_t);		
-			newBorderset->bottom = znew(uint32_t);
-			*newBorderset->top = ll32;
-			*newBorderset->left = ll32;
-			*newBorderset->right = hl32;
-			*newBorderset->bottom = hl32;
+			top = znew(uint32_t);
+			left = znew(uint32_t);
+			right = znew(uint32_t);
+			bottom = znew(uint32_t);
+			side_size = 1;
+			*top = ll32;
+			*left = ll32;
+			*right = hl32;
+			*bottom = hl32;
 			
 			// Fill with solid
 			for (int j=0; j<size;j++) {
 				for (int k=0; k<size;k++) {
-					newBorderset->tl[PIXEL(j, k, size)] = ll32;
-					newBorderset->tr[PIXEL(size - 1 - j, k, size)] = (j > k) ? ll32 : hl32;
-					newBorderset->bl[PIXEL(size - 1 -j, k, size)] = (j > k) ? ll32 : hl32;
-					newBorderset->br[PIXEL(j, k, size)] = hl32;
+					tl[PIXEL(j, k, size)] = ll32;
+					tr[PIXEL(size - 1 - j, k, size)] = (j > k) ? ll32 : hl32;
+					bl[PIXEL(size - 1 -j, k, size)] = (j > k) ? ll32 : hl32;
+					br[PIXEL(j, k, size)] = hl32;
 				}
 			}
 		
@@ -262,6 +273,18 @@ struct borderset * createBuffer(uint32_t id, int size, 	enum border_type type, i
 		break;
 
 	}
+	assert(side_size > 0);
+
+	newBorderset->top = buffer_create_from_data(top, 1, side_size, 4);
+	newBorderset->left = buffer_create_from_data(left, side_size, 1, side_size * 4);
+	newBorderset->right = buffer_create_from_data(right, side_size, 1, side_size * 4);
+	newBorderset->bottom = buffer_create_from_data(bottom, 1, side_size, 4);
+
+	newBorderset->tl = buffer_create_from_data(tl, size, size, size * 4);
+	newBorderset->tr = buffer_create_from_data(tr, size, size, size * 4);
+	newBorderset->bl = buffer_create_from_data(bl, size, size, size * 4);
+	newBorderset->br = buffer_create_from_data(br, size, size, size * 4);
+
 	return newBorderset;
 }
 
@@ -269,62 +292,26 @@ struct borderset * createBuffer(uint32_t id, int size, 	enum border_type type, i
 struct bufferset * generateBufferset(struct wlr_scene_tree * tree, struct borderset *borderset, int bw)
 {
 	struct bufferset * bufferset = znew(struct bufferset);
-	
+
+	bufferset->top = wlr_scene_buffer_create(tree, &borderset->top->base);
+	bufferset->left= wlr_scene_buffer_create(tree, &borderset->left->base);
+	bufferset->right = wlr_scene_buffer_create(tree, &borderset->right->base);
+	bufferset->bottom = wlr_scene_buffer_create(tree, &borderset->bottom->base);
+	bufferset->tl = wlr_scene_buffer_create(tree, &borderset->tl->base);
+	bufferset->tr = wlr_scene_buffer_create(tree, &borderset->tr->base);
+	bufferset->bl = wlr_scene_buffer_create(tree, &borderset->bl->base);
+	bufferset->br = wlr_scene_buffer_create(tree, &borderset->br->base);
+
 	bufferset->border_width = bw;
-	if (borderset->type == BORDER_DOUBLE) {
-		struct lab_data_buffer *ttexture_buffer =
-			buffer_create_from_data(borderset->top, 1, bw, 4);
-		bufferset->top = wlr_scene_buffer_create(tree, &ttexture_buffer->base);
 
-		struct lab_data_buffer *ltexture_buffer =
-			buffer_create_from_data(borderset->left, bw, 1, 4*bw);
-		bufferset->left = wlr_scene_buffer_create(tree, &ltexture_buffer->base);
-
-		struct lab_data_buffer *rtexture_buffer =
-			buffer_create_from_data(borderset->right, bw, 1, 4*bw);
-		bufferset->right = wlr_scene_buffer_create(tree, &rtexture_buffer->base);
-
-		struct lab_data_buffer *btexture_buffer =
-			buffer_create_from_data(borderset->bottom, 1, bw, 4);
-		bufferset->bottom = wlr_scene_buffer_create(tree, &btexture_buffer->base);
-	
-	
-	} else {
-		struct lab_data_buffer *ttexture_buffer =
-			buffer_create_from_data(borderset->top, 1, 1, 4);
-		bufferset->top = wlr_scene_buffer_create(tree, &ttexture_buffer->base);
-
-		struct lab_data_buffer *ltexture_buffer =
-			buffer_create_from_data(borderset->left, 1, 1, 4);
-		bufferset->left = wlr_scene_buffer_create(tree, &ltexture_buffer->base);
-
-		struct lab_data_buffer *rtexture_buffer =
-			buffer_create_from_data(borderset->right, 1, 1, 4);
-		bufferset->right = wlr_scene_buffer_create(tree, &rtexture_buffer->base);
-
-		struct lab_data_buffer *btexture_buffer =
-			buffer_create_from_data(borderset->bottom, 1, 1, 4);
-		bufferset->bottom = wlr_scene_buffer_create(tree, &btexture_buffer->base);
-	}
-
-
-	struct lab_data_buffer *tltexture_buffer =
-		buffer_create_from_data(borderset->tl, bw, bw, 4*bw);
-	bufferset->tl = wlr_scene_buffer_create(tree, &tltexture_buffer->base);
-
-
-	struct lab_data_buffer *trtexture_buffer =
-		buffer_create_from_data(borderset->tr, bw, bw, 4*bw);
-	bufferset->tr = wlr_scene_buffer_create(tree, &trtexture_buffer->base);
-
-
-	struct lab_data_buffer *bltexture_buffer =
-		buffer_create_from_data(borderset->bl, bw, bw, 4*bw);
-	bufferset->bl = wlr_scene_buffer_create(tree, &bltexture_buffer->base);
-
-	struct lab_data_buffer *brtexture_buffer =
-		buffer_create_from_data(borderset->br, bw, bw, 4*bw);
-	bufferset->br = wlr_scene_buffer_create(tree, &brtexture_buffer->base);
+	wlr_scene_buffer_set_filter_mode(bufferset->top, WLR_SCALE_FILTER_NEAREST);
+	wlr_scene_buffer_set_filter_mode(bufferset->left, WLR_SCALE_FILTER_NEAREST);
+	wlr_scene_buffer_set_filter_mode(bufferset->right, WLR_SCALE_FILTER_NEAREST);
+	wlr_scene_buffer_set_filter_mode(bufferset->bottom, WLR_SCALE_FILTER_NEAREST);
+	wlr_scene_buffer_set_filter_mode(bufferset->tl, WLR_SCALE_FILTER_NEAREST);
+	wlr_scene_buffer_set_filter_mode(bufferset->tr, WLR_SCALE_FILTER_NEAREST);
+	wlr_scene_buffer_set_filter_mode(bufferset->bl, WLR_SCALE_FILTER_NEAREST);
+	wlr_scene_buffer_set_filter_mode(bufferset->br, WLR_SCALE_FILTER_NEAREST);
 
 	return bufferset;
 }
@@ -384,14 +371,13 @@ void clearBorderCache(struct borderset * borderset)
 	if (borderset->next != NULL) {
 		clearBorderCache(borderset->next);
 	}
-	
-	free(borderset->top);
-	free(borderset->left);
-	free(borderset->right);
-	free(borderset->bottom);
-	free(borderset->tl);
-	free(borderset->tr);
-	free(borderset->bl);
-	free(borderset->br);
+	wlr_buffer_drop(&borderset->top->base);
+	wlr_buffer_drop(&borderset->left->base);
+	wlr_buffer_drop(&borderset->right->base);
+	wlr_buffer_drop(&borderset->bottom->base);
+	wlr_buffer_drop(&borderset->tl->base);
+	wlr_buffer_drop(&borderset->tr->base);
+	wlr_buffer_drop(&borderset->bl->base);
+	wlr_buffer_drop(&borderset->br->base);
 	free(borderset);
 }

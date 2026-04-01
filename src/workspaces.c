@@ -25,11 +25,6 @@
 #include "theme.h"
 #include "view.h"
 
-<<<<<<< master
-
-#define COSMIC_WORKSPACES_VERSION 1
-=======
->>>>>>> master
 #define EXT_WORKSPACES_VERSION 1
 
 /* Internal helpers */

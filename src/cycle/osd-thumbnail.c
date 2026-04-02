@@ -85,6 +85,10 @@ render_thumb(struct output *output, struct view *view)
 	struct wlr_buffer *buffer = wlr_allocator_create_buffer(server.allocator,
 		view->current.width, view->current.height,
 		&output->wlr_output->swapchain->format);
+	if (!buffer) {
+		wlr_log(WLR_ERROR, "failed to allocate buffer for thumbnail");
+		return NULL;
+	}
 	struct wlr_render_pass *pass = wlr_renderer_begin_buffer_pass(
 		server.renderer, buffer, NULL);
 	render_node(pass, &view->content_tree->node, 0, 0);

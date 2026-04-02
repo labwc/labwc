@@ -8,7 +8,6 @@
 #include "common/borderset.h"
 #include "theme.h"
 #include "buffer.h"
-#include <stdio.h>
 
 struct border_scene {
 	struct wlr_scene_tree *tree;

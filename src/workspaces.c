@@ -104,14 +104,14 @@ _osd_update(void)
 		cairo_fill(cairo);		
 
 		/* Border */
-		if (theme->beveled_border) {				
+		if (theme->osd_border_type) {				
 			float r = theme->osd_border_color[0];
 			float g = theme->osd_border_color[1];
 			float b = theme->osd_border_color[2];
 			float a = theme->osd_border_color[3];
 
 			uint32_t colour32 = (uint32_t)(a*255) << 24 | (uint32_t)(r*255) << 16 | (uint32_t)(g*255) << 8 | (uint32_t)(b*255);
-			struct borderset * renderedborders = getBorders(colour32, bw, BORDER_SINGLE, 0);
+			struct borderset * renderedborders = getBorders(colour32, bw, theme->osd_border_type, theme->osd_border_bevel_width);
 		
 			cairo_set_source_surface(cairo, renderedborders->top->surface, 0, 0);
 			cairo_pattern_set_extend(cairo_get_source(cairo), CAIRO_EXTEND_REPEAT);

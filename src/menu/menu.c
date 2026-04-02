@@ -169,7 +169,7 @@ item_create_scene_for_state(struct menuitem *item, float *text_color,
 {
 	struct menu *menu = item->parent;
 	struct theme *theme = rc.theme;
-	struct bufferset * bufferset;
+	struct bufferset * bufferset = NULL;
 
 	/* Tree to hold background and label buffers */
 	struct wlr_scene_tree *tree = lab_wlr_scene_tree_create(item->tree);
@@ -195,7 +195,7 @@ item_create_scene_for_state(struct menuitem *item, float *text_color,
 	lab_wlr_scene_rect_create(tree, bg_width, theme->menu_item_height, bg_color);
 
 	int bw = theme->menu_border_width;	
-	if (rc.theme->beveled_border && state) {			
+	if (rc.theme->menu_items_active_border_type && state) {			
 		float r = bg_color[0];
 		float g = bg_color[1];
 		float b = bg_color[2];
@@ -203,9 +203,19 @@ item_create_scene_for_state(struct menuitem *item, float *text_color,
 
 
 		uint32_t colour32 = (uint32_t)(a*255) << 24 | (uint32_t)(r*255) << 16 | (uint32_t)(g*255) << 8 | (uint32_t)(b*255);
-		struct borderset * renderedborders = getBorders(colour32, bw, BORDER_INSET, 0);
+		struct borderset * renderedborders = getBorders(colour32, bw, rc.theme->menu_items_active_border_type, rc.theme->menu_items_active_bevel_width);
 		bufferset = generateBufferset(tree, renderedborders, bw);						
-	}	
+	} else if (rc.theme->menu_items_border_type && !state) {
+		float r = bg_color[0];
+		float g = bg_color[1];
+		float b = bg_color[2];
+		float a = bg_color[3];
+
+
+		uint32_t colour32 = (uint32_t)(a*255) << 24 | (uint32_t)(r*255) << 16 | (uint32_t)(g*255) << 8 | (uint32_t)(b*255);
+		struct borderset * renderedborders = getBorders(colour32, bw, rc.theme->menu_items_border_type, rc.theme->menu_items_bevel_width);
+		bufferset = generateBufferset(tree, renderedborders, bw);						
+	}
 		
 	
 	
@@ -240,7 +250,7 @@ item_create_scene_for_state(struct menuitem *item, float *text_color,
 	wlr_scene_node_set_position(&label_buffer->scene_buffer->node, x, y);
 	
 	
-	if (rc.theme->beveled_border && state) {	
+	if (bufferset != NULL) {	
 		renderBufferset(bufferset, bg_width, theme->menu_item_height, 0);
 	}
 	
@@ -387,7 +397,7 @@ title_create_scene(struct menuitem *menuitem, int *item_y)
 	
 	
 	int bw = theme->menu_border_width;	
-	if (rc.theme->beveled_border) {			
+	if (rc.theme->menu_title_border_type) {			
 		float r = bg_color[0];
 		float g = bg_color[1];
 		float b = bg_color[2];
@@ -395,7 +405,7 @@ title_create_scene(struct menuitem *menuitem, int *item_y)
 
 
 		uint32_t colour32 = (uint32_t)(a*255) << 24 | (uint32_t)(r*255) << 16 | (uint32_t)(g*255) << 8 | (uint32_t)(b*255);
-		struct borderset * renderedborders = getBorders(colour32, bw, BORDER_SINGLE, 0);
+		struct borderset * renderedborders = getBorders(colour32, bw, rc.theme->menu_title_border_type, rc.theme->menu_title_bevel_width);
 		bufferset = generateBufferset(menuitem->tree, renderedborders, bw);						
 	}	
 	
@@ -429,7 +439,7 @@ title_create_scene(struct menuitem *menuitem, int *item_y)
 	wlr_scene_node_set_position(&title_font_buffer->scene_buffer->node,
 		title_x, title_y);
 		
-	if (rc.theme->beveled_border) {	
+	if (rc.theme->menu_title_border_type) {	
 		renderBufferset(bufferset, bg_width, theme->menu_item_height, 0);
 	}
 error:
@@ -504,7 +514,8 @@ menu_create_scene(struct menu *menu)
 		.border_width = theme->menu_border_width,
 		.width = menu->size.width,
 		.height = menu->size.height,
-		//.beveled = true,
+		.border_type = theme->menu_border_type,
+		.bevel_width = theme->menu_bevel_width
 	};
 	struct lab_scene_rect *bg_rect =
 		lab_scene_rect_create(menu->scene_tree, &opts);

@@ -16,6 +16,11 @@ struct borderset * getBorders(uint32_t id, int size, enum border_type type, int 
 		type = BORDER_SINGLE;
 	}
 	
+		if (type == BORDER_DOUBLE_INSET && (bevelSize > size/2)) {
+		type = BORDER_INSET;
+	}
+	
+	
 	// Anything with a size of 0 is converted to a 1-pixel flat border so as to prevent empty allocations
 	
 	if (size < 1) {

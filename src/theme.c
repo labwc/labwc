@@ -544,8 +544,6 @@ static void
 theme_builtin(struct theme *theme)
 {
 	theme->border_width = 1;
-	theme->beveled_border = false;
-	theme->border_bevel_width=0;
 	theme->window_titlebar_padding_height = 0;
 	theme->window_titlebar_padding_width = 0;
 
@@ -599,6 +597,8 @@ theme_builtin(struct theme *theme)
 	theme->menu_max_width = 200;
 	theme->menu_border_width = INT_MIN;
 	theme->menu_border_color[0] = FLT_MIN;
+	theme->menu_border_type = BORDER_FLAT;
+	theme->menu_bevel_width = 0;
 
 	theme->menu_items_padding_x = 7;
 	theme->menu_items_padding_y = 4;
@@ -606,6 +606,12 @@ theme_builtin(struct theme *theme)
 	parse_hexstr("#000000", theme->menu_items_text_color);
 	parse_hexstr("#e1dedb", theme->menu_items_active_bg_color);
 	parse_hexstr("#000000", theme->menu_items_active_text_color);
+	theme->menu_items_border_type = BORDER_FLAT;
+	theme->menu_items_bevel_width = 0;
+	theme->menu_title_border_type = BORDER_FLAT;
+	theme->menu_title_bevel_width = 0;
+	theme->menu_items_active_border_type = BORDER_FLAT;
+	theme->menu_items_active_bevel_width = 0;
 
 	theme->menu_separator_line_thickness = 1;
 	theme->menu_separator_padding_width = 6;
@@ -715,13 +721,7 @@ entry(struct theme *theme, const char *key, const char *value)
 		theme->border_width = get_int_if_positive(
 			value, "border.width");
 	}
-	if (match_glob(key, "border.beveled")) {
-		set_bool(value, &theme->beveled_border);
-	}
-	if (match_glob(key, "border.bevel_width")) {
-		theme->border_bevel_width = get_int_if_positive(
-			value, "border.bevel_width");
-	}
+	
 	if (match_glob(key, "window.titlebar.padding.width")) {
 		theme->window_titlebar_padding_width = get_int_if_positive(
 			value, "window.titlebar.padding.width");
@@ -948,6 +948,14 @@ entry(struct theme *theme, const char *key, const char *value)
 		parse_color(value, theme->menu_border_color);
 	}
 
+	if (match_glob(key, "menu.bg")) {
+		theme->menu_border_type = parse_border_type(value);
+	}
+	if (match_glob(key, "menu.bg.bevel-width")) {
+		theme->menu_bevel_width = get_int_if_positive(value, "menu.bg.bevel-width");
+	}
+	
+	
 	if (match_glob(key, "menu.items.padding.x")) {
 		theme->menu_items_padding_x = get_int_if_positive(
 			value, "menu.items.padding.x");
@@ -959,6 +967,13 @@ entry(struct theme *theme, const char *key, const char *value)
 	if (match_glob(key, "menu.items.bg.color")) {
 		parse_color(value, theme->menu_items_bg_color);
 	}
+	if (match_glob(key, "menu.items.bg")) {
+		theme->menu_items_border_type = parse_border_type(value);
+	}
+	if (match_glob(key, "menu.items.bg.bevel-width")) {
+		theme->menu_items_bevel_width = get_int_if_positive(value, "menu.items.bg.bevel-width");
+	}
+	
 	if (match_glob(key, "menu.items.text.color")) {
 		parse_color(value, theme->menu_items_text_color);
 	}
@@ -968,6 +983,14 @@ entry(struct theme *theme, const char *key, const char *value)
 	if (match_glob(key, "menu.items.active.text.color")) {
 		parse_color(value, theme->menu_items_active_text_color);
 	}
+	
+	if (match_glob(key, "menu.items.active.bg")) {
+		theme->menu_items_active_border_type = parse_border_type(value);
+	}
+	if (match_glob(key, "menu.items.active.bg.bevel-width")) {
+		theme->menu_items_active_bevel_width = get_int_if_positive(value, "menu.items.active.bg.bevel-width");
+	}
+	
 
 	if (match_glob(key, "menu.separator.width")) {
 		theme->menu_separator_line_thickness = get_int_if_positive(
@@ -994,6 +1017,14 @@ entry(struct theme *theme, const char *key, const char *value)
 	if (match_glob(key, "menu.title.text.color")) {
 		parse_color(value, theme->menu_title_text_color);
 	}
+		
+	if (match_glob(key, "menu.title.bg")) {
+		theme->menu_title_border_type = parse_border_type(value);
+	}
+	if (match_glob(key, "menu.title.bg.bevel-width")) {
+		theme->menu_title_bevel_width = get_int_if_positive(value, "menu.title.bg.bevel-width");
+	}
+	
 
 	if (match_glob(key, "osd.bg.color")) {
 		parse_color(value, theme->osd_bg_color);

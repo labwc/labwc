@@ -61,8 +61,6 @@ struct theme_background {
 
 struct theme {
 	int border_width;
-	bool beveled_border;
-	int border_bevel_width;
 
 	/*
 	 * the space between title bar border and
@@ -147,6 +145,8 @@ struct theme {
 	int menu_max_width;
 	int menu_border_width;
 	float menu_border_color[4];
+	enum border_type menu_border_type;
+	int menu_bevel_width;
 
 	int menu_items_padding_x;
 	int menu_items_padding_y;
@@ -154,6 +154,12 @@ struct theme {
 	float menu_items_text_color[4];
 	float menu_items_active_bg_color[4];
 	float menu_items_active_text_color[4];
+	enum border_type menu_items_border_type;
+	int menu_items_bevel_width;
+	enum border_type menu_title_border_type;
+	int menu_title_bevel_width;
+	enum border_type menu_items_active_border_type;
+	int menu_items_active_bevel_width;
 
 	int menu_separator_line_thickness;
 	int menu_separator_padding_width;

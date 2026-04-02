@@ -53,7 +53,7 @@ resize_indicator_init(struct view *view)
 	indicator->background = lab_wlr_scene_rect_create(
 		indicator->tree, 0, 0, rc.theme->osd_bg_color);
 
-	if (rc.theme->beveled_border) {				
+	if (rc.theme->osd_border_type) {				
 		float r = rc.theme->osd_border_color[0];
 		float g = rc.theme->osd_border_color[1];
 		float b = rc.theme->osd_border_color[2];
@@ -61,7 +61,7 @@ resize_indicator_init(struct view *view)
 		int bw = rc.theme->osd_border_width;
 
 		uint32_t colour32 = (uint32_t)(a*255) << 24 | (uint32_t)(r*255) << 16 | (uint32_t)(g*255) << 8 | (uint32_t)(b*255);
-		struct borderset * renderedborders = getBorders(colour32, bw, BORDER_SINGLE, 0);
+		struct borderset * renderedborders = getBorders(colour32, bw, rc.theme->osd_border_type, rc.theme->osd_border_bevel_width);
 		indicator->texturedBorders = generateBufferset(indicator->tree, renderedborders, bw);		
 	}
 		
@@ -135,7 +135,7 @@ resize_indicator_set_size(struct resize_indicator *indicator, int width)
 		indicator->width - 2 * rc.theme->osd_border_width,
 		indicator->height - 2 * rc.theme->osd_border_width);
 		
-	if (rc.theme->beveled_border) {	
+	if (rc.theme->osd_border_type) {	
 		renderBufferset(indicator->texturedBorders, indicator->width, indicator->height, 0);	
 	}
 }

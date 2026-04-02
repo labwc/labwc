@@ -24,7 +24,7 @@ struct borderset * getBorders(uint32_t id, int size, enum border_type type, int 
 	}
 	
 	while (current != NULL) {
-		if (current->size == size && current->id == id && current->type == type) {
+		if (current->size == size && current->id == id && current->type == type && current->bevelSize == bevelSize) {
 			return current;
 		}
 		last = current;	
@@ -50,6 +50,7 @@ struct borderset * createBuffer(uint32_t id, int size, 	enum border_type type, i
 	newBorderset->id = id;
 	newBorderset->size = size;
 	newBorderset->type = type;
+	newBorderset->bevelSize = bevelSize;
 	
 	
 	// Use ID as a AARRGGBB colour

@@ -1037,11 +1037,11 @@ entry(struct theme *theme, const char *key, const char *value)
 		parse_color(value, theme->osd_border_color);
 	}
 	
-	if (match_glob(key, "osd.border.type")) {
+	if (match_glob(key, "osd.bg")) {
 		theme->osd_border_type = parse_border_type(value);
 	}
-	if (match_glob(key, "osd.border.bevel-width")) {
-		theme->osd_border_bevel_width = get_int_if_positive(value, "osd.border.bevel-width");
+	if (match_glob(key, "osd.bg.bevel-width")) {
+		theme->osd_border_bevel_width = get_int_if_positive(value, "osd.bg.bevel-width");
 	}
 	/* classic window switcher */
 	if (match_glob(key, "osd.window-switcher.style-classic.width")

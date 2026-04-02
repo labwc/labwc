@@ -651,6 +651,8 @@ theme_builtin(struct theme *theme)
 	theme->osd_border_width = INT_MIN;
 	theme->osd_border_color[0] = FLT_MIN;
 	theme->osd_label_text_color[0] = FLT_MIN;
+	theme->osd_border_type = BORDER_FLAT;
+	theme->osd_border_bevel_width = 0;
 
 	if (wlr_renderer_is_pixman(server.renderer)) {
 		/* Draw only outlined overlay by default to save CPU resource */
@@ -1002,6 +1004,13 @@ entry(struct theme *theme, const char *key, const char *value)
 	}
 	if (match_glob(key, "osd.border.color")) {
 		parse_color(value, theme->osd_border_color);
+	}
+	
+	if (match_glob(key, "osd.border.type")) {
+		theme->osd_border_type = parse_border_type(value);
+	}
+	if (match_glob(key, "osd.border.bevel-width")) {
+		theme->osd_border_bevel_width = get_int_if_positive(value, "osd.border.bevel-width");
 	}
 	/* classic window switcher */
 	if (match_glob(key, "osd.window-switcher.style-classic.width")

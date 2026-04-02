@@ -6,6 +6,7 @@
 #include "common/scene-helpers.h"
 #include "common/macros.h"
 #include "common/borderset.h"
+#include "theme.h"
 #include "buffer.h"
 #include <stdio.h>
 
@@ -48,14 +49,14 @@ lab_scene_rect_create(struct wlr_scene_tree *parent,
 		border->bottom = lab_wlr_scene_rect_create(border->tree, 0, 0, color);
 		border->left = lab_wlr_scene_rect_create(border->tree, 0, 0, color);
 
-		if (opts->beveled) {
+		if (opts->border_type) {
 			float r = color[0];
 			float g = color[1];
 			float b = color[2];
 			float a = color[3];
 			int bw = rect->border_width;
 			uint32_t colour32 = (uint32_t)(a*255) << 24 | (uint32_t)(r*255) << 16 | (uint32_t)(g*255) << 8 | (uint32_t)(b*255);
-			struct borderset * renderedborders = getBorders(colour32, bw, BORDER_SINGLE, 0);
+			struct borderset * renderedborders = getBorders(colour32, bw, opts->border_type, opts->bevel_width);
 			border->texturedBorders = generateBufferset(border->tree, renderedborders, bw);				
 		} else {
 			border->texturedBorders = NULL;

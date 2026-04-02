@@ -2,6 +2,7 @@
 #ifndef LABWC_LAB_SCENE_RECT_H
 #define LABWC_LAB_SCENE_RECT_H
 #include <wayland-server-core.h>
+#include "common/borderset.h"
 
 struct wlr_scene_tree;
 
@@ -12,7 +13,8 @@ struct lab_scene_rect_options {
 	float *bg_color; /* can be NULL */
 	int width;
 	int height;
-	bool beveled;
+	enum border_type border_type;
+	int bevel_width;
 };
 
 struct lab_scene_rect {

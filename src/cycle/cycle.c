@@ -37,7 +37,8 @@ update_preview_outlines(struct view *view)
 			},
 			.nr_borders = 3,
 			.border_width = theme->osd_window_switcher_preview_border_width,
-			.beveled = true,
+			.border_type = theme->osd_border_type,
+			.bevel_width = theme->osd_border_bevel_width
 		};
 		rect = lab_scene_rect_create(&server.scene->tree, &opts);
 		wlr_scene_node_place_above(&rect->tree->node,

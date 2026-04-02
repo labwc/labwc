@@ -74,7 +74,7 @@ struct borderset * createBuffer(uint32_t id, int size, 	enum border_type type, i
 				| ((uint32_t)g1 << 8) | (uint32_t)b1;
 	uint32_t ll32 = ((uint32_t)a << 24) | ((uint32_t)r0 << 16)
 				| ((uint32_t)g0 << 8) | (uint32_t)b0;
-	
+	uint32_t temp;	
 
 	// All borders have NxN corners
 	uint32_t *tl = znew_n(uint32_t, size*size);
@@ -88,6 +88,11 @@ struct borderset * createBuffer(uint32_t id, int size, 	enum border_type type, i
 	size_t side_size = 0;
 
 	switch(type) {
+		case BORDER_INSET:
+			temp = ll32;
+			ll32 = hl32;
+			hl32 = temp;
+			// Fall throgh intentional
 		case BORDER_SINGLE:  // Single bevel borders have 1x1 sides
 			top = znew(uint32_t);
 			left = znew(uint32_t);
@@ -113,7 +118,11 @@ struct borderset * createBuffer(uint32_t id, int size, 	enum border_type type, i
 		
 		break;
 
-
+		case BORDER_DOUBLE_INSET:
+			temp = ll32;
+			ll32 = hl32;
+			hl32 = temp;
+			// Fall throgh intentional
 		case BORDER_DOUBLE:
 			top = znew_n(uint32_t, size);
 			left = znew_n(uint32_t, size);
@@ -246,32 +255,6 @@ struct borderset * createBuffer(uint32_t id, int size, 	enum border_type type, i
 		
 		
 		break;
-		
-		case BORDER_INSET:  // Sunken Single bevel borders have 1x1 sides
-			top = znew(uint32_t);
-			left = znew(uint32_t);
-			right = znew(uint32_t);
-			bottom = znew(uint32_t);
-			side_size = 1;
-			*top = ll32;
-			*left = ll32;
-			*right = hl32;
-			*bottom = hl32;
-			
-			// Fill with solid
-			for (int j=0; j<size;j++) {
-				for (int k=0; k<size;k++) {
-					tl[PIXEL(j, k, size)] = ll32;
-					tr[PIXEL(size - 1 - j, k, size)] = (j > k) ? ll32 : hl32;
-					bl[PIXEL(size - 1 -j, k, size)] = (j > k) ? ll32 : hl32;
-					br[PIXEL(j, k, size)] = hl32;
-				}
-			}
-		
-		
-		
-		break;
-
 	}
 	assert(side_size > 0);
 

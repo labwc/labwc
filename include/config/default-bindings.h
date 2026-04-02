@@ -105,14 +105,14 @@ static struct key_combos {
 			.value = "amixer sset Master toggle",
 		},
 	}, {
-		.binding = "XF86_MonBrightnessUp",
+		.binding = "XF86MonBrightnessUp",
 		.action = "Execute",
 		.attributes[0] = {
 			.name = "command",
 			.value = "brightnessctl set +10%",
 		},
 	}, {
-		.binding = "XF86_MonBrightnessDown",
+		.binding = "XF86MonBrightnessDown",
 		.action = "Execute",
 		.attributes[0] = {
 			.name = "command",

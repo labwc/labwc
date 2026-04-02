@@ -220,8 +220,8 @@ If you have not created an rc.xml config file, default bindings will be:
 | `XF86_AudioLowerVolume`  | amixer sset Master 5%-
 | `XF86_AudioRaiseVolume`  | amixer sset Master 5%+
 | `XF86_AudioMute`         | amixer sset Master toggle
-| `XF86_MonBrightnessUp`   | brightnessctl set +10%
-| `XF86_MonBrightnessDown` | brightnessctl set 10%-
+| `XF86MonBrightnessUp`    | brightnessctl set +10%
+| `XF86MonBrightnessDown`  | brightnessctl set 10%-
 
 A root-menu can be opened by clicking on the desktop.
 

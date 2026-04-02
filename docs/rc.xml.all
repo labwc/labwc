@@ -300,10 +300,10 @@
     <keybind key="XF86_AudioMute">
       <action name="Execute" command="amixer sset Master toggle" />
     </keybind>
-    <keybind key="XF86_MonBrightnessUp">
+    <keybind key="XF86MonBrightnessUp">
       <action name="Execute" command="brightnessctl set +10%" />
     </keybind>
-    <keybind key="XF86_MonBrightnessDown">
+    <keybind key="XF86MonBrightnessDown">
       <action name="Execute" command="brightnessctl set 10%-" />
     </keybind>
   <!-- SnapToRegion via W-Numpad -->

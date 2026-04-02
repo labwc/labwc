@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <wlr/types/wlr_scene.h>
 /* SPDX-License-Identifier: GPL-2.0-only */
 #ifndef LABWC_BORDERSET_H
 #define LABWC_BORDERSET_H

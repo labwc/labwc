@@ -450,6 +450,18 @@ parse_hexstrs(const char *hexes, float colors[3][4])
 	g_strfreev(elements);
 }
 
+static enum border_type parse_border_type(const char *str) {
+	char *lower = g_ascii_strdown(str, -1);
+	if (strstr(lower, "doublesunken")) return BORDER_DOUBLE_INSET;
+	if (strstr(lower, "sunken")) return BORDER_INSET;
+	if (strstr(lower, "doubleraised")) return BORDER_DOUBLE;
+	if (strstr(lower, "raised")) return BORDER_SINGLE;
+	return BORDER_FLAT;
+	
+	
+	
+}
+
 static void
 parse_color(const char *str, float *rgba)
 {
@@ -552,6 +564,10 @@ theme_builtin(struct theme *theme)
 	theme->window[SSD_INACTIVE].title_bg.color_to[0] = FLT_MIN;
 	theme->window[SSD_ACTIVE].title_bg.color_to_split_to[0] = FLT_MIN;
 	theme->window[SSD_INACTIVE].title_bg.color_to_split_to[0] = FLT_MIN;
+	theme->window[SSD_ACTIVE].bevel_width = 0;
+	theme->window[SSD_ACTIVE].border_type = BORDER_FLAT;
+	theme->window[SSD_INACTIVE].bevel_width = 0;
+	theme->window[SSD_INACTIVE].border_type = BORDER_FLAT;
 
 	parse_hexstr("#000000", theme->window[SSD_ACTIVE].label_text_color);
 	parse_hexstr("#000000", theme->window[SSD_INACTIVE].label_text_color);
@@ -722,8 +738,24 @@ entry(struct theme *theme, const char *key, const char *value)
 	if (match_glob(key, "window.active.border.color")) {
 		parse_color(value, theme->window[SSD_ACTIVE].border_color);
 	}
+	
+	if (match_glob(key, "window.active.border.type")) {
+		theme->window[SSD_ACTIVE].border_type = parse_border_type(value);
+	}
+	if (match_glob(key, "window.active.border.bevel-width")) {
+		theme->window[SSD_ACTIVE].bevel_width = get_int_if_positive(value, "window.active.border.bevel-width");
+	}
+	
 	if (match_glob(key, "window.inactive.border.color")) {
 		parse_color(value, theme->window[SSD_INACTIVE].border_color);
+	}
+	
+	if (match_glob(key, "window.inactive.border.bevel-width")) {
+		theme->window[SSD_INACTIVE].bevel_width = get_int_if_positive(value, "window.inactive.border.bevel-width");
+	}
+	
+	if (match_glob(key, "window.inactive.border.type")) {
+		theme->window[SSD_INACTIVE].border_type = parse_border_type(value);
 	}
 	/* border.color is obsolete, but handled for backward compatibility */
 	if (match_glob(key, "border.color")) {

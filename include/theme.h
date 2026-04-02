@@ -11,6 +11,7 @@
 #include <cairo.h>
 #include <stdbool.h>
 #include "common/node-type.h"
+#include "common/borderset.h"
 
 struct lab_img;
 
@@ -98,6 +99,8 @@ struct theme {
 		float border_color[4];
 		float toggled_keybinds_color[4];
 		float label_text_color[4];
+		enum border_type border_type;
+		int bevel_width;
 
 		/* window drop-shadows */
 		int shadow_size;

@@ -39,7 +39,7 @@ ssd_border_create(struct ssd *ssd)
 		struct wlr_scene_tree *parent = subtree->tree;
 		wlr_scene_node_set_enabled(&parent->node, active);
 		float *color = theme->window[active].border_color;
-		if (theme->beveled_border) {
+		if (theme->window[active].border_type) {
 
 			// These will otherwise get left under the window when we reload
 					
@@ -51,10 +51,6 @@ ssd_border_create(struct ssd *ssd)
 			subtree->bottom = lab_wlr_scene_rect_create(parent, 1, 1, color);
 	
 			subtree->top = lab_wlr_scene_rect_create(parent, 1, 1, color);
-
-		
-					
-			int bevelSize = theme->border_bevel_width;
 			
 			/* From Pull request 3382 */
 			float r = color[0];
@@ -63,7 +59,7 @@ ssd_border_create(struct ssd *ssd)
 			float a = color[3];
 
 			uint32_t colour32 = (uint32_t)(a*255) << 24 | (uint32_t)(r*255) << 16 | (uint32_t)(g*255) << 8 | (uint32_t)(b*255);
-			struct borderset * renderedborders = getBorders(colour32, bw, BORDER_DOUBLE, bevelSize);
+			struct borderset * renderedborders = getBorders(colour32, bw, theme->window[active].border_type, theme->window[active].bevel_width);
 			subtree->texturedBorders = generateBufferset(subtree->tree, renderedborders, bw);				
 		} else {				
 			subtree->left = lab_wlr_scene_rect_create(parent,
@@ -172,7 +168,7 @@ ssd_border_update(struct ssd *ssd)
 		struct ssd_border_subtree *subtree = &ssd->border.subtrees[active];
 		
 		
-		if (theme->beveled_border) {	
+		if (theme->window[active].border_type) {	
 			renderBufferset(subtree->texturedBorders, full_width, side_height+(ssd->titlebar.height + 2*theme->border_width), -ssd->titlebar.height-theme->border_width);		
 		} else {
 			wlr_scene_rect_set_size(subtree->left,

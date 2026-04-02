@@ -53,6 +53,7 @@ struct borderset * createBuffer(uint32_t id, int size, 	enum border_type type, i
 	newBorderset->bevelSize = bevelSize;
 	
 	
+	
 	// Use ID as a AARRGGBB colour
 	uint8_t a = id >> 24 & 255;
 	uint8_t r = id >> 16 & 255;

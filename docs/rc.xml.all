@@ -291,19 +291,19 @@
     <keybind key="A-Space">
       <action name="ShowMenu" menu="client-menu" atCursor="no" />
     </keybind>
-    <keybind key="XF86_AudioLowerVolume">
+    <keybind key="XF86AudioLowerVolume">
       <action name="Execute" command="amixer sset Master 5%-" />
     </keybind>
-    <keybind key="XF86_AudioRaiseVolume">
+    <keybind key="XF86AudioRaiseVolume">
       <action name="Execute" command="amixer sset Master 5%+" />
     </keybind>
-    <keybind key="XF86_AudioMute">
+    <keybind key="XF86AudioMute">
       <action name="Execute" command="amixer sset Master toggle" />
     </keybind>
-    <keybind key="XF86_MonBrightnessUp">
+    <keybind key="XF86MonBrightnessUp">
       <action name="Execute" command="brightnessctl set +10%" />
     </keybind>
-    <keybind key="XF86_MonBrightnessDown">
+    <keybind key="XF86MonBrightnessDown">
       <action name="Execute" command="brightnessctl set 10%-" />
     </keybind>
   <!-- SnapToRegion via W-Numpad -->

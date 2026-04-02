@@ -84,35 +84,35 @@ static struct key_combos {
 			.value = "no",
 		},
 	}, {
-		.binding = "XF86_AudioLowerVolume",
+		.binding = "XF86AudioLowerVolume",
 		.action = "Execute",
 		.attributes[0] = {
 			.name = "command",
 			.value = "amixer sset Master 5%-",
 		},
 	}, {
-		.binding = "XF86_AudioRaiseVolume",
+		.binding = "XF86AudioRaiseVolume",
 		.action = "Execute",
 		.attributes[0] = {
 			.name = "command",
 			.value = "amixer sset Master 5%+",
 		},
 	}, {
-		.binding = "XF86_AudioMute",
+		.binding = "XF86AudioMute",
 		.action = "Execute",
 		.attributes[0] = {
 			.name = "command",
 			.value = "amixer sset Master toggle",
 		},
 	}, {
-		.binding = "XF86_MonBrightnessUp",
+		.binding = "XF86MonBrightnessUp",
 		.action = "Execute",
 		.attributes[0] = {
 			.name = "command",
 			.value = "brightnessctl set +10%",
 		},
 	}, {
-		.binding = "XF86_MonBrightnessDown",
+		.binding = "XF86MonBrightnessDown",
 		.action = "Execute",
 		.attributes[0] = {
 			.name = "command",

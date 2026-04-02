@@ -38,6 +38,20 @@ resize_indicator_reconfigure_view(struct resize_indicator *indicator)
 	/* Colors */
 	wlr_scene_rect_set_color(indicator->border, theme->osd_border_color);
 	wlr_scene_rect_set_color(indicator->background, theme->osd_bg_color);
+	
+	
+	if (rc.theme->osd_border_type) {				
+		float r = theme->osd_border_color[0];
+		float g = theme->osd_border_color[1];
+		float b = theme->osd_border_color[2];
+		float a = theme->osd_border_color[3];
+		int bw = theme->osd_border_width;
+
+		uint32_t colour32 = (uint32_t)(a*255) << 24 | (uint32_t)(r*255) << 16 | (uint32_t)(g*255) << 8 | (uint32_t)(b*255);
+		struct borderset * renderedborders = getBorders(colour32, bw, theme->osd_border_type, theme->osd_border_bevel_width);
+		indicator->texturedBorders = generateBufferset(indicator->tree, renderedborders, bw);		
+	}
+		
 }
 
 static void
@@ -53,18 +67,6 @@ resize_indicator_init(struct view *view)
 	indicator->background = lab_wlr_scene_rect_create(
 		indicator->tree, 0, 0, rc.theme->osd_bg_color);
 
-	if (rc.theme->osd_border_type) {				
-		float r = rc.theme->osd_border_color[0];
-		float g = rc.theme->osd_border_color[1];
-		float b = rc.theme->osd_border_color[2];
-		float a = rc.theme->osd_border_color[3];
-		int bw = rc.theme->osd_border_width;
-
-		uint32_t colour32 = (uint32_t)(a*255) << 24 | (uint32_t)(r*255) << 16 | (uint32_t)(g*255) << 8 | (uint32_t)(b*255);
-		struct borderset * renderedborders = getBorders(colour32, bw, rc.theme->osd_border_type, rc.theme->osd_border_bevel_width);
-		indicator->texturedBorders = generateBufferset(indicator->tree, renderedborders, bw);		
-	}
-		
 		
 	indicator->text = scaled_font_buffer_create(indicator->tree);
 	
@@ -97,7 +99,9 @@ resize_indicator_reconfigure(void)
 	wl_list_for_each(view, &server.views, link) {
 		struct resize_indicator *indicator = &view->resize_indicator;
 		if (indicator->tree) {
-			resize_indicator_reconfigure_view(indicator);
+			// Destroy the old tree so it doesn't have the leftover styling/sizing.
+			wlr_scene_node_destroy(&indicator->tree->node);
+			indicator->tree = NULL;
 		}
 		if (view != server.grabbed_view) {
 			continue;

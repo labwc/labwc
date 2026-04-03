@@ -94,6 +94,43 @@ parse_window_type(const char *type)
 	}
 }
 
+uint32_t
+parse_privileged_interface(const char *name)
+{
+	static const char * const ifaces[] = {
+		"wp_drm_lease_device_v1",
+		"zwlr_gamma_control_manager_v1",
+		"zwlr_output_manager_v1",
+		"zwlr_output_power_manager_v1",
+		"zwp_input_method_manager_v2",
+		"zwlr_virtual_pointer_manager_v1",
+		"zwp_virtual_keyboard_manager_v1",
+		"zwlr_export_dmabuf_manager_v1",
+		"zwlr_screencopy_manager_v1",
+		"ext_data_control_manager_v1",
+		"zwlr_data_control_manager_v1",
+		"wp_security_context_manager_v1",
+		"ext_idle_notifier_v1",
+		"zwlr_foreign_toplevel_manager_v1",
+		"ext_foreign_toplevel_list_v1",
+		"ext_session_lock_manager_v1",
+		"zwlr_layer_shell_v1",
+		"ext_workspace_manager_v1",
+		"ext_image_copy_capture_manager_v1",
+		"ext_output_image_capture_source_manager_v1",
+	};
+
+	static_assert(ARRAY_SIZE(ifaces) <= 32,
+		"return type too small for amount of privileged protocols");
+
+	for (size_t i = 0; i < ARRAY_SIZE(ifaces); i++) {
+		if (!strcmp(name, ifaces[i])) {
+			return 1 << i;
+		}
+	}
+	return 0;
+}
+
 /*
  * Openbox/labwc comparison
  *
@@ -1377,6 +1414,16 @@ entry(xmlNode *node, char *nodename, char *content)
 		rc.mag_increment = MAX(0, rc.mag_increment);
 	} else if (!strcasecmp(nodename, "useFilter.magnifier")) {
 		set_bool(content, &rc.mag_filter);
+	} else if (!strcasecmp(nodename, "privilegedInterfaces")) {
+		rc.allowed_interfaces = 0;
+	} else if (!strcasecmp(nodename, "allow.privilegedInterfaces")) {
+		uint32_t iface_id = parse_privileged_interface(content);
+		if (iface_id) {
+			rc.allowed_interfaces |= iface_id;
+		} else {
+			wlr_log(WLR_ERROR, "invalid value for "
+				"<privilegedInterfaces><allow>");
+		}
 	}
 
 	return false;
@@ -1459,6 +1506,7 @@ rcxml_init(void)
 	rc.allow_tearing = LAB_TEARING_DISABLED;
 	rc.auto_enable_outputs = true;
 	rc.reuse_output_mode = false;
+	rc.allowed_interfaces = UINT32_MAX;
 	rc.xwayland_persistence = false;
 	rc.primary_selection = true;
 

@@ -431,8 +431,6 @@ handle_tablet_tool_axis(struct wl_listener *listener, void *data)
 	 */
 	tool->dx = 0;
 	tool->dy = 0;
-	tool->tilt_x = 0;
-	tool->tilt_y = 0;
 
 	if (ev->updated_axes & WLR_TABLET_TOOL_AXIS_X) {
 		tool->x = ev->x;

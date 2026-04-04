@@ -57,6 +57,11 @@ struct theme_background {
 	float color_split_to[4];
 	float color_to[4];
 	float color_to_split_to[4];
+	enum border_type border_type;
+	int border_width;
+	int bevel_width;
+	bool exclusive;
+	
 };
 
 struct theme {

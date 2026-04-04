@@ -106,6 +106,7 @@ struct ssd {
 			struct scaled_font_buffer *title;
 			struct wl_list buttons_left; /* ssd_button.link */
 			struct wl_list buttons_right; /* ssd_button.link */
+			struct bufferset * texturedBorders;
 		} subtrees[2]; /* indexed by enum ssd_active_state */
 	} titlebar;
 

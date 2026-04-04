@@ -308,49 +308,54 @@ struct bufferset * generateBufferset(struct wlr_scene_tree * tree, struct border
 
 void renderBufferset(struct bufferset *bufferset, int width, int height, int y)
 {
+	renderBuffersetXY(bufferset, width, height, 0, y);	
+}
+
+void renderBuffersetXY(struct bufferset *bufferset, int width, int height, int x, int y)
+{
 
 	wlr_scene_buffer_set_dest_size(bufferset->top,
 			width - 2 * bufferset->border_width, bufferset->border_width);		
 	wlr_scene_node_set_position(&bufferset->top->node,
-			bufferset->border_width,y);	
+			x+bufferset->border_width,y);	
 
 	wlr_scene_buffer_set_dest_size(bufferset->bottom,
 			width - 2 * bufferset->border_width, bufferset->border_width);		
 	wlr_scene_node_set_position(&bufferset->bottom->node,
-			 bufferset->border_width, y+height - bufferset->border_width);
+			 x+bufferset->border_width, y+height - bufferset->border_width);
 
 
 	wlr_scene_buffer_set_dest_size(bufferset->left,
 			bufferset->border_width, height - bufferset->border_width * 2);
 	wlr_scene_node_set_position(&bufferset->left->node,
-			0, bufferset->border_width+y);	
+			x, bufferset->border_width+y);	
 
 	wlr_scene_buffer_set_dest_size(bufferset->right,
 			bufferset->border_width, height - bufferset->border_width * 2);
 	wlr_scene_node_set_position(&bufferset->right->node,
-			width - bufferset->border_width, y+ bufferset->border_width);	
+			x+width - bufferset->border_width, y+ bufferset->border_width);	
 
 	wlr_scene_buffer_set_dest_size(bufferset->tl,
 		bufferset->border_width, bufferset->border_width);		
 	wlr_scene_node_set_position(&bufferset->tl->node,
-		0,y);	
+		x,y);	
 
 	wlr_scene_buffer_set_dest_size(bufferset->tr,
 		bufferset->border_width, bufferset->border_width);		
 	wlr_scene_node_set_position(&bufferset->tr->node,
-		width-bufferset->border_width, y);	
+		x+width-bufferset->border_width, y);	
 
 
 	wlr_scene_buffer_set_dest_size(bufferset->br,
 		bufferset->border_width, bufferset->border_width);		
 	wlr_scene_node_set_position(&bufferset->br->node,
-		width-bufferset->border_width , y+height-bufferset->border_width);	
+		x+width-bufferset->border_width , y+height-bufferset->border_width);	
 
 
 	wlr_scene_buffer_set_dest_size(bufferset->bl,
 		bufferset->border_width, bufferset->border_width);		
 	wlr_scene_node_set_position(&bufferset->bl->node,
-		0, height-bufferset->border_width+y);	
+		x, height-bufferset->border_width+y);	
 
 }
 

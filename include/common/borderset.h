@@ -48,6 +48,8 @@ struct bufferset * generateBufferset(struct wlr_scene_tree * tree, struct border
 
 void renderBufferset(struct bufferset *, int width, int height, int y);
 
+void renderBuffersetXY(struct bufferset *, int width, int height, int x, int y);
+
 void clearBorderCache(struct borderset *borderset);
 
 #endif /* LABWC_LAB_SCENE_RECT_H */

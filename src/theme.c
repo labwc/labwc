@@ -457,9 +457,6 @@ static enum border_type parse_border_type(const char *str) {
 	if (strstr(lower, "doubleraised")) return BORDER_DOUBLE;
 	if (strstr(lower, "raised")) return BORDER_SINGLE;
 	return BORDER_FLAT;
-	
-	
-	
 }
 
 static void
@@ -564,8 +561,16 @@ theme_builtin(struct theme *theme)
 	theme->window[SSD_INACTIVE].title_bg.color_to_split_to[0] = FLT_MIN;
 	theme->window[SSD_ACTIVE].bevel_width = 0;
 	theme->window[SSD_ACTIVE].border_type = BORDER_FLAT;
+	theme->window[SSD_ACTIVE].title_bg.bevel_width = 0;
+	theme->window[SSD_ACTIVE].title_bg.border_width = 0;
+	theme->window[SSD_ACTIVE].title_bg.exclusive = FALSE;
+	theme->window[SSD_ACTIVE].title_bg.border_type = BORDER_FLAT;
 	theme->window[SSD_INACTIVE].bevel_width = 0;
 	theme->window[SSD_INACTIVE].border_type = BORDER_FLAT;
+	theme->window[SSD_INACTIVE].title_bg.bevel_width = 0;
+	theme->window[SSD_INACTIVE].title_bg.border_width = 0;
+	theme->window[SSD_INACTIVE].title_bg.exclusive = FALSE;
+	theme->window[SSD_INACTIVE].title_bg.border_type = BORDER_FLAT;
 
 	parse_hexstr("#000000", theme->window[SSD_ACTIVE].label_text_color);
 	parse_hexstr("#000000", theme->window[SSD_INACTIVE].label_text_color);
@@ -736,7 +741,20 @@ entry(struct theme *theme, const char *key, const char *value)
 	if (match_glob(key, "padding.height")) {
 		wlr_log(WLR_INFO, "padding.height is no longer supported");
 	}
-
+	
+	if (match_glob(key, "window.active.title.bg") && parse_border_type(value)) {
+		theme->window[SSD_ACTIVE].title_bg.border_type= parse_border_type(value);
+	}
+	if (match_glob(key, "window.active.title.bg.width")) {
+		theme->window[SSD_ACTIVE].title_bg.border_width = get_int_if_positive(value, "window.active.title.bg.width");
+	}
+	
+	if (match_glob(key, "window.active.title.bg.exclusive")) {
+		set_bool(value, &theme->window[SSD_ACTIVE].title_bg.exclusive);
+	}
+	if (match_glob(key, "window.active.title.bg.bevel-width")) {
+		theme->window[SSD_ACTIVE].title_bg.bevel_width = get_int_if_positive(value, "window.active.title.bg.bevel-width");
+	}
 	if (match_glob(key, "window.active.border.color")) {
 		parse_color(value, theme->window[SSD_ACTIVE].border_color);
 	}
@@ -772,6 +790,22 @@ entry(struct theme *theme, const char *key, const char *value)
 	if (match_glob(key, "window.active.title.bg")) {
 		theme->window[SSD_ACTIVE].title_bg.gradient = parse_gradient(value);
 	}
+	
+	
+	if (match_glob(key, "window.inactive.title.bg") && parse_border_type(value)) {
+		theme->window[SSD_INACTIVE].title_bg.border_type= parse_border_type(value);
+	}
+	if (match_glob(key, "window.inactive.title.bg.width")) {
+		theme->window[SSD_INACTIVE].title_bg.border_width = get_int_if_positive(value, "window.inactive.title.bg.width");
+	}
+	if (match_glob(key, "window.inactive.title.bg.bevel-width")) {
+		theme->window[SSD_INACTIVE].title_bg.bevel_width = get_int_if_positive(value, "window.inactive.title.bg.bevel-width");
+	}
+	if (match_glob(key, "window.inactive.title.bg.exclusive")) {
+		set_bool(value, &theme->window[SSD_INACTIVE].title_bg.exclusive);
+	}
+	
+	
 	if (match_glob(key, "window.inactive.title.bg")) {
 		theme->window[SSD_INACTIVE].title_bg.gradient = parse_gradient(value);
 	}

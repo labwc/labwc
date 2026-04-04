@@ -18,6 +18,7 @@
 #include "ssd-internal.h"
 #include "theme.h"
 #include "view.h"
+#include "common/borderset.h"
 
 static void set_squared_corners(struct ssd *ssd, bool enable);
 static void set_alt_button_icon(struct ssd *ssd, enum lab_node_type type, bool enable);
@@ -52,6 +53,19 @@ ssd_titlebar_create(struct ssd *ssd)
 
 		/* Background */
 		subtree->bar = lab_wlr_scene_buffer_create(parent, titlebar_fill);
+		
+		if (theme->window[active].title_bg.border_type) {
+			/* Beveled Titlebar */
+			float *color = theme->window[active].title_bg.color;
+			float r = color[0];
+			float g = color[1];
+			float b = color[2];
+			float a = color[3];
+
+			uint32_t colour32 = (uint32_t)(a*255) << 24 | (uint32_t)(r*255) << 16 | (uint32_t)(g*255) << 8 | (uint32_t)(b*255);
+			struct borderset * renderedborders = getBorders(colour32, theme->window[active].title_bg.border_width, theme->window[active].title_bg.border_type, theme->window[active].title_bg.bevel_width);
+			subtree->texturedBorders = generateBufferset(subtree->tree, renderedborders, theme->window[active].title_bg.border_width);
+		}
 		/*
 		 * Work around the wlroots/pixman bug that widened 1px buffer
 		 * becomes translucent when bilinear filtering is used.
@@ -318,10 +332,16 @@ ssd_titlebar_update(struct ssd *ssd)
 
 		x = theme->window_titlebar_padding_width;
 		struct ssd_button *button;
+		int button_count = 0;
+		
+		
 		wl_list_for_each(button, &subtree->buttons_left, link) {
 			wlr_scene_node_set_position(button->node, x, y);
 			x += theme->window_button_width + theme->window_button_spacing;
+			button_count++;	
 		}
+		int exclusive_x = x;
+		
 
 		x = width - corner_width;
 		wlr_scene_node_set_position(&subtree->corner_right->node,
@@ -331,7 +351,20 @@ ssd_titlebar_update(struct ssd *ssd)
 		wl_list_for_each(button, &subtree->buttons_right, link) {
 			x -= theme->window_button_width + theme->window_button_spacing;
 			wlr_scene_node_set_position(button->node, x, y);
+			button_count++;
 		}
+		
+		
+		if (theme->window[active].title_bg.border_type) {
+			int titlebar_x = 0;
+			int titlebar_width = MAX(width, 0);
+			if (theme->window[active].title_bg.exclusive) {
+				titlebar_x = exclusive_x+theme->window_titlebar_padding_width;
+				titlebar_width = MAX((theme->window_button_width + theme->window_button_spacing)* button_count, titlebar_width - (theme->window_button_width + theme->window_button_spacing)* button_count); 
+			}
+			renderBuffersetXY(subtree->texturedBorders, titlebar_width, theme->titlebar_height, titlebar_x, 0);		
+		}
+		
 	}
 
 	ssd_update_title(ssd);

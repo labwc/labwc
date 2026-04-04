@@ -576,6 +576,17 @@ theme_builtin(struct theme *theme)
 	theme->window[SSD_INACTIVE].title_bg.border_width = 0;
 	theme->window[SSD_INACTIVE].title_bg.exclusive = FALSE;
 	theme->window[SSD_INACTIVE].title_bg.border_type = BORDER_NONE;
+	theme->window[SSD_ACTIVE].button_border_type=BORDER_NONE;
+	theme->window[SSD_ACTIVE].button_border_width=0;
+	theme->window[SSD_ACTIVE].button_bevel_width=0;
+	theme->window[SSD_ACTIVE].button_border_color[0] = FLT_MIN;
+	theme->window[SSD_ACTIVE].button_hover_border_color[0] = FLT_MIN;
+	theme->window[SSD_INACTIVE].button_border_type=BORDER_NONE;
+	theme->window[SSD_INACTIVE].button_border_width=0;
+	theme->window[SSD_INACTIVE].button_bevel_width=0;
+	theme->window[SSD_INACTIVE].button_border_color[0] = FLT_MIN;
+	theme->window[SSD_INACTIVE].button_hover_border_color[0] = FLT_MIN;
+	
 
 	parse_hexstr("#000000", theme->window[SSD_ACTIVE].label_text_color);
 	parse_hexstr("#000000", theme->window[SSD_INACTIVE].label_text_color);
@@ -870,6 +881,44 @@ entry(struct theme *theme, const char *key, const char *value)
 			value, "window.button.spacing");
 	}
 
+	if (match_glob(key, "window.inactive.button.bg") && parse_border_type(value)) {
+		theme->window[SSD_INACTIVE].button_border_type= parse_border_type(value);
+	}
+	if (match_glob(key, "window.inactive.button.bg.width")) {
+		theme->window[SSD_INACTIVE].button_border_width = get_int_if_positive(value, "window.inactive.button.bg.width");
+	}
+	if (match_glob(key, "window.inactive.button.bg.bevel-width")) {
+		theme->window[SSD_INACTIVE].button_bevel_width = get_int_if_positive(value, "window.inactive.button.bg.bevel-width");
+	}
+	
+	if (match_glob(key, "window.inactive.button.bg.border-color")) {
+		parse_color(value, theme->window[SSD_INACTIVE].button_border_color);
+	}
+	
+	if (match_glob(key, "window.inactive.button.bg.border-hover-color")) {
+		parse_color(value, theme->window[SSD_INACTIVE].button_hover_border_color);
+	}
+	
+	if (match_glob(key, "window.active.button.bg") && parse_border_type(value)) {
+		theme->window[SSD_ACTIVE].button_border_type= parse_border_type(value);
+	}
+	if (match_glob(key, "window.active.button.bg.width")) {
+		theme->window[SSD_ACTIVE].button_border_width = get_int_if_positive(value, "window.active.button.bg.width");
+	}
+	if (match_glob(key, "window.inactive.button.bg.bevel-width")) {
+		theme->window[SSD_ACTIVE].button_bevel_width = get_int_if_positive(value, "window.active.button.bg.bevel-width");
+	}
+	
+	if (match_glob(key, "window.active.button.bg.border-color")) {
+		parse_color(value, theme->window[SSD_ACTIVE].button_border_color);
+	}
+	
+	if (match_glob(key, "window.active.button.bg.border-hover-color")) {
+		parse_color(value, theme->window[SSD_ACTIVE].button_hover_border_color);
+	}
+	
+	
+	
 	/* botton hover overlay */
 	if (match_glob(key, "window.button.hover.bg.color")) {
 		parse_color(value, theme->window_button_hover_bg_color);

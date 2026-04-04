@@ -88,6 +88,8 @@ struct theme {
 	float window_button_hover_bg_color[4];
 	int window_button_hover_bg_corner_radius;
 
+
+
 	/*
 	 * Themes/textures for each active/inactive window. Indexed by
 	 * ssd_active_state.
@@ -98,6 +100,12 @@ struct theme {
 
 		/* TODO: add toggled/hover/pressed/disabled colors for buttons */
 		float button_colors[LAB_NODE_BUTTON_LAST + 1][4];
+		enum border_type button_border_type;
+		int button_border_width;
+		int button_bevel_width;
+		float button_border_color[4];
+		float button_hover_border_color[4];
+		
 
 		float border_color[4];
 		float toggled_keybinds_color[4];

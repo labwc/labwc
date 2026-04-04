@@ -5,7 +5,6 @@
 #include "common/macros.h"
 #include "buffer.h"
 
-
 struct borderset * getBorders(uint32_t id, int size, enum border_type type, int bevelSize) {
 	struct borderset * current = borderCache;
 	struct borderset * last;

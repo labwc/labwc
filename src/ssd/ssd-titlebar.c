@@ -37,6 +37,7 @@ ssd_titlebar_create(struct ssd *ssd)
 		LAB_NODE_TITLEBAR, view, /*data*/ NULL);
 
 	enum ssd_active_state active;
+	bool shouldForceUpdate = FALSE;
 	FOR_EACH_ACTIVE_STATE(active) {
 		struct ssd_titlebar_subtree *subtree = &ssd->titlebar.subtrees[active];
 		subtree->tree = lab_wlr_scene_tree_create(ssd->titlebar.tree);
@@ -53,7 +54,6 @@ ssd_titlebar_create(struct ssd *ssd)
 
 		/* Background */
 		subtree->bar = lab_wlr_scene_buffer_create(parent, titlebar_fill);
-		
 		if (theme->window[active].title_bg.border_type) {
 			/* Beveled Titlebar */
 			float *color = theme->window[active].title_bg.color;
@@ -65,6 +65,10 @@ ssd_titlebar_create(struct ssd *ssd)
 			uint32_t colour32 = (uint32_t)(a*255) << 24 | (uint32_t)(r*255) << 16 | (uint32_t)(g*255) << 8 | (uint32_t)(b*255);
 			struct borderset * renderedborders = getBorders(colour32, theme->window[active].title_bg.border_width, theme->window[active].title_bg.border_type, theme->window[active].title_bg.bevel_width);
 			subtree->texturedBorders = generateBufferset(subtree->tree, renderedborders, theme->window[active].title_bg.border_width);
+			
+			// If we have the beveled borders, we actually have to run ssd_titlebar_update() to make sure we render the updated
+			// borders.  Otherwise they disappear on reconfigure
+			shouldForceUpdate = true;
 		}
 		/*
 		 * Work around the wlroots/pixman bug that widened 1px buffer
@@ -151,6 +155,10 @@ ssd_titlebar_create(struct ssd *ssd)
 
 	if (view->visible_on_all_workspaces) {
 		set_alt_button_icon(ssd, LAB_NODE_BUTTON_OMNIPRESENT, true);
+	}
+	
+	if (shouldForceUpdate) {
+		ssd_titlebar_update(ssd);
 	}
 }
 

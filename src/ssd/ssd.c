@@ -176,6 +176,7 @@ ssd_create(struct view *view, bool active)
 	ssd_enable_keybind_inhibit_indicator(ssd, view->inhibits_keybinds);
 	ssd->state.geometry = view->current;
 
+	ssd_titlebar_update(ssd);
 	return ssd;
 }
 

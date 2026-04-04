@@ -87,9 +87,16 @@ ssd_titlebar_create(struct ssd *ssd)
 			width - corner_width, -rc.theme->border_width);
 
 		/* Title */
-		subtree->title = scaled_font_buffer_create_for_titlebar(
-			subtree->tree, theme->titlebar_height,
-			theme->window[active].titlebar_pattern);
+		if (theme->window[active].title_bg.border_type) {
+			// Use a blank background pattern so it doesn't overlay a pattern on the order.
+			subtree->title = scaled_font_buffer_create_for_titlebar(
+				subtree->tree, theme->titlebar_height,
+				NULL);
+		} else {
+			subtree->title = scaled_font_buffer_create_for_titlebar(
+				subtree->tree, theme->titlebar_height,
+				theme->window[active].titlebar_pattern);
+		}
 		assert(subtree->title);
 		node_descriptor_create(&subtree->title->scene_buffer->node,
 			LAB_NODE_TITLE, view, /*data*/ NULL);

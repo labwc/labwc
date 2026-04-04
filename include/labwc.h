@@ -148,6 +148,8 @@ struct seat {
 };
 
 struct server {
+	uint32_t wlr_version;
+
 	struct wl_display *wl_display;
 	struct wl_event_loop *wl_event_loop;  /* Can be used for timer events */
 	struct wlr_renderer *renderer;

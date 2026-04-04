@@ -51,6 +51,36 @@
 	#include <wlr/backend/session.h>
 #endif
 
+/*
+ * Partial workaround for toplevel capture on wlroots 0.20.0
+ * Note that even with this workaround the capture itself might still stall.
+ *
+ * See https://gitlab.freedesktop.org/wlroots/wlroots/-/merge_requests/5315
+ *
+ * TODO: Remove once we start tracking wlroots 0.21.x
+ *       or labwc depends on wlroots >= 0.20.1
+ */
+
+#include <wlr/types/wlr_compositor.h>
+
+static void
+workaround_frame_done_iter(struct wlr_scene_buffer *buffer, int sx, int sy, void *data)
+{
+	if (!buffer->primary_output) {
+		/* Catches hidden views, e.g. completely covered or disabled */
+		return;
+	}
+
+	struct wlr_scene_surface *scene_surface = wlr_scene_surface_try_from_buffer(buffer);
+	if (!scene_surface) {
+		return;
+	}
+
+	wlr_surface_send_frame_done(scene_surface->surface, (struct timespec *)data);
+}
+
+/* Workaround for toplevel capture end */
+
 bool
 output_get_tearing_allowance(struct output *output)
 {
@@ -121,6 +151,29 @@ handle_output_frame(struct wl_listener *listener, void *data)
 	struct timespec now = { 0 };
 	clock_gettime(CLOCK_MONOTONIC, &now);
 	wlr_scene_output_send_frame_done(output->scene_output, &now);
+
+	/*
+	 * Workaround for toplevel capture on wlroots 0.20.0
+	 *
+	 * TODO: Remove once we start tracking wlroots 0.21.x
+	 *       or labwc depends on wlroots >= 0.20.1
+	 */
+	if (LAB_WLR_VERSION_LOWER(0, 20, 1)) {
+		struct view *view;
+		wl_list_for_each(view, &server.views, link) {
+			if (view->capture.source) {
+				if (!view_on_output(view, output)) {
+					continue;
+				}
+				/*
+				 * view might still be covered / disabled,
+				 * but the iterator takes care of that.
+				 */
+				wlr_scene_node_for_each_buffer(&view->content_tree->node,
+					workaround_frame_done_iter, &now);
+			}
+		}
+	}
 }
 
 static void

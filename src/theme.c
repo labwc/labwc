@@ -452,11 +452,15 @@ parse_hexstrs(const char *hexes, float colors[3][4])
 
 static enum border_type parse_border_type(const char *str) {
 	char *lower = g_ascii_strdown(str, -1);
-	if (strstr(lower, "doublesunken")) return BORDER_DOUBLE_INSET;
-	if (strstr(lower, "sunken")) return BORDER_INSET;
-	if (strstr(lower, "doubleraised")) return BORDER_DOUBLE;
-	if (strstr(lower, "raised")) return BORDER_SINGLE;
-	return BORDER_FLAT;
+	enum border_type border_type;
+	if (strstr(lower, "doublesunken")) border_type = BORDER_DOUBLE_INSET;
+	else if (strstr(lower, "sunken")) border_type = BORDER_INSET;
+	else if (strstr(lower, "doubleraised")) border_type = BORDER_DOUBLE;
+	else if (strstr(lower, "raised")) border_type = BORDER_SINGLE;
+	else border_type = BORDER_FLAT;
+	
+	g_free(lower);
+	return border_type;
 }
 
 static void

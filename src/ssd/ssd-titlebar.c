@@ -147,7 +147,7 @@ ssd_titlebar_create(struct ssd *ssd)
 	if (squared) {
 		ssd->state.was_squared = true;
 	}
-	set_squared_corners(ssd, maximized || squared);
+	set_squared_corners(ssd, maximized || squared || theme->window[SSD_ACTIVE].title_bg.border_type ||  theme->window[SSD_INACTIVE].title_bg.border_type);
 
 	if (view->shaded) {
 		set_alt_button_icon(ssd, LAB_NODE_BUTTON_SHADE, true);

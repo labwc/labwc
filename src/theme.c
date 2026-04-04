@@ -457,7 +457,8 @@ static enum border_type parse_border_type(const char *str) {
 	else if (strstr(lower, "sunken")) border_type = BORDER_INSET;
 	else if (strstr(lower, "doubleraised")) border_type = BORDER_DOUBLE;
 	else if (strstr(lower, "raised")) border_type = BORDER_SINGLE;
-	else border_type = BORDER_FLAT;
+	else if (strstr(lower, "flat")) border_type = BORDER_FLAT;
+	else border_type = BORDER_NONE;
 	
 	g_free(lower);
 	return border_type;
@@ -564,17 +565,17 @@ theme_builtin(struct theme *theme)
 	theme->window[SSD_ACTIVE].title_bg.color_to_split_to[0] = FLT_MIN;
 	theme->window[SSD_INACTIVE].title_bg.color_to_split_to[0] = FLT_MIN;
 	theme->window[SSD_ACTIVE].bevel_width = 0;
-	theme->window[SSD_ACTIVE].border_type = BORDER_FLAT;
+	theme->window[SSD_ACTIVE].border_type = BORDER_NONE;
 	theme->window[SSD_ACTIVE].title_bg.bevel_width = 0;
 	theme->window[SSD_ACTIVE].title_bg.border_width = 0;
 	theme->window[SSD_ACTIVE].title_bg.exclusive = FALSE;
-	theme->window[SSD_ACTIVE].title_bg.border_type = BORDER_FLAT;
+	theme->window[SSD_ACTIVE].title_bg.border_type = BORDER_NONE;
 	theme->window[SSD_INACTIVE].bevel_width = 0;
-	theme->window[SSD_INACTIVE].border_type = BORDER_FLAT;
+	theme->window[SSD_INACTIVE].border_type = BORDER_NONE;
 	theme->window[SSD_INACTIVE].title_bg.bevel_width = 0;
 	theme->window[SSD_INACTIVE].title_bg.border_width = 0;
 	theme->window[SSD_INACTIVE].title_bg.exclusive = FALSE;
-	theme->window[SSD_INACTIVE].title_bg.border_type = BORDER_FLAT;
+	theme->window[SSD_INACTIVE].title_bg.border_type = BORDER_NONE;
 
 	parse_hexstr("#000000", theme->window[SSD_ACTIVE].label_text_color);
 	parse_hexstr("#000000", theme->window[SSD_INACTIVE].label_text_color);
@@ -606,7 +607,7 @@ theme_builtin(struct theme *theme)
 	theme->menu_max_width = 200;
 	theme->menu_border_width = INT_MIN;
 	theme->menu_border_color[0] = FLT_MIN;
-	theme->menu_border_type = BORDER_FLAT;
+	theme->menu_border_type = BORDER_NONE;
 	theme->menu_bevel_width = 0;
 
 	theme->menu_items_padding_x = 7;
@@ -615,11 +616,11 @@ theme_builtin(struct theme *theme)
 	parse_hexstr("#000000", theme->menu_items_text_color);
 	parse_hexstr("#e1dedb", theme->menu_items_active_bg_color);
 	parse_hexstr("#000000", theme->menu_items_active_text_color);
-	theme->menu_items_border_type = BORDER_FLAT;
+	theme->menu_items_border_type = BORDER_NONE;
 	theme->menu_items_bevel_width = 0;
-	theme->menu_title_border_type = BORDER_FLAT;
+	theme->menu_title_border_type = BORDER_NONE;
 	theme->menu_title_bevel_width = 0;
-	theme->menu_items_active_border_type = BORDER_FLAT;
+	theme->menu_items_active_border_type = BORDER_NONE;
 	theme->menu_items_active_bevel_width = 0;
 
 	theme->menu_separator_line_thickness = 1;
@@ -666,7 +667,7 @@ theme_builtin(struct theme *theme)
 	theme->osd_border_width = INT_MIN;
 	theme->osd_border_color[0] = FLT_MIN;
 	theme->osd_label_text_color[0] = FLT_MIN;
-	theme->osd_border_type = BORDER_FLAT;
+	theme->osd_border_type = BORDER_NONE;
 	theme->osd_border_bevel_width = 0;
 
 	if (wlr_renderer_is_pixman(server.renderer)) {

@@ -238,6 +238,7 @@ struct borderset * createBuffer(uint32_t id, int size, 	enum border_type type, i
 		break;
 		
 		case BORDER_FLAT:  // Placeholder that uses buffers but for a flat colour
+		case BORDER_NONE:  // Provided as a fallback but should not be actually requested/rendered
 			top = znew(uint32_t);
 			left = znew(uint32_t);
 			right = znew(uint32_t);

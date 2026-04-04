@@ -91,6 +91,92 @@ draw_hover_overlay_on_button(cairo_t *cairo, int w, int h)
 	cairo_fill(cairo);
 }
 
+static void draw_beveled_border_on_button(cairo_t* cairo, int w, int h, int active, int hover)
+{
+	if (rc.theme->window[active].button_border_type) {
+		int bw = rc.theme->window[active].button_border_width;
+		float r, g, b, a;
+		if (!hover) {
+			r = rc.theme->window[active].button_border_color[0];
+			g = rc.theme->window[active].button_border_color[1];
+			b = rc.theme->window[active].button_border_color[2];
+			a = rc.theme->window[active].button_border_color[3];
+		} else {
+			r = rc.theme->window[active].button_hover_border_color[0];
+			g = rc.theme->window[active].button_hover_border_color[1];
+			b = rc.theme->window[active].button_hover_border_color[2];
+			a = rc.theme->window[active].button_hover_border_color[3];
+		}
+
+		uint32_t colour32 = (uint32_t)(a*255) << 24 | (uint32_t)(r*255) << 16 | (uint32_t)(g*255) << 8 | (uint32_t)(b*255);
+		struct borderset * renderedborders = getBorders(colour32, bw, rc.theme->window[active].button_border_type, rc.theme->window[active].button_bevel_width);
+	
+
+		cairo_set_source_surface(cairo, renderedborders->top->surface, 0, 0);
+		cairo_pattern_set_extend(cairo_get_source(cairo), CAIRO_EXTEND_REPEAT);
+		cairo_rectangle(cairo, bw, 0, w-bw*2, bw);
+		cairo_fill(cairo);
+
+		cairo_set_source_surface(cairo, renderedborders->bottom->surface, bw, h-bw);
+		cairo_pattern_set_extend(cairo_get_source(cairo), CAIRO_EXTEND_REPEAT);
+		cairo_rectangle(cairo, bw, h-bw, w-bw*2, bw);
+		cairo_fill(cairo);
+
+
+
+		cairo_set_source_surface(cairo, renderedborders->left->surface, 0, 0);
+		cairo_pattern_set_extend(cairo_get_source(cairo), CAIRO_EXTEND_REPEAT);
+		cairo_rectangle(cairo, 0, bw, bw, h-bw*2);
+		cairo_fill(cairo);
+
+
+		cairo_set_source_surface(cairo, renderedborders->right->surface, w-bw, bw);
+		cairo_pattern_set_extend(cairo_get_source(cairo), CAIRO_EXTEND_REPEAT);
+		cairo_rectangle(cairo, w-bw, bw, bw, h-bw*2);
+		cairo_fill(cairo);
+
+
+
+		cairo_set_source_surface(cairo, renderedborders->tl->surface, 0, 0);
+		cairo_rectangle(cairo, 0, 0, bw, bw);
+		cairo_fill(cairo);
+
+		cairo_set_source_surface(cairo, renderedborders->tr->surface, w-bw, 0);
+		cairo_rectangle(cairo, w - bw, 0, bw, bw);
+		cairo_fill(cairo);
+
+		cairo_set_source_surface(cairo, renderedborders->bl->surface, 0, h - bw);
+		cairo_rectangle(cairo, 0, h - bw, bw, bw);
+		cairo_fill(cairo);
+
+		cairo_set_source_surface(cairo, renderedborders->br->surface, w - bw, h -bw);
+		cairo_rectangle(cairo, w - bw, h - bw, bw, bw);
+		cairo_fill(cairo);
+	}
+}
+
+static void draw_hover_active_border_on_button(cairo_t *cairo, int w, int h)
+{
+	draw_beveled_border_on_button(cairo, w, h, SSD_ACTIVE, 1);
+}
+
+static void draw_hover_inactive_border_on_button(cairo_t *cairo, int w, int h)
+{
+	draw_beveled_border_on_button(cairo, w, h, SSD_INACTIVE, 1);
+}
+
+static void draw_nonhover_active_border_on_button(cairo_t *cairo, int w, int h)
+{
+	draw_beveled_border_on_button(cairo, w, h, SSD_ACTIVE, 0);
+}
+
+static void draw_nonhover_inactive_border_on_button(cairo_t *cairo, int w, int h)
+{
+	draw_beveled_border_on_button(cairo, w, h, SSD_INACTIVE, 0);
+}
+
+
+
 /* Round the buffer for the leftmost button in the titlebar */
 static void
 round_left_corner_button(cairo_t *cairo, int w, int h)
@@ -222,6 +308,22 @@ load_button(struct theme *theme, struct button *b, enum ssd_active_state active)
 			draw_hover_overlay_on_button);
 	}
 
+	
+	if (theme->window[active].button_border_type) {
+		if (active) {
+			if (b->state_set & LAB_BS_HOVERED)  {
+				lab_img_add_modifier(*img, draw_hover_active_border_on_button);
+			} else {
+				lab_img_add_modifier(*img, draw_nonhover_active_border_on_button);
+			}
+		} else {
+			if (b->state_set & LAB_BS_HOVERED)  {
+				lab_img_add_modifier(*img, draw_hover_inactive_border_on_button);
+			} else {
+				lab_img_add_modifier(*img, draw_nonhover_inactive_border_on_button);
+			}
+		}
+	}
 	/*
 	 * If the loaded button is at the corner of the titlebar, also create
 	 * rounded variants.

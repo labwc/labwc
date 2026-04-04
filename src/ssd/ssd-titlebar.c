@@ -309,7 +309,7 @@ ssd_titlebar_update(struct ssd *ssd)
 
 	if (ssd->state.was_maximized != maximized
 			|| ssd->state.was_squared != squared) {
-		set_squared_corners(ssd, maximized || squared);
+		set_squared_corners(ssd, maximized || squared || theme->window[SSD_ACTIVE].title_bg.border_type ||  theme->window[SSD_INACTIVE].title_bg.border_type);
 		if (ssd->state.was_maximized != maximized) {
 			set_alt_button_icon(ssd, LAB_NODE_BUTTON_MAXIMIZE, maximized);
 		}
@@ -337,7 +337,7 @@ ssd_titlebar_update(struct ssd *ssd)
 	/* Center buttons vertically within titlebar */
 	int y = (theme->titlebar_height - theme->window_button_height) / 2;
 	int x;
-	int bg_offset = maximized || squared ? 0 : corner_width;
+	int bg_offset = (maximized || squared || theme->window[SSD_INACTIVE].title_bg.border_type  || theme->window[SSD_ACTIVE].title_bg.border_type) ? 0 : corner_width;
 
 	enum ssd_active_state active;
 	FOR_EACH_ACTIVE_STATE(active) {
@@ -372,11 +372,12 @@ ssd_titlebar_update(struct ssd *ssd)
 		
 		if (theme->window[active].title_bg.border_type) {
 			int titlebar_x = 0;
-			int titlebar_width = MAX(width, 0);
+			int titlebar_width = MAX(view->current.width, 0);
 			if (theme->window[active].title_bg.exclusive) {
 				titlebar_x = exclusive_x+theme->window_titlebar_padding_width;
 				titlebar_width = MAX((theme->window_button_width + theme->window_button_spacing)* button_count, titlebar_width - (theme->window_button_width + theme->window_button_spacing)* button_count); 
 			}
+	
 			renderBuffersetXY(subtree->texturedBorders, titlebar_width, theme->titlebar_height, titlebar_x, 0);		
 		}
 		

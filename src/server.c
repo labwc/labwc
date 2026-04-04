@@ -460,6 +460,16 @@ handle_toplevel_capture_request(struct wl_listener *listener, void *data)
 	}
 	wlr_ext_foreign_toplevel_image_capture_source_manager_v1_request_accept(
 		request, view->capture.source);
+
+	if (LAB_WLR_VERSION_LOWER(0, 20, 1)) {
+		/*
+		 * Work around a memory leak in wlroots.
+		 * See https://gitlab.freedesktop.org/wlroots/wlroots/-/merge_requests/5328
+		 *
+		 * TODO: remove once we start tracking wlroots 0.21.x or depend on >= 0.20.1
+		 */
+		free(request);
+	}
 }
 
 void

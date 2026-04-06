@@ -21,6 +21,7 @@
 #include "cycle.h"
 #include "debug.h"
 #include "input/keyboard.h"
+#include "input/key-state.h"
 #include "labwc.h"
 #include "magnifier.h"
 #include "menu/menu.h"
@@ -133,7 +134,8 @@ struct action_arg_list {
 	X(ZOOM_IN, "ZoomIn") \
 	X(ZOOM_OUT, "ZoomOut") \
 	X(WARP_CURSOR, "WarpCursor") \
-	X(HIDE_CURSOR, "HideCursor")
+	X(HIDE_CURSOR, "HideCursor") \
+	X(DEBUG_TOGGLE_KEY_STATE_INDICATOR, "DebugToggleKeyStateIndicator")
 
 /*
  * Will expand to:
@@ -1569,6 +1571,9 @@ run_action(struct view *view, struct action *action,
 	}
 	case ACTION_TYPE_HIDE_CURSOR:
 		cursor_set_visible(&server.seat, false);
+		break;
+	case ACTION_TYPE_DEBUG_TOGGLE_KEY_STATE_INDICATOR:
+		key_state_indicator_toggle();
 		break;
 	case ACTION_TYPE_INVALID:
 		wlr_log(WLR_ERROR, "Not executing unknown action");

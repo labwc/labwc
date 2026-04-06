@@ -436,6 +436,10 @@ Actions are used in menus and keyboard/mouse bindings.
 	If used as the only action for a binding: clear an earlier defined
 	binding.
 
+*<action name="DebugToggleKeyStateIndicator" />*
+	Toggle visibility of key-state on-screen display (OSD). Note: This is for
+	debugging purposes only.
+
 # CONDITIONAL ACTIONS
 
 Actions that execute other actions. Used in keyboard/mouse bindings.

@@ -66,12 +66,12 @@ ssd_titlebar_create(struct ssd *ssd)
 				(uint32_t)(r*255) << 16 |
 				(uint32_t)(g*255) << 8 |
 				(uint32_t)(b*255);
-			struct borderset *renderedborders = getBorders(colour32,
+			struct borderset *renderedborders = get_borders(colour32,
 				theme->window[active].title_bg.border_width,
 				theme->window[active].title_bg.border_type,
 				theme->window[active].title_bg.bevel_width);
-			subtree->texturedBorders = generateBufferset(subtree->tree, renderedborders,
-				theme->window[active].title_bg.border_width);
+			subtree->textured_borders = generate_bufferset(subtree->tree,
+				renderedborders, theme->window[active].title_bg.border_width);
 
 			// If we have the beveled borders, we actually have to run
 			// ssd_titlebar_update() to make sure we render the updated borders.
@@ -400,7 +400,7 @@ ssd_titlebar_update(struct ssd *ssd)
 				);
 			}
 
-			renderBuffersetXY(subtree->texturedBorders, titlebar_width,
+			renderBuffersetXY(subtree->textured_borders, titlebar_width,
 				theme->titlebar_height, titlebar_x, 0);
 		}
 	}

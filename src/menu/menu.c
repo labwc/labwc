@@ -205,10 +205,10 @@ item_create_scene_for_state(struct menuitem *item, float *text_color,
 			(uint32_t)(r*255) << 16 |
 			(uint32_t)(g*255) << 8 |
 			(uint32_t)(b*255);
-		struct borderset *renderedborders = getBorders(colour32, bw,
+		struct borderset *renderedborders = get_borders(colour32, bw,
 			rc.theme->menu_items_active_border_type,
 			rc.theme->menu_items_active_bevel_width);
-		bufferset = generateBufferset(tree, renderedborders, bw);
+		bufferset = generate_bufferset(tree, renderedborders, bw);
 	} else if (rc.theme->menu_items_border_type && !state) {
 		float r = bg_color[0];
 		float g = bg_color[1];
@@ -219,10 +219,10 @@ item_create_scene_for_state(struct menuitem *item, float *text_color,
 			(uint32_t)(r*255) << 16 |
 			(uint32_t)(g*255) << 8 |
 			(uint32_t)(b*255);
-		struct borderset *renderedborders = getBorders(colour32, bw,
+		struct borderset *renderedborders = get_borders(colour32, bw,
 			rc.theme->menu_items_border_type,
 			rc.theme->menu_items_bevel_width);
-		bufferset = generateBufferset(tree, renderedborders, bw);
+		bufferset = generate_bufferset(tree, renderedborders, bw);
 	}
 
 	/* Create icon */
@@ -408,10 +408,10 @@ title_create_scene(struct menuitem *menuitem, int *item_y)
 			(uint32_t)(r*255) << 16 |
 			(uint32_t)(g*255) << 8 |
 			(uint32_t)(b*255);
-		struct borderset *renderedborders = getBorders(colour32, bw,
+		struct borderset *renderedborders = get_borders(colour32, bw,
 			rc.theme->menu_title_border_type,
 			rc.theme->menu_title_bevel_width);
-		bufferset = generateBufferset(menuitem->tree, renderedborders, bw);
+		bufferset = generate_bufferset(menuitem->tree, renderedborders, bw);
 	}
 
 	/* Background */

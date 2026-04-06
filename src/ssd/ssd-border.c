@@ -55,10 +55,10 @@ ssd_border_create(struct ssd *ssd)
 				(uint32_t)(r*255) << 16 |
 				(uint32_t)(g*255) << 8 |
 				(uint32_t)(b*255);
-			struct borderset *renderedborders = getBorders(colour32, bw,
+			struct borderset *renderedborders = get_borders(colour32, bw,
 				theme->window[active].border_type,
 				theme->window[active].bevel_width);
-			subtree->texturedBorders = generateBufferset(subtree->tree,
+			subtree->textured_borders = generate_bufferset(subtree->tree,
 				renderedborders, bw);
 		} else {
 			subtree->left = lab_wlr_scene_rect_create(parent,
@@ -159,7 +159,7 @@ ssd_border_update(struct ssd *ssd)
 	FOR_EACH_ACTIVE_STATE(active) {
 		struct ssd_border_subtree *subtree = &ssd->border.subtrees[active];
 		if (theme->window[active].border_type) {
-			renderBufferset(subtree->texturedBorders, full_width,
+			renderBufferset(subtree->textured_borders, full_width,
 				side_height+(ssd->titlebar.height + 2*theme->border_width),
 				-ssd->titlebar.height-theme->border_width);
 		} else {

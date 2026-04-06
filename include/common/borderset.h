@@ -43,19 +43,19 @@ struct bufferset {
 
 };
 
-extern struct borderset *borderCache;
+extern struct borderset *border_cache;
 
-struct borderset *getBorders(uint32_t id, int size, enum border_type, int bevelSize);
+struct borderset *get_borders(uint32_t id, int size, enum border_type, int bevelSize);
 
-struct borderset *createBuffer(uint32_t id, int size, enum border_type, int bevelSize);
+struct borderset *create_buffer(uint32_t id, int size, enum border_type, int bevelSize);
 
-struct bufferset *generateBufferset(struct wlr_scene_tree *tree,
+struct bufferset *generate_bufferset(struct wlr_scene_tree *tree,
 	struct borderset *borderset, int bw);
 
 void renderBufferset(struct bufferset *bufferset, int width, int height, int y);
 
 void renderBuffersetXY(struct bufferset *bufferset, int width, int height, int x, int y);
 
-void clearBorderCache(struct borderset *borderset);
+void clearborder_cache(struct borderset *borderset);
 
 #endif /* LABWC_BORDERSET_H */

@@ -114,7 +114,7 @@ _osd_update(void)
 				(uint32_t)(r*255) << 16 |
 				(uint32_t)(g*255) << 8 |
 				(uint32_t)(b*255);
-			struct borderset *renderedborders = getBorders(colour32, bw,
+			struct borderset *renderedborders = get_borders(colour32, bw,
 				theme->osd_border_type, theme->osd_border_bevel_width);
 
 			cairo_set_source_surface(cairo, renderedborders->top->surface, 0, 0);

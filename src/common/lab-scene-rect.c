@@ -12,7 +12,7 @@
 struct border_scene {
 	struct wlr_scene_tree *tree;
 	struct wlr_scene_rect *top, *bottom, *left, *right;
-	struct bufferset *texturedBorders;
+	struct bufferset *textured_borders;
 };
 
 static void
@@ -58,12 +58,12 @@ lab_scene_rect_create(struct wlr_scene_tree *parent,
 				(uint32_t)(r*255) << 16 |
 				(uint32_t)(g*255) << 8 |
 				(uint32_t)(b*255);
-			struct borderset *renderedborders = getBorders(colour32, bw,
+			struct borderset *renderedborders = get_borders(colour32, bw,
 				opts->border_type, opts->bevel_width);
-			border->texturedBorders = generateBufferset(border->tree,
+			border->textured_borders = generate_bufferset(border->tree,
 				renderedborders, bw);
 		} else {
-			border->texturedBorders = NULL;
+			border->textured_borders = NULL;
 		}
 	}
 
@@ -105,8 +105,8 @@ resize_border(struct border_scene *border, int border_width, int width, int heig
 	wlr_scene_rect_set_size(border->bottom, width, border_width);
 	wlr_scene_rect_set_size(border->left, border_width, height - border_width * 2);
 	wlr_scene_rect_set_size(border->right, border_width, height - border_width * 2);
-	if (border->texturedBorders) {
-		renderBufferset(border->texturedBorders, width, height, 0);
+	if (border->textured_borders) {
+		renderBufferset(border->textured_borders, width, height, 0);
 	}
 }
 

@@ -112,7 +112,7 @@ static void draw_beveled_border_on_button(cairo_t *cairo, int w, int h, int acti
 			(uint32_t)(r*255) << 16 |
 			(uint32_t)(g*255) << 8 |
 			(uint32_t)(b*255);
-		struct borderset *renderedborders = getBorders(colour32, bw,
+		struct borderset *renderedborders = get_borders(colour32, bw,
 			rc.theme->window[active].button_border_type,
 			rc.theme->window[active].button_bevel_width);
 

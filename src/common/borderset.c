@@ -6,9 +6,9 @@
 #include "common/macros.h"
 #include "buffer.h"
 
-struct borderset *getBorders(uint32_t id, int size, enum border_type type, int bevelSize)
+struct borderset *get_borders(uint32_t id, int size, enum border_type type, int bevelSize)
 {
-	struct borderset *current = borderCache;
+	struct borderset *current = border_cache;
 	struct borderset *last;
 
 	// Preventing building nonsense borders:
@@ -40,17 +40,17 @@ struct borderset *getBorders(uint32_t id, int size, enum border_type type, int b
 	}
 	// Fall through, we need to create a buffer.
 
-	if (!borderCache) {
-		borderCache = createBuffer(id, size, type, bevelSize);
-		return borderCache;
+	if (!border_cache) {
+		border_cache = create_buffer(id, size, type, bevelSize);
+		return border_cache;
 	} else {
-		last->next = createBuffer(id, size, type, bevelSize);
+		last->next = create_buffer(id, size, type, bevelSize);
 		return last->next;
 	}
 	return NULL;
 }
 
-struct borderset *createBuffer(uint32_t id, int size, enum border_type type, int bevelSize)
+struct borderset *create_buffer(uint32_t id, int size, enum border_type type, int bevelSize)
 {
 	struct borderset *new_borderset = znew(*new_borderset);
 
@@ -270,7 +270,7 @@ struct borderset *createBuffer(uint32_t id, int size, enum border_type type, int
 	return new_borderset;
 }
 
-struct bufferset *generateBufferset(struct wlr_scene_tree *tree,
+struct bufferset *generate_bufferset(struct wlr_scene_tree *tree,
 	struct borderset *borderset, int bw)
 {
 	struct bufferset *bufferset = znew(struct bufferset);
@@ -346,13 +346,13 @@ void renderBuffersetXY(struct bufferset *bufferset, int width, int height, int x
 		x, height-bufferset->border_width+y);
 }
 
-void clearBorderCache(struct borderset *borderset)
+void clearborder_cache(struct borderset *borderset)
 {
 	if (!borderset) {
 		return;
 	}
 	if (borderset->next) {
-		clearBorderCache(borderset->next);
+		clearborder_cache(borderset->next);
 	}
 	wlr_buffer_drop(&borderset->top->base);
 	wlr_buffer_drop(&borderset->left->base);

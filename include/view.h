@@ -244,7 +244,7 @@ struct view {
 		int width, height;
 		struct wlr_scene_tree *tree;
 		struct wlr_scene_rect *border;
-		struct bufferset *texturedBorders;
+		struct bufferset *textured_borders;
 		struct wlr_scene_rect *background;
 		struct scaled_font_buffer *text;
 	} resize_indicator;

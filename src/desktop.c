@@ -14,6 +14,7 @@
 #include "layers.h"
 #include "node.h"
 #include "output.h"
+#include "show-desktop.h"
 #include "ssd.h"
 #include "view.h"
 #include "workspaces.h"
@@ -113,6 +114,8 @@ desktop_focus_view(struct view *view, bool raise)
 	 */
 	struct view *dialog = view_get_modal_dialog(view);
 	set_or_offer_focus(dialog ? dialog : view);
+
+	show_desktop_reset();
 }
 
 /* TODO: focus layer-shell surfaces also? */

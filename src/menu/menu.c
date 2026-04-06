@@ -376,7 +376,7 @@ title_create_scene(struct menuitem *menuitem, int *item_y)
 	assert(menuitem->type == LAB_MENU_TITLE);
 	struct menu *menu = menuitem->parent;
 	struct theme *theme = rc.theme;
-	struct bufferset *bufferset;
+	struct bufferset *bufferset = NULL;
 
 	float *bg_color = theme->menu_title_bg_color;
 	float *text_color = theme->menu_title_text_color;
@@ -443,7 +443,7 @@ title_create_scene(struct menuitem *menuitem, int *item_y)
 	wlr_scene_node_set_position(&title_font_buffer->scene_buffer->node,
 		title_x, title_y);
 
-	if (rc.theme->menu_title_border_type) {
+	if (bufferset && rc.theme->menu_title_border_type) {
 		renderBufferset(bufferset, bg_width, theme->menu_item_height, 0);
 	}
 error:

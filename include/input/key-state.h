@@ -5,11 +5,16 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+struct seat;
+
 /*
  * All keycodes in these functions are (Linux) libinput evdev scancodes which is
  * what 'wlr_keyboard' uses (e.g. 'seat->keyboard_group->keyboard->keycodes').
  * Note: These keycodes are different to XKB scancodes by a value of 8.
  */
+
+void key_state_indicator_update(struct seat *seat);
+void key_state_indicator_toggle(void);
 
 /**
  * key_state_pressed_sent_keycodes - generate array of pressed+sent keys

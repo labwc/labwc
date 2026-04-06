@@ -133,6 +133,8 @@ handle_modifiers(struct wl_listener *listener, void *data)
 	struct seat *seat = keyboard->base.seat;
 	struct wlr_keyboard *wlr_keyboard = keyboard->wlr_keyboard;
 
+	key_state_indicator_update(seat);
+
 	if (server.input_mode == LAB_INPUT_STATE_MOVE) {
 		/* Any change to the modifier state re-enable region snap */
 		seat->region_prevent_snap = false;
@@ -616,6 +618,9 @@ handle_key(struct wl_listener *listener, void *data)
 	struct seat *seat = keyboard->base.seat;
 	struct wlr_keyboard_key_event *event = data;
 	struct wlr_seat *wlr_seat = seat->wlr_seat;
+
+	key_state_indicator_update(seat);
+
 	idle_manager_notify_activity(seat->wlr_seat);
 
 	/* any new press/release cancels current keybind repeat */

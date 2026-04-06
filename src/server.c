@@ -429,14 +429,58 @@ handle_renderer_lost(struct wl_listener *listener, void *data)
 	wlr_renderer_destroy(old_renderer);
 }
 
+/*
+ * Partial workaround for toplevel capture on wlroots 0.20.0
+ * There is a second part of this workaround in src/output.c which handles
+ * stalls on the primary output itself. This one handles stalls on the capture
+ * source only.
+ *
+ * See https://gitlab.freedesktop.org/wlroots/wlroots/-/merge_requests/5315
+ *
+ * TODO: Remove once we start tracking wlroots 0.21.x
+ *       or labwc depends on wlroots >= 0.20.1
+ */
+
+static void
+workaround_frame_done_iter(struct wlr_scene_buffer *buffer, int sx, int sy, void *data)
+{
+	struct wlr_scene_surface *scene_surface = wlr_scene_surface_try_from_buffer(buffer);
+	if (!scene_surface) {
+		return;
+	}
+	wlr_surface_send_frame_done(scene_surface->surface, (struct timespec *)data);
+}
+
+static void
+handle_toplevel_capture_frame(struct wl_listener *listener, void *data)
+{
+	struct view *view = wl_container_of(listener, view, capture.on_capture_frame);
+	struct timespec now;
+	clock_gettime(CLOCK_MONOTONIC, &now);
+	wlr_scene_node_for_each_buffer(&view->capture.scene->tree.node,
+		workaround_frame_done_iter, &now);
+}
+
+/* Workaround for toplevel capture end */
+
 static void
 handle_toplevel_capture_source_destroy(struct wl_listener *listener, void *data)
 {
 	struct view *view = wl_container_of(listener, view, capture.on_capture_source_destroy);
 	assert(view->capture.source);
 	view->capture.source = NULL;
+
+	if (LAB_WLR_VERSION_LOWER(0, 20, 1)) {
+		/*
+		 * Workaround for toplevel capture on wlroots 0.20.0
+		 *
+		 * TODO: Remove once we start tracking wlroots 0.21.x
+		 *       or labwc depends on wlroots >= 0.20.1
+		 */
+		wl_list_remove(&view->capture.on_capture_frame.link);
+	}
+
 	wl_list_remove(&listener->link);
-	wl_list_init(&listener->link);
 }
 
 static void
@@ -457,7 +501,20 @@ handle_toplevel_capture_request(struct wl_listener *listener, void *data)
 			handle_toplevel_capture_source_destroy;
 		wl_signal_add(&view->capture.source->events.destroy,
 			&view->capture.on_capture_source_destroy);
+
+		/*
+		 * Workaround for toplevel capture on wlroots 0.20.0
+		 *
+		 * TODO: Remove once we start tracking wlroots 0.21.x
+		 *       or labwc depends on wlroots >= 0.20.1
+		 */
+		if (LAB_WLR_VERSION_LOWER(0, 20, 1)) {
+			view->capture.on_capture_frame.notify = handle_toplevel_capture_frame;
+			wl_signal_add(&view->capture.source->events.frame,
+				&view->capture.on_capture_frame);
+		}
 	}
+
 	wlr_ext_foreign_toplevel_image_capture_source_manager_v1_request_accept(
 		request, view->capture.source);
 

@@ -2507,7 +2507,6 @@ view_destroy(struct view *view)
 	wl_list_remove(&view->request_fullscreen.link);
 	wl_list_remove(&view->set_title.link);
 	wl_list_remove(&view->destroy.link);
-	wl_list_remove(&view->capture.on_capture_source_destroy.link);
 
 	wlr_scene_node_destroy(&view->capture.scene->tree.node);
 

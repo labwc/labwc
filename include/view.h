@@ -180,6 +180,7 @@ struct view {
 	struct {
 		struct wlr_scene *scene;
 		struct wlr_ext_image_capture_source_v1 *source;
+		struct wl_listener on_capture_frame;
 		struct wl_listener on_capture_source_destroy;
 	} capture;
 

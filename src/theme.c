@@ -114,7 +114,7 @@ static void draw_beveled_border_on_button(cairo_t *cairo, int w, int h, int acti
 			(uint32_t)(b*255);
 		struct borderset *renderedborders = get_borders(colour32, bw,
 			rc.theme->window[active].button_border_type,
-			rc.theme->window[active].button_bevel_width);
+			rc.theme->window[active].button_bevel_width, 128, 64);
 
 		cairo_set_source_surface(cairo, renderedborders->top->surface, 0, 0);
 		cairo_pattern_set_extend(cairo_get_source(cairo), CAIRO_EXTEND_REPEAT);

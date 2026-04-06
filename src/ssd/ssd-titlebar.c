@@ -69,7 +69,8 @@ ssd_titlebar_create(struct ssd *ssd)
 			struct borderset *renderedborders = get_borders(colour32,
 				theme->window[active].title_bg.border_width,
 				theme->window[active].title_bg.border_type,
-				theme->window[active].title_bg.bevel_width);
+				theme->window[active].title_bg.bevel_width,
+				128, 64);
 			subtree->textured_borders = generate_bufferset(subtree->tree,
 				renderedborders, theme->window[active].title_bg.border_width);
 

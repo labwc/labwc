@@ -207,7 +207,7 @@ item_create_scene_for_state(struct menuitem *item, float *text_color,
 			(uint32_t)(b*255);
 		struct borderset *renderedborders = get_borders(colour32, bw,
 			rc.theme->menu_items_active_border_type,
-			rc.theme->menu_items_active_bevel_width);
+			rc.theme->menu_items_active_bevel_width, 128, 64);
 		bufferset = generate_bufferset(tree, renderedborders, bw);
 	} else if (rc.theme->menu_items_border_type && !state) {
 		float r = bg_color[0];
@@ -221,7 +221,7 @@ item_create_scene_for_state(struct menuitem *item, float *text_color,
 			(uint32_t)(b*255);
 		struct borderset *renderedborders = get_borders(colour32, bw,
 			rc.theme->menu_items_border_type,
-			rc.theme->menu_items_bevel_width);
+			rc.theme->menu_items_bevel_width, 128, 64);
 		bufferset = generate_bufferset(tree, renderedborders, bw);
 	}
 
@@ -410,7 +410,7 @@ title_create_scene(struct menuitem *menuitem, int *item_y)
 			(uint32_t)(b*255);
 		struct borderset *renderedborders = get_borders(colour32, bw,
 			rc.theme->menu_title_border_type,
-			rc.theme->menu_title_bevel_width);
+			rc.theme->menu_title_bevel_width, 128, 64);
 		bufferset = generate_bufferset(menuitem->tree, renderedborders, bw);
 	}
 

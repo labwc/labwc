@@ -18,6 +18,8 @@ struct borderset {
 	enum border_type type;
 	// So we can disambiguate multiple possible designs cached together
 	int bevelSize;
+	int highlight;
+	int lowlight;
 	struct lab_data_buffer *top;
 	struct lab_data_buffer *left;
 	struct lab_data_buffer *right;
@@ -45,9 +47,11 @@ struct bufferset {
 
 extern struct borderset *border_cache;
 
-struct borderset *get_borders(uint32_t id, int size, enum border_type, int bevelSize);
+struct borderset *get_borders(uint32_t id, int size, enum border_type, int bevelSize,
+	int highlight, int lowlight);
 
-struct borderset *create_buffer(uint32_t id, int size, enum border_type, int bevelSize);
+struct borderset *create_buffer(uint32_t id, int size, enum border_type, int bevelSize,
+	int highlight, int lowlight);
 
 struct bufferset *generate_bufferset(struct wlr_scene_tree *tree,
 	struct borderset *borderset, int bw);

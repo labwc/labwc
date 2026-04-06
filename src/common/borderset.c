@@ -6,7 +6,8 @@
 #include "common/macros.h"
 #include "buffer.h"
 
-struct borderset *get_borders(uint32_t id, int size, enum border_type type, int bevelSize)
+struct borderset *get_borders(uint32_t id, int size, enum border_type type, int bevelSize,
+	int highlight, int lowlight)
 {
 	struct borderset *current = border_cache;
 	struct borderset *last;
@@ -32,7 +33,8 @@ struct borderset *get_borders(uint32_t id, int size, enum border_type type, int 
 
 	while (current) {
 		if (current->size == size && current->id == id &&
-			current->type == type && current->bevelSize == bevelSize) {
+			current->type == type && current->bevelSize == bevelSize &&
+			current->highlight == highlight && current->lowlight == lowlight) {
 			return current;
 		}
 		last = current;
@@ -41,16 +43,17 @@ struct borderset *get_borders(uint32_t id, int size, enum border_type type, int 
 	// Fall through, we need to create a buffer.
 
 	if (!border_cache) {
-		border_cache = create_buffer(id, size, type, bevelSize);
+		border_cache = create_buffer(id, size, type, bevelSize, highlight, lowlight);
 		return border_cache;
 	} else {
-		last->next = create_buffer(id, size, type, bevelSize);
+		last->next = create_buffer(id, size, type, bevelSize, highlight, lowlight);
 		return last->next;
 	}
 	return NULL;
 }
 
-struct borderset *create_buffer(uint32_t id, int size, enum border_type type, int bevelSize)
+struct borderset *create_buffer(uint32_t id, int size, enum border_type type,
+	int bevelSize, int highlight, int lowlight)
 {
 	struct borderset *new_borderset = znew(*new_borderset);
 
@@ -59,6 +62,8 @@ struct borderset *create_buffer(uint32_t id, int size, enum border_type type, in
 	new_borderset->size = size;
 	new_borderset->type = type;
 	new_borderset->bevelSize = bevelSize;
+	new_borderset->highlight = highlight;
+	new_borderset->lowlight = lowlight;
 
 	// Use ID as a AARRGGBB colour
 	uint8_t a = id >> 24 & 255;
@@ -66,23 +71,23 @@ struct borderset *create_buffer(uint32_t id, int size, enum border_type type, in
 	uint8_t g = id >> 8 & 255;
 	uint8_t b = id & 255;
 
-	uint32_t r1 = r * 5 / 4;
+	uint32_t r1 = r * (256+highlight) / 256;
 	if (r1 > a) {
 		r1 = a;
 	}
-	uint32_t g1 = g * 5 / 4;
+	uint32_t g1 = g * (256+highlight) / 256;
 	if (g1 > a) {
 		g1 = a;
 	}
-	uint32_t b1 = b * 5 / 4;
+	uint32_t b1 = b * (256+highlight) / 256;
 	if (b1 > a) {
 		b1 = a;
 	}
 
 	/* darker outline */
-	uint32_t r0 = r / 2;
-	uint32_t g0 = g / 2;
-	uint32_t b0 = b / 2;
+	uint32_t r0 = r * (256 - lowlight) / 256;
+	uint32_t g0 = g * (256 - lowlight) / 256;
+	uint32_t b0 = b * (256 - lowlight) / 256;
 
 	uint32_t hl32 = ((uint32_t)a << 24) | ((uint32_t)r1 << 16)
 				| ((uint32_t)g1 << 8) | (uint32_t)b1;

@@ -106,7 +106,29 @@ struct borderset *create_buffer(uint32_t id, int size, enum border_type type, in
 		temp = ll32;
 		ll32 = hl32;
 		hl32 = temp;
-		// Fall throgh intentional
+
+		top = znew(uint32_t);
+		left = znew(uint32_t);
+		right = znew(uint32_t);
+		bottom = znew(uint32_t);
+		side_size = 1;
+		*top = hl32;
+		*left = hl32;
+		*right = ll32;
+		*bottom = ll32;
+
+		// Fill with solid
+		for (int j = 0; j < size; j++) {
+			for (int k = 0; k < size; k++) {
+				tl[PIXEL(j, k, size)] = hl32;
+				tr[PIXEL(size - 1 - j, k, size)] = (j > k) ? hl32 : ll32;
+				bl[PIXEL(size - 1 -j, k, size)] = (j > k) ? hl32 : ll32;
+				br[PIXEL(j, k, size)] = ll32;
+			}
+		}
+
+		break;
+
 	case BORDER_SINGLE:  // Single bevel borders have 1x1 sides
 		top = znew(uint32_t);
 		left = znew(uint32_t);
@@ -134,7 +156,101 @@ struct borderset *create_buffer(uint32_t id, int size, enum border_type type, in
 		temp = ll32;
 		ll32 = hl32;
 		hl32 = temp;
-		// Fall throgh intentional
+		top = znew_n(uint32_t, size);
+		left = znew_n(uint32_t, size);
+		right = znew_n(uint32_t, size);
+		bottom = znew_n(uint32_t, size);
+		side_size = size;
+
+		for (int i = 0; i < size; i++) {
+			if (i < bevelSize) {
+				left[i] = hl32;
+				top[i] = hl32;
+				right[i] = hl32;
+				bottom[i] = hl32;
+
+			} else if (i > (size-bevelSize-1)) {
+				left[i] = ll32;
+				top[i] = ll32;
+				right[i] = ll32;
+				bottom[i] = ll32;
+
+			} else {
+				left[i] = id;
+				top[i] = id;
+				right[i] = id;
+				bottom[i] = id;
+			}
+		}
+
+		// Blank corners...
+		for (int i = 0; i < size; i++) {
+			for (int j = 0; j < size; j++) {
+				tl[PIXEL(i, j, size)] = id;
+				tr[PIXEL(i, j, size)] = id;
+				bl[PIXEL(i, j, size)] = id;
+				br[PIXEL(i, j, size)] = id;
+			}
+		}
+
+		// Main Corners
+		for (int i = 0; i < bevelSize; i++) {
+			// Solid bar parts
+			for (int j = 0; j < size; j++) {
+				// Top left corner:  Entire "bevel size" top rows are highlighted
+				tl[PIXEL(j, i, size)] = hl32;
+				// First "bevel size" top columns are highlighted
+				tl[PIXEL(i, j, size)] = hl32;
+
+				// Bottom Right corner:  Entire "bevel size" last rows are lowlight
+				br[PIXEL(j, (size-1-i), size)] = ll32;
+				// Last "bevel size" columns are lowlight
+				br[PIXEL((size-1-i), j, size)] = ll32;
+
+				// Bottom left corner:  Entire "bevel size" last rows are lowlight
+				bl[PIXEL(j, (size-1-i), size)] = ll32;
+				// First "bevel size" columns are highlight, except for
+				// the bottom right corner
+				bl[PIXEL(i, j, size)] = hl32;
+
+				// Top Right corner:  Entire "bevel size" first rows are highlight
+				tr[PIXEL(j, i, size)] = hl32;
+				// Last "bevel size" columns are lowlight, except for the top left
+				tr[PIXEL((size-1-i), j, size)] = ll32;
+			}
+		}
+		// Beveled Corner Parts
+		for (int i = 0; i < bevelSize; i++) {
+			for (int j = 0; j < bevelSize; j++) {
+					// Outer Corners
+				// Bottom left corner:
+				// First "bevel size" columns are highlight, except
+				// for the bottom right corner
+				bl[PIXEL(i, (size - 1 - j), size)] = (j >= i) ? hl32 : ll32;
+
+				// Top Right corner:
+				// Last "bevel size" columns are lowlight, except for the top left
+				tr[PIXEL((size-1-i), j, size)] = (j > i) ? ll32 : hl32;
+
+			// Inner Corners
+				// Top left corner:  Bottom right is all dark
+				tl[PIXEL((size-1-i), (size - 1 - j), size)] = ll32;
+
+				// Bottom Right corner:  Top left is all light
+				br[PIXEL(i, j, size)] = hl32;
+
+				// Top Right corner:
+				// Interior bottom left is dark on top, light on bottom
+				tr[PIXEL(i, (size-1-j), size)] = (i > j) ? hl32 : ll32;
+
+				// Bottom Left corner:
+				// Interior top right is dark on top, light on bottom
+				bl[PIXEL((size-1-i), j, size)] = (i > j) ? ll32 : hl32;
+			}
+		}
+
+		break;
+
 	case BORDER_DOUBLE:
 		top = znew_n(uint32_t, size);
 		left = znew_n(uint32_t, size);

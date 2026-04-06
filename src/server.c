@@ -93,7 +93,6 @@ reload_config_and_theme(void)
 	clearBorderCache(borderCache);
 	borderCache = NULL;
 
-	
 	rcxml_read(rc.config_file);
 	theme_finish(rc.theme);
 	theme_init(rc.theme, rc.theme_name);

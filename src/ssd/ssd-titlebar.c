@@ -37,7 +37,7 @@ ssd_titlebar_create(struct ssd *ssd)
 		LAB_NODE_TITLEBAR, view, /*data*/ NULL);
 
 	enum ssd_active_state active;
-	bool shouldForceUpdate = FALSE;
+	bool should_force_update = FALSE;
 	FOR_EACH_ACTIVE_STATE(active) {
 		struct ssd_titlebar_subtree *subtree = &ssd->titlebar.subtrees[active];
 		subtree->tree = lab_wlr_scene_tree_create(ssd->titlebar.tree);
@@ -62,13 +62,21 @@ ssd_titlebar_create(struct ssd *ssd)
 			float b = color[2];
 			float a = color[3];
 
-			uint32_t colour32 = (uint32_t)(a*255) << 24 | (uint32_t)(r*255) << 16 | (uint32_t)(g*255) << 8 | (uint32_t)(b*255);
-			struct borderset * renderedborders = getBorders(colour32, theme->window[active].title_bg.border_width, theme->window[active].title_bg.border_type, theme->window[active].title_bg.bevel_width);
-			subtree->texturedBorders = generateBufferset(subtree->tree, renderedborders, theme->window[active].title_bg.border_width);
-			
-			// If we have the beveled borders, we actually have to run ssd_titlebar_update() to make sure we render the updated
-			// borders.  Otherwise they disappear on reconfigure
-			shouldForceUpdate = true;
+			uint32_t colour32 = (uint32_t)(a*255) << 24 |
+				(uint32_t)(r*255) << 16 |
+				(uint32_t)(g*255) << 8 |
+				(uint32_t)(b*255);
+			struct borderset *renderedborders = getBorders(colour32,
+				theme->window[active].title_bg.border_width,
+				theme->window[active].title_bg.border_type,
+				theme->window[active].title_bg.bevel_width);
+			subtree->texturedBorders = generateBufferset(subtree->tree, renderedborders,
+				theme->window[active].title_bg.border_width);
+
+			// If we have the beveled borders, we actually have to run
+			// ssd_titlebar_update() to make sure we render the updated borders.
+			// Otherwise they disappear on reconfigure
+			should_force_update = true;
 		}
 		/*
 		 * Work around the wlroots/pixman bug that widened 1px buffer
@@ -92,7 +100,8 @@ ssd_titlebar_create(struct ssd *ssd)
 
 		/* Title */
 		if (theme->window[active].title_bg.border_type) {
-			// Use a blank background pattern so it doesn't overlay a pattern on the order.
+			// Use a blank background pattern so it doesn't overlay
+			// a pattern on the order.
 			subtree->title = scaled_font_buffer_create_for_titlebar(
 				subtree->tree, theme->titlebar_height,
 				NULL);
@@ -147,7 +156,10 @@ ssd_titlebar_create(struct ssd *ssd)
 	if (squared) {
 		ssd->state.was_squared = true;
 	}
-	set_squared_corners(ssd, maximized || squared || theme->window[SSD_ACTIVE].title_bg.border_type ||  theme->window[SSD_INACTIVE].title_bg.border_type);
+	set_squared_corners(ssd, maximized ||
+		squared ||
+		theme->window[SSD_ACTIVE].title_bg.border_type ||
+		theme->window[SSD_INACTIVE].title_bg.border_type);
 
 	if (view->shaded) {
 		set_alt_button_icon(ssd, LAB_NODE_BUTTON_SHADE, true);
@@ -156,8 +168,8 @@ ssd_titlebar_create(struct ssd *ssd)
 	if (view->visible_on_all_workspaces) {
 		set_alt_button_icon(ssd, LAB_NODE_BUTTON_OMNIPRESENT, true);
 	}
-	
-	if (shouldForceUpdate) {
+
+	if (should_force_update) {
 		ssd_titlebar_update(ssd);
 	}
 }
@@ -309,7 +321,10 @@ ssd_titlebar_update(struct ssd *ssd)
 
 	if (ssd->state.was_maximized != maximized
 			|| ssd->state.was_squared != squared) {
-		set_squared_corners(ssd, maximized || squared || theme->window[SSD_ACTIVE].title_bg.border_type ||  theme->window[SSD_INACTIVE].title_bg.border_type);
+		set_squared_corners(ssd, maximized ||
+			squared ||
+			theme->window[SSD_ACTIVE].title_bg.border_type ||
+			theme->window[SSD_INACTIVE].title_bg.border_type);
 		if (ssd->state.was_maximized != maximized) {
 			set_alt_button_icon(ssd, LAB_NODE_BUTTON_MAXIMIZE, maximized);
 		}
@@ -337,7 +352,11 @@ ssd_titlebar_update(struct ssd *ssd)
 	/* Center buttons vertically within titlebar */
 	int y = (theme->titlebar_height - theme->window_button_height) / 2;
 	int x;
-	int bg_offset = (maximized || squared || theme->window[SSD_INACTIVE].title_bg.border_type  || theme->window[SSD_ACTIVE].title_bg.border_type) ? 0 : corner_width;
+	int bg_offset = (maximized ||
+		squared ||
+		theme->window[SSD_INACTIVE].title_bg.border_type ||
+		theme->window[SSD_ACTIVE].title_bg.border_type)
+		? 0 : corner_width;
 
 	enum ssd_active_state active;
 	FOR_EACH_ACTIVE_STATE(active) {
@@ -348,15 +367,13 @@ ssd_titlebar_update(struct ssd *ssd)
 		x = theme->window_titlebar_padding_width;
 		struct ssd_button *button;
 		int button_count = 0;
-		
-		
+
 		wl_list_for_each(button, &subtree->buttons_left, link) {
 			wlr_scene_node_set_position(button->node, x, y);
 			x += theme->window_button_width + theme->window_button_spacing;
-			button_count++;	
+			button_count++;
 		}
 		int exclusive_x = x;
-		
 
 		x = width - corner_width;
 		wlr_scene_node_set_position(&subtree->corner_right->node,
@@ -368,19 +385,24 @@ ssd_titlebar_update(struct ssd *ssd)
 			wlr_scene_node_set_position(button->node, x, y);
 			button_count++;
 		}
-		
-		
+
 		if (theme->window[active].title_bg.border_type) {
 			int titlebar_x = 0;
 			int titlebar_width = MAX(view->current.width, 0);
 			if (theme->window[active].title_bg.exclusive) {
 				titlebar_x = exclusive_x+theme->window_titlebar_padding_width;
-				titlebar_width = MAX((theme->window_button_width + theme->window_button_spacing)* button_count, titlebar_width - (theme->window_button_width + theme->window_button_spacing)* button_count); 
+				titlebar_width = MAX(
+					(theme->window_button_width + theme->window_button_spacing)
+					* button_count,
+					titlebar_width -
+					(theme->window_button_width + theme->window_button_spacing)
+					* button_count
+				);
 			}
-	
-			renderBuffersetXY(subtree->texturedBorders, titlebar_width, theme->titlebar_height, titlebar_x, 0);		
+
+			renderBuffersetXY(subtree->texturedBorders, titlebar_width,
+				theme->titlebar_height, titlebar_x, 0);
 		}
-		
 	}
 
 	ssd_update_title(ssd);

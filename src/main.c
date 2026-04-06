@@ -41,7 +41,7 @@ static const struct option long_options[] = {
 	{0, 0, 0, 0}
 };
 
-struct borderset * borderCache = NULL;
+struct borderset *borderCache;
 
 static const char labwc_usage[] =
 "Usage: labwc [options...]\n"

@@ -14,9 +14,8 @@ cycle_osd_scroll_init(struct cycle_osd_output *osd_output, struct wlr_box bar_ar
 		int delta_y, int nr_cols, int nr_rows, int nr_visible_rows,
 		float *border_color, float *bg_color)
 {
-	
 	struct theme *theme = rc.theme;
-	
+
 	if (nr_visible_rows >= nr_rows) {
 		/* OSD doesn't have so many windows to scroll through */
 		return;

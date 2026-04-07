@@ -121,7 +121,9 @@ cycle_osd_classic_init(struct cycle_osd_output *osd_output)
 		.width = w,
 		.height = h,
 		.border_type = theme->osd_border_type,
-		.bevel_width = theme->osd_border_bevel_width
+		.bevel_width = theme->osd_border_bevel_width,
+		.highlight = theme->osd_highlight,
+		.shadow = theme->osd_shadow
 	};
 	lab_scene_rect_create(osd_output->tree, &bg_opts);
 
@@ -205,7 +207,9 @@ cycle_osd_classic_init(struct cycle_osd_output *osd_output)
 			.width = w - 2 * padding,
 			.height = switcher_theme->item_height,
 			.border_type = theme->osd_border_type,
-			.bevel_width = theme->osd_border_bevel_width
+			.bevel_width = theme->osd_border_bevel_width,
+			.highlight = theme->osd_highlight,
+			.shadow = theme->osd_shadow
 		};
 		struct lab_scene_rect *highlight_rect = lab_scene_rect_create(
 			item->active_tree, &highlight_opts);

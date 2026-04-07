@@ -207,7 +207,9 @@ item_create_scene_for_state(struct menuitem *item, float *text_color,
 			(uint32_t)(b*255);
 		struct borderset *renderedborders = get_borders(colour32, bw,
 			rc.theme->menu_items_active_border_type,
-			rc.theme->menu_items_active_bevel_width, 128, 64);
+			rc.theme->menu_items_active_bevel_width,
+			rc.theme->menu_items_active_highlight,
+			rc.theme->menu_items_active_shadow);
 		bufferset = generate_bufferset(tree, renderedborders, bw);
 	} else if (rc.theme->menu_items_border_type && !state) {
 		float r = bg_color[0];
@@ -221,7 +223,9 @@ item_create_scene_for_state(struct menuitem *item, float *text_color,
 			(uint32_t)(b*255);
 		struct borderset *renderedborders = get_borders(colour32, bw,
 			rc.theme->menu_items_border_type,
-			rc.theme->menu_items_bevel_width, 128, 64);
+			rc.theme->menu_items_bevel_width,
+			rc.theme->menu_items_highlight,
+			rc.theme->menu_items_shadow);
 		bufferset = generate_bufferset(tree, renderedborders, bw);
 	}
 
@@ -410,7 +414,9 @@ title_create_scene(struct menuitem *menuitem, int *item_y)
 			(uint32_t)(b*255);
 		struct borderset *renderedborders = get_borders(colour32, bw,
 			rc.theme->menu_title_border_type,
-			rc.theme->menu_title_bevel_width, 128, 64);
+			rc.theme->menu_title_bevel_width,
+			rc.theme->menu_title_highlight,
+			rc.theme->menu_title_shadow);
 		bufferset = generate_bufferset(menuitem->tree, renderedborders, bw);
 	}
 
@@ -519,7 +525,9 @@ menu_create_scene(struct menu *menu)
 		.width = menu->size.width,
 		.height = menu->size.height,
 		.border_type = theme->menu_border_type,
-		.bevel_width = theme->menu_bevel_width
+		.bevel_width = theme->menu_bevel_width,
+		.highlight = theme->menu_highlight,
+		.shadow = theme->menu_shadow
 	};
 	struct lab_scene_rect *bg_rect =
 		lab_scene_rect_create(menu->scene_tree, &opts);

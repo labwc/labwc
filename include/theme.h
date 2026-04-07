@@ -60,6 +60,8 @@ struct theme_background {
 	enum border_type border_type;
 	int border_width;
 	int bevel_width;
+	int highlight;
+	int shadow;
 	bool exclusive;
 };
 
@@ -102,12 +104,16 @@ struct theme {
 		int button_bevel_width;
 		float button_border_color[4];
 		float button_hover_border_color[4];
+		int button_highlight;
+		int button_shadow;
 
 		float border_color[4];
 		float toggled_keybinds_color[4];
 		float label_text_color[4];
 		enum border_type border_type;
 		int bevel_width;
+		int highlight;
+		int shadow;
 
 		/* window drop-shadows */
 		int shadow_size;
@@ -156,6 +162,8 @@ struct theme {
 	float menu_border_color[4];
 	enum border_type menu_border_type;
 	int menu_bevel_width;
+	int menu_highlight;
+	int menu_shadow;
 
 	int menu_items_padding_x;
 	int menu_items_padding_y;
@@ -165,10 +173,16 @@ struct theme {
 	float menu_items_active_text_color[4];
 	enum border_type menu_items_border_type;
 	int menu_items_bevel_width;
+	int menu_items_highlight;
+	int menu_items_shadow;
 	enum border_type menu_title_border_type;
 	int menu_title_bevel_width;
+	int menu_title_highlight;
+	int menu_title_shadow;
 	enum border_type menu_items_active_border_type;
 	int menu_items_active_bevel_width;
+	int menu_items_active_highlight;
+	int menu_items_active_shadow;
 
 	int menu_separator_line_thickness;
 	int menu_separator_padding_width;
@@ -186,6 +200,8 @@ struct theme {
 	float osd_label_text_color[4];
 	enum border_type osd_border_type;
 	int osd_border_bevel_width;
+	int osd_highlight;
+	int osd_shadow;
 
 	struct window_switcher_classic_theme {
 		int width;

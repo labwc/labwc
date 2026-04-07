@@ -15,6 +15,8 @@ struct lab_scene_rect_options {
 	int height;
 	enum border_type border_type;
 	int bevel_width;
+	int highlight;
+	int shadow;
 };
 
 struct lab_scene_rect {

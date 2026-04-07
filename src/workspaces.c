@@ -116,7 +116,7 @@ _osd_update(void)
 				(uint32_t)(b*255);
 			struct borderset *renderedborders = get_borders(colour32, bw,
 				theme->osd_border_type, theme->osd_border_bevel_width,
-				128, 64);
+				theme->osd_highlight, theme->osd_shadow);
 
 			cairo_set_source_surface(cairo, renderedborders->top->surface, 0, 0);
 			cairo_pattern_set_extend(cairo_get_source(cairo), CAIRO_EXTEND_REPEAT);

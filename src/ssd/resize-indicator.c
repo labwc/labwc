@@ -51,7 +51,8 @@ resize_indicator_reconfigure_view(struct resize_indicator *indicator)
 			(uint32_t)(g*255) << 8 |
 			(uint32_t)(b*255);
 		struct borderset *renderedborders = get_borders(colour32, bw,
-			theme->osd_border_type, theme->osd_border_bevel_width, 128, 64);
+			theme->osd_border_type, theme->osd_border_bevel_width,
+			theme->osd_highlight, theme->osd_shadow);
 		indicator->textured_borders = generate_bufferset(indicator->tree,
 			renderedborders, bw);
 	}

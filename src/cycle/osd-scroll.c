@@ -40,7 +40,9 @@ cycle_osd_scroll_init(struct cycle_osd_output *osd_output, struct wlr_box bar_ar
 		.width = bar_area.width,
 		.height = bar_area.height * nr_visible_rows / nr_rows,
 		.border_type = theme->osd_border_type,
-		.bevel_width = theme->osd_border_bevel_width
+		.bevel_width = theme->osd_border_bevel_width,
+		.highlight = theme->osd_highlight,
+		.shadow = theme->osd_shadow
 	};
 	scroll->bar = lab_scene_rect_create(scroll->bar_tree, &scrollbar_opts);
 }

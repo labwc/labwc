@@ -114,7 +114,9 @@ static void draw_beveled_border_on_button(cairo_t *cairo, int w, int h, int acti
 			(uint32_t)(b*255);
 		struct borderset *renderedborders = get_borders(colour32, bw,
 			rc.theme->window[active].button_border_type,
-			rc.theme->window[active].button_bevel_width, 128, 64);
+			rc.theme->window[active].button_bevel_width, 
+			rc.theme->window[active].button_highlight,
+			rc.theme->window[active].button_shadow);
 
 		cairo_set_source_surface(cairo, renderedborders->top->surface, 0, 0);
 		cairo_pattern_set_extend(cairo_get_source(cairo), CAIRO_EXTEND_REPEAT);
@@ -672,24 +674,36 @@ theme_builtin(struct theme *theme)
 	theme->window[SSD_INACTIVE].title_bg.color_to_split_to[0] = FLT_MIN;
 	theme->window[SSD_ACTIVE].bevel_width = 0;
 	theme->window[SSD_ACTIVE].border_type = BORDER_NONE;
+	theme->window[SSD_ACTIVE].highlight = 128;
+	theme->window[SSD_ACTIVE].shadow = 64;
 	theme->window[SSD_ACTIVE].title_bg.bevel_width = 0;
 	theme->window[SSD_ACTIVE].title_bg.border_width = 0;
 	theme->window[SSD_ACTIVE].title_bg.exclusive = FALSE;
 	theme->window[SSD_ACTIVE].title_bg.border_type = BORDER_NONE;
+	theme->window[SSD_ACTIVE].title_bg.highlight = 128;
+	theme->window[SSD_ACTIVE].title_bg.shadow = 64;
 	theme->window[SSD_INACTIVE].bevel_width = 0;
 	theme->window[SSD_INACTIVE].border_type = BORDER_NONE;
+	theme->window[SSD_INACTIVE].highlight = 128;
+	theme->window[SSD_INACTIVE].shadow = 64;
 	theme->window[SSD_INACTIVE].title_bg.bevel_width = 0;
 	theme->window[SSD_INACTIVE].title_bg.border_width = 0;
 	theme->window[SSD_INACTIVE].title_bg.exclusive = FALSE;
 	theme->window[SSD_INACTIVE].title_bg.border_type = BORDER_NONE;
+	theme->window[SSD_INACTIVE].title_bg.highlight = 128;
+	theme->window[SSD_INACTIVE].title_bg.shadow = 64;
 	theme->window[SSD_ACTIVE].button_border_type = BORDER_NONE;
 	theme->window[SSD_ACTIVE].button_border_width = 0;
 	theme->window[SSD_ACTIVE].button_bevel_width = 0;
+	theme->window[SSD_ACTIVE].button_highlight = 128;
+	theme->window[SSD_ACTIVE].button_shadow = 64;
 	theme->window[SSD_ACTIVE].button_border_color[0] = FLT_MIN;
 	theme->window[SSD_ACTIVE].button_hover_border_color[0] = FLT_MIN;
 	theme->window[SSD_INACTIVE].button_border_type = BORDER_NONE;
 	theme->window[SSD_INACTIVE].button_border_width = 0;
 	theme->window[SSD_INACTIVE].button_bevel_width = 0;
+	theme->window[SSD_INACTIVE].button_highlight = 128;
+	theme->window[SSD_INACTIVE].button_shadow = 64;
 	theme->window[SSD_INACTIVE].button_border_color[0] = FLT_MIN;
 	theme->window[SSD_INACTIVE].button_hover_border_color[0] = FLT_MIN;
 
@@ -724,6 +738,8 @@ theme_builtin(struct theme *theme)
 	theme->menu_border_width = INT_MIN;
 	theme->menu_border_color[0] = FLT_MIN;
 	theme->menu_border_type = BORDER_NONE;
+	theme->menu_highlight = 128;
+	theme->menu_shadow = 64;
 	theme->menu_bevel_width = 0;
 
 	theme->menu_items_padding_x = 7;
@@ -734,10 +750,16 @@ theme_builtin(struct theme *theme)
 	parse_hexstr("#000000", theme->menu_items_active_text_color);
 	theme->menu_items_border_type = BORDER_NONE;
 	theme->menu_items_bevel_width = 0;
+	theme->menu_items_highlight = 128;
+	theme->menu_items_shadow = 64;
 	theme->menu_title_border_type = BORDER_NONE;
 	theme->menu_title_bevel_width = 0;
+	theme->menu_title_highlight = 128;
+	theme->menu_title_shadow = 64;
 	theme->menu_items_active_border_type = BORDER_NONE;
 	theme->menu_items_active_bevel_width = 0;
+	theme->menu_items_active_highlight = 128;
+	theme->menu_items_active_shadow = 64;
 
 	theme->menu_separator_line_thickness = 1;
 	theme->menu_separator_padding_width = 6;
@@ -785,6 +807,8 @@ theme_builtin(struct theme *theme)
 	theme->osd_label_text_color[0] = FLT_MIN;
 	theme->osd_border_type = BORDER_NONE;
 	theme->osd_border_bevel_width = 0;
+	theme->osd_highlight = 128;
+	theme->osd_shadow = 64;
 
 	if (wlr_renderer_is_pixman(server.renderer)) {
 		/* Draw only outlined overlay by default to save CPU resource */
@@ -870,6 +894,14 @@ entry(struct theme *theme, const char *key, const char *value)
 		theme->window[SSD_ACTIVE].title_bg.border_width =
 			get_int_if_positive(value, "window.active.title.bg.width");
 	}
+	if (match_glob(key, "window.active.title.bg.highlight")) {
+		theme->window[SSD_ACTIVE].title_bg.highlight =
+			get_int_if_positive(value, "window.active.title.bg.highlight");
+	}
+	if (match_glob(key, "window.active.title.bg.shadow")) {
+		theme->window[SSD_ACTIVE].title_bg.shadow =
+			get_int_if_positive(value, "window.active.title.bg.shadow");
+	}
 
 	if (match_glob(key, "window.active.title.bg.exclusive")) {
 		set_bool(value, &theme->window[SSD_ACTIVE].title_bg.exclusive);
@@ -889,6 +921,14 @@ entry(struct theme *theme, const char *key, const char *value)
 		theme->window[SSD_ACTIVE].bevel_width =
 			get_int_if_positive(value, "window.active.border.bevel-width");
 	}
+	if (match_glob(key, "window.active.border.highlight")) {
+		theme->window[SSD_ACTIVE].highlight =
+			get_int_if_positive(value, "window.active.border.highlight");
+	}
+	if (match_glob(key, "window.active.border.shadow")) {
+		theme->window[SSD_ACTIVE].shadow =
+			get_int_if_positive(value, "window.active.border.shadow");
+	}
 
 	if (match_glob(key, "window.inactive.border.color")) {
 		parse_color(value, theme->window[SSD_INACTIVE].border_color);
@@ -902,6 +942,15 @@ entry(struct theme *theme, const char *key, const char *value)
 	if (match_glob(key, "window.inactive.border.type")) {
 		theme->window[SSD_INACTIVE].border_type = parse_border_type(value);
 	}
+	if (match_glob(key, "window.inactive.border.highlight")) {
+		theme->window[SSD_INACTIVE].highlight =
+			get_int_if_positive(value, "window.inactive.border.highlight");
+	}
+	if (match_glob(key, "window.inactive.border.shadow")) {
+		theme->window[SSD_INACTIVE].shadow =
+			get_int_if_positive(value, "window.inactive.border.shadow");
+	}
+	
 	/* border.color is obsolete, but handled for backward compatibility */
 	if (match_glob(key, "border.color")) {
 		parse_color(value, theme->window[SSD_ACTIVE].border_color);
@@ -918,6 +967,14 @@ entry(struct theme *theme, const char *key, const char *value)
 
 	if (match_glob(key, "window.inactive.title.bg") && parse_border_type(value)) {
 		theme->window[SSD_INACTIVE].title_bg.border_type = parse_border_type(value);
+	}
+	if (match_glob(key, "window.inactive.title.bg.highlight")) {
+		theme->window[SSD_INACTIVE].title_bg.highlight =
+			get_int_if_positive(value, "window.inactive.title.bg.highlight");
+	}
+	if (match_glob(key, "window.inactive.title.bg.shadow")) {
+		theme->window[SSD_INACTIVE].title_bg.shadow =
+			get_int_if_positive(value, "window.inactive.title.bg.shadow");
 	}
 	if (match_glob(key, "window.inactive.title.bg.width")) {
 		theme->window[SSD_INACTIVE].title_bg.border_width =
@@ -993,6 +1050,14 @@ entry(struct theme *theme, const char *key, const char *value)
 	if (match_glob(key, "window.inactive.button.bg") && parse_border_type(value)) {
 		theme->window[SSD_INACTIVE].button_border_type = parse_border_type(value);
 	}
+	if (match_glob(key, "window.inactive.button.bg.highlight")) {
+		theme->window[SSD_INACTIVE].button_highlight =
+			get_int_if_positive(value, "window.inactive.button.bg.highlight");
+	}
+	if (match_glob(key, "window.inactive.button.bg.shadow")) {
+		theme->window[SSD_INACTIVE].button_shadow =
+			get_int_if_positive(value, "window.inactive.button.bg.shadow");
+	}
 	if (match_glob(key, "window.inactive.button.bg.width")) {
 		theme->window[SSD_INACTIVE].button_border_width =
 			get_int_if_positive(value, "window.inactive.button.bg.width");
@@ -1012,6 +1077,14 @@ entry(struct theme *theme, const char *key, const char *value)
 
 	if (match_glob(key, "window.active.button.bg") && parse_border_type(value)) {
 		theme->window[SSD_ACTIVE].button_border_type = parse_border_type(value);
+	}
+	if (match_glob(key, "window.active.button.bg.highlight")) {
+		theme->window[SSD_ACTIVE].button_highlight =
+			get_int_if_positive(value, "window.active.button.bg.highlight");
+	}
+	if (match_glob(key, "window.active.button.bg.shadow")) {
+		theme->window[SSD_ACTIVE].button_shadow =
+			get_int_if_positive(value, "window.active.button.bg.shadow");
 	}
 	if (match_glob(key, "window.active.button.bg.width")) {
 		theme->window[SSD_ACTIVE].button_border_width =
@@ -1154,6 +1227,14 @@ entry(struct theme *theme, const char *key, const char *value)
 		theme->menu_bevel_width =
 			get_int_if_positive(value, "menu.bg.bevel-width");
 	}
+	if (match_glob(key, "menu.bg.highlight")) {
+		theme->menu_highlight =
+			get_int_if_positive(value, "menu.bg.highlight");
+	}
+	if (match_glob(key, "menu.bg.shadow")) {
+		theme->menu_shadow =
+			get_int_if_positive(value, "menu.bg.shadow");
+	}
 
 	if (match_glob(key, "menu.items.padding.x")) {
 		theme->menu_items_padding_x = get_int_if_positive(
@@ -1168,6 +1249,14 @@ entry(struct theme *theme, const char *key, const char *value)
 	}
 	if (match_glob(key, "menu.items.bg")) {
 		theme->menu_items_border_type = parse_border_type(value);
+	}
+	if (match_glob(key, "menu.items.bg.highlight")) {
+		theme->menu_items_highlight =
+			get_int_if_positive(value, "menu.items.bg.highlight");
+	}
+	if (match_glob(key, "menu.items.bg.shadow")) {
+		theme->menu_items_shadow =
+			get_int_if_positive(value, "menu.items.bg.shadow");
 	}
 	if (match_glob(key, "menu.items.bg.bevel-width")) {
 		theme->menu_items_bevel_width =
@@ -1186,6 +1275,14 @@ entry(struct theme *theme, const char *key, const char *value)
 
 	if (match_glob(key, "menu.items.active.bg")) {
 		theme->menu_items_active_border_type = parse_border_type(value);
+	}
+		if (match_glob(key, "menu.items.active.bg.highlight")) {
+		theme->menu_items_active_highlight =
+			get_int_if_positive(value, "menu.items.active,bg.highlight");
+	}
+	if (match_glob(key, "menu.items.active.bg.shadow")) {
+		theme->menu_items_active_shadow =
+			get_int_if_positive(value, "menu.items.active.bg.shadow");
 	}
 	if (match_glob(key, "menu.items.active.bg.bevel-width")) {
 		theme->menu_items_active_bevel_width =
@@ -1221,6 +1318,14 @@ entry(struct theme *theme, const char *key, const char *value)
 	if (match_glob(key, "menu.title.bg")) {
 		theme->menu_title_border_type = parse_border_type(value);
 	}
+		if (match_glob(key, "menu.title.bg.highlight")) {
+		theme->menu_title_highlight =
+			get_int_if_positive(value, "menu.title.bg.highlight");
+	}
+	if (match_glob(key, "menu.title.bg.shadow")) {
+		theme->menu_title_shadow =
+			get_int_if_positive(value, "menu.title.bg.shadow");
+	}
 	if (match_glob(key, "menu.title.bg.bevel-width")) {
 		theme->menu_title_bevel_width =
 			get_int_if_positive(value, "menu.title.bg.bevel-width");
@@ -1239,6 +1344,14 @@ entry(struct theme *theme, const char *key, const char *value)
 
 	if (match_glob(key, "osd.bg")) {
 		theme->osd_border_type = parse_border_type(value);
+	}
+		if (match_glob(key, "osd.bg.highlight")) {
+		theme->osd_highlight =
+			get_int_if_positive(value, "osd.bg.highlight");
+	}
+	if (match_glob(key, "osd.bg.shadow")) {
+		theme->osd_shadow =
+			get_int_if_positive(value, "osd.bg.shadow");
 	}
 	if (match_glob(key, "osd.bg.bevel-width")) {
 		theme->osd_border_bevel_width = get_int_if_positive(value, "osd.bg.bevel-width");

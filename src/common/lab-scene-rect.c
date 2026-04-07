@@ -59,7 +59,8 @@ lab_scene_rect_create(struct wlr_scene_tree *parent,
 				(uint32_t)(g*255) << 8 |
 				(uint32_t)(b*255);
 			struct borderset *renderedborders = get_borders(colour32, bw,
-				opts->border_type, opts->bevel_width, 128, 64);
+				opts->border_type, opts->bevel_width,
+				opts->highlight, opts->shadow);
 			border->textured_borders = generate_bufferset(border->tree,
 				renderedborders, bw);
 		} else {

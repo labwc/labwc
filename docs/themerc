@@ -6,9 +6,7 @@
 # make sure all other lines are commented out or deleted.
 
 # general
-border.width: 6
-border.beveled: yes
-border.bevel_width:2
+border.width: 1
 
 #
 # The global padding.{width,height} of openbox are not supported because

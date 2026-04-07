@@ -57,7 +57,9 @@ ssd_border_create(struct ssd *ssd)
 				(uint32_t)(b*255);
 			struct borderset *renderedborders = get_borders(colour32, bw,
 				theme->window[active].border_type,
-				theme->window[active].bevel_width, 128, 64);
+				theme->window[active].bevel_width,
+				theme->window[active].highlight,
+				theme->window[active].shadow);
 			subtree->textured_borders = generate_bufferset(subtree->tree,
 				renderedborders, bw);
 		} else {

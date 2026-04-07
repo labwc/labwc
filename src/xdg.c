@@ -121,7 +121,7 @@ set_fullscreen_from_request(struct view *view,
 	view_set_fullscreen(view, requested->fullscreen);
 }
 
-/* Called from commit handler and updates view->pending.x/y directly */
+/* Called from map/commit handler and updates view->pending.x/y directly */
 static void
 set_initial_position(struct view *view)
 {
@@ -263,11 +263,10 @@ handle_commit(struct wl_listener *listener, void *data)
 	bool update_required = false;
 
 	/*
-	 * The pending size will be empty in two cases:
-	 *   (1) when the view is first mapped
-	 *   (2) when leaving fullscreen or un-maximizing, if the view
-	 *       was initially fullscreen/maximized and the natural
-	 *       geometry isn't known yet
+	 * If we didn't know the natural size when leaving fullscreen or
+	 * unmaximizing, then the pending size will be 0x0. In this case,
+	 * the pending x/y is also unset and we still need to position
+	 * the window.
 	 */
 	if (wlr_box_empty(&view->pending) && !wlr_box_empty(&size)) {
 		view->pending.width = size.width;
@@ -821,6 +820,29 @@ handle_map(struct wl_listener *listener, void *data)
 		} else {
 			view_set_ssd_mode(view, LAB_SSD_MODE_NONE);
 		}
+
+		/*
+		 * Set initial "pending" dimensions. "Current"
+		 * dimensions remain zero until handle_commit().
+		 * Note: this must be done before view_impl_map()
+		 * for window rules to work correctly.
+		 */
+		if (wlr_box_empty(&view->pending)) {
+			struct wlr_xdg_surface *xdg_surface =
+				xdg_surface_from_view(view);
+			view->pending.width = xdg_surface->geometry.width;
+			view->pending.height = xdg_surface->geometry.height;
+			set_initial_position(view);
+		}
+
+		/*
+		 * Set initial "current" position directly before
+		 * calling view_moved() to reduce flicker
+		 */
+		view->current.x = view->pending.x;
+		view->current.y = view->pending.y;
+
+		view_moved(view);
 	}
 
 	view_impl_map(view);

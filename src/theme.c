@@ -114,7 +114,7 @@ static void draw_beveled_border_on_button(cairo_t *cairo, int w, int h, int acti
 			(uint32_t)(b*255);
 		struct borderset *renderedborders = get_borders(colour32, bw,
 			rc.theme->window[active].button_border_type,
-			rc.theme->window[active].button_bevel_width, 
+			rc.theme->window[active].button_bevel_width,
 			rc.theme->window[active].button_highlight,
 			rc.theme->window[active].button_shadow);
 
@@ -950,7 +950,7 @@ entry(struct theme *theme, const char *key, const char *value)
 		theme->window[SSD_INACTIVE].shadow =
 			get_int_if_positive(value, "window.inactive.border.shadow");
 	}
-	
+
 	/* border.color is obsolete, but handled for backward compatibility */
 	if (match_glob(key, "border.color")) {
 		parse_color(value, theme->window[SSD_ACTIVE].border_color);
@@ -1276,7 +1276,7 @@ entry(struct theme *theme, const char *key, const char *value)
 	if (match_glob(key, "menu.items.active.bg")) {
 		theme->menu_items_active_border_type = parse_border_type(value);
 	}
-		if (match_glob(key, "menu.items.active.bg.highlight")) {
+	if (match_glob(key, "menu.items.active.bg.highlight")) {
 		theme->menu_items_active_highlight =
 			get_int_if_positive(value, "menu.items.active,bg.highlight");
 	}
@@ -1318,7 +1318,7 @@ entry(struct theme *theme, const char *key, const char *value)
 	if (match_glob(key, "menu.title.bg")) {
 		theme->menu_title_border_type = parse_border_type(value);
 	}
-		if (match_glob(key, "menu.title.bg.highlight")) {
+	if (match_glob(key, "menu.title.bg.highlight")) {
 		theme->menu_title_highlight =
 			get_int_if_positive(value, "menu.title.bg.highlight");
 	}
@@ -1345,7 +1345,7 @@ entry(struct theme *theme, const char *key, const char *value)
 	if (match_glob(key, "osd.bg")) {
 		theme->osd_border_type = parse_border_type(value);
 	}
-		if (match_glob(key, "osd.bg.highlight")) {
+	if (match_glob(key, "osd.bg.highlight")) {
 		theme->osd_highlight =
 			get_int_if_positive(value, "osd.bg.highlight");
 	}

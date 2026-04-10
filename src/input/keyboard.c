@@ -419,6 +419,19 @@ handle_change_vt_key(struct keyboard *keyboard,
 	return false;
 }
 
+static char
+keysym_to_char(uint32_t keysym) {
+	if (keysym >= 0x0020 && keysym <= 0x00FF) {
+		return (char)keysym;
+	}
+
+	if (keysym >= XKB_KEY_KP_0 && keysym <= XKB_KEY_KP_9) {
+		return (char)('0' + (keysym - XKB_KEY_KP_0));
+	}
+
+	return '\0';
+}
+
 static void
 handle_menu_keys(struct keysyms *syms)
 {
@@ -447,7 +460,14 @@ handle_menu_keys(struct keysyms *syms)
 			cursor_update_focus();
 			break;
 		default:
-			continue;
+			char accelerator = keysym_to_char(syms->syms[i]);
+			if (accelerator == '\0') {
+				continue;
+			}
+			if (menu_item_select_by_accelerator(accelerator)) {
+				menu_call_selected_actions();
+			}
+			break;
 		}
 		break;
 	}

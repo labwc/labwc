@@ -460,7 +460,7 @@ handle_menu_keys(struct keysyms *syms)
 			menu_close_root();
 			cursor_update_focus();
 			break;
-		default:
+		default: {
 			char accelerator = keysym_to_char(syms->syms[i]);
 			if (accelerator == '\0') {
 				continue;
@@ -469,7 +469,7 @@ handle_menu_keys(struct keysyms *syms)
 				menu_call_selected_actions();
 			}
 			break;
-		}
+		}}
 		break;
 	}
 }

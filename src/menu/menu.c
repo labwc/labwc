@@ -1495,8 +1495,10 @@ menu_item_select_by_accelerator(char accelerator)
 			next_selection = item;
 			matched = true;
 		} else if (matched && item->accelerator == accelerator) {
-			/* Another menuentry with such accelerator found,
-			   cycle selection instead of executing */
+			/*
+			 * Another menuentry with such accelerator found,
+			 * cycle selection instead of executing
+			 */
 			needs_exec = false;
 			break;
 		}
@@ -1505,15 +1507,16 @@ menu_item_select_by_accelerator(char accelerator)
 	if (next_selection) {
 		menu_process_item_selection(next_selection);
 		if (needs_exec && next_selection->submenu) {
-			/* Submenu was opened, select the first menuitem
-			   without executing */
+			/*
+			 * Submenu was opened, select the first menuitem
+			 * without executing
+			 */
 			needs_exec = false;
 			menu_submenu_enter();
 		}
 	}
 	return needs_exec;
 }
-
 
 bool
 menu_call_selected_actions(void)

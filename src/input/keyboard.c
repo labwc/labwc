@@ -420,7 +420,8 @@ handle_change_vt_key(struct keyboard *keyboard,
 }
 
 static char
-keysym_to_char(uint32_t keysym) {
+keysym_to_char(uint32_t keysym)
+{
 	if (keysym >= 0x0020 && keysym <= 0x00FF) {
 		return (char)keysym;
 	}

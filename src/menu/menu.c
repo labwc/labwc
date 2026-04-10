@@ -1507,15 +1507,12 @@ menu_item_select_by_accelerator(char accelerator)
 	if (next_selection) {
 		menu_process_item_selection(next_selection);
 		if (needs_exec && next_selection->submenu) {
-			/*
-			 * Submenu was opened, select the first menuitem
-			 * without executing
-			 */
+			/* Since we can't execute a submenu, enter it instead. */
 			needs_exec = false;
 			menu_submenu_enter();
 		}
 	}
-	return needs_exec;
+	return matched && needs_exec;
 }
 
 bool

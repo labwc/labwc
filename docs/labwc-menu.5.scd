@@ -148,6 +148,21 @@ obmenu-generator with the menu generator of your choice):
 </openbox_menu>
 ```
 
+# ACCELERATORS / MNEMONICS
+
+Menu accelerators are one-letter mnemonics to quickly select/exec items from
+the current menu. For each menu item, the accelerator is defined as the first
+character of the item label, converted to lowercase. A different accelerator
+can be explicitly defined in menu.xml with the special '\_' character before the
+target letter. Accelerators can be any unicode character and are not limited to
+ASCII. A usual underscore can be shown by duplicating it.
+
+If the menu only contains a single instance of the pressed accelerator the item
+will be executed directly. Otherwise, all matching items are cycled through.
+
+Example:
+The accelerator for an item with the label "e_Macs" is 'm'.
+
 # LOCALISATION
 
 Available localisation for the default "client-menu" is only shown if no

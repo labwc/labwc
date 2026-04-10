@@ -2,6 +2,7 @@
 #define _POSIX_C_SOURCE 200809L
 #include "menu/menu.h"
 #include <assert.h>
+#include <ctype.h>
 #include <libxml/parser.h>
 #include <signal.h>
 #include <stdlib.h>
@@ -142,6 +143,16 @@ item_create(struct menu *menu, const char *text, const char *icon_name, bool sho
 	menuitem->type = LAB_MENU_ITEM;
 	menuitem->text = xstrdup(text);
 	menuitem->arrow = show_arrow ? "›" : NULL;
+
+	const char *it = text;
+	menuitem->accelerator = tolower(*it);
+	while (*it != '\0') {
+		if (*it == '_' && *it != '\0') {
+			menuitem->accelerator = *(++it);
+			break;
+		}
+		it++;
+	}
 
 #if HAVE_LIBSFDO
 	if (rc.menu_show_icons && !string_null_or_empty(icon_name)) {
@@ -1459,6 +1470,50 @@ menu_item_select_previous(void)
 {
 	menu_item_select(/* forward */ false);
 }
+
+bool
+menu_item_select_by_accelerator(char accelerator)
+{
+	struct menu *menu = get_selection_leaf();
+	if (!menu) {
+		return false;
+	}
+
+	bool needs_exec = true;
+	bool matched = false;
+
+	struct menuitem *selection = menu->selection.item;
+	struct wl_list *start = selection ? &selection->link : &menu->menuitems;
+	struct wl_list *current = start;
+	struct menuitem *item = NULL;
+	struct menuitem *next_selection = NULL;
+	do {
+		current = current->next;
+		item = wl_container_of(current, item, link);
+		if (!matched && item->accelerator == accelerator) {
+			/* Menuentry with a matching accelerator found */
+			next_selection = item;
+			matched = true;
+		} else if (matched && item->accelerator == accelerator) {
+			/* Another menuentry with such accelerator found,
+			   cycle selection instead of executing */
+			needs_exec = false;
+			break;
+		}
+	} while (current != start);
+
+	if (next_selection) {
+		menu_process_item_selection(next_selection);
+		if (needs_exec && next_selection->submenu) {
+			/* Submenu was opened, select the first menuitem
+			   without executing */
+			needs_exec = false;
+			menu_submenu_enter();
+		}
+	}
+	return needs_exec;
+}
+
 
 bool
 menu_call_selected_actions(void)

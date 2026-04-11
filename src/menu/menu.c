@@ -1479,7 +1479,7 @@ menu_item_select_by_accelerator(char accelerator)
 		return false;
 	}
 
-	bool needs_exec = true;
+	bool needs_exec = false;
 	bool matched = false;
 
 	struct menuitem *selection = menu->selection.item;
@@ -1490,29 +1490,32 @@ menu_item_select_by_accelerator(char accelerator)
 	do {
 		current = current->next;
 		item = wl_container_of(current, item, link);
-		if (!matched && item->accelerator == accelerator) {
-			/* Menuentry with a matching accelerator found */
-			next_selection = item;
-			matched = true;
-		} else if (matched && item->accelerator == accelerator) {
-			/*
-			 * Another menuentry with such accelerator found,
-			 * cycle selection instead of executing
-			 */
-			needs_exec = false;
-			break;
+		if (item->accelerator == accelerator) {
+			if (!matched) {
+				/* Found first match */
+				next_selection = item;
+				needs_exec = true;
+				matched = true;
+			} else {
+				/*
+				 * Found another match,
+				 * cycle selection instead of executing
+				 */
+				needs_exec = false;
+				break;
+			}
 		}
 	} while (current != start);
 
 	if (next_selection) {
 		menu_process_item_selection(next_selection);
 		if (needs_exec && next_selection->submenu) {
-			/* Since we can't execute a submenu, enter it instead. */
+			/* Since we can't execute a submenu, enter it. */
 			needs_exec = false;
 			menu_submenu_enter();
 		}
 	}
-	return matched && needs_exec;
+	return needs_exec;
 }
 
 bool

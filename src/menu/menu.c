@@ -145,6 +145,17 @@ item_create(struct menu *menu, const char *text, const char *icon_name, bool sho
 	menuitem->arrow = show_arrow ? "›" : NULL;
 
 	const char *it = text;
+	/* Skip emojis and whitespace */
+	while (*it != '\0') {
+		unsigned char c = (unsigned char)*it;
+
+		if (isspace(c) || c > 127) {
+			it++;
+		} else {
+			break;
+		}
+	}
+
 	menuitem->accelerator = tolower(*it);
 	while (*it != '\0') {
 		if (*it == '_') {

@@ -148,7 +148,7 @@ item_create(struct menu *menu, const char *text, const char *icon_name, bool sho
 	menuitem->accelerator = tolower(*it);
 	while (*it != '\0') {
 		if (*it == '_' && *it != '\0') {
-			menuitem->accelerator = *(++it);
+			menuitem->accelerator = tolower(*(++it));
 			break;
 		}
 		it++;

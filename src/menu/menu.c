@@ -1475,7 +1475,7 @@ bool
 menu_item_select_by_accelerator(char accelerator)
 {
 	struct menu *menu = get_selection_leaf();
-	if (!menu) {
+	if (!menu || wl_list_empty(&menu->menuitems)) {
 		return false;
 	}
 
@@ -1489,6 +1489,10 @@ menu_item_select_by_accelerator(char accelerator)
 	struct menuitem *next_selection = NULL;
 	do {
 		current = current->next;
+		if (current == &menu->menuitems) {
+			/* Allow wrap around */
+			continue;
+		}
 		item = wl_container_of(current, item, link);
 		if (item->accelerator == accelerator) {
 			if (!matched) {

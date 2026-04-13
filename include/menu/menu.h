@@ -23,7 +23,7 @@ struct menuitem {
 	char *text;
 	char *icon_name;
 	const char *arrow;
-	char accelerator;
+	uint32_t accelerator;
 	struct menu *parent;
 	struct menu *submenu;
 	bool selectable;
@@ -78,7 +78,7 @@ void menu_item_select_previous(void);
  * Return: a boolean value that represents whether the newly selected item
  * needs to be executed.
  */
-bool menu_item_select_by_accelerator(char accelerator);
+bool menu_item_select_by_accelerator(uint32_t accelerator);
 
 void menu_submenu_enter(void);
 void menu_submenu_leave(void);

@@ -8,7 +8,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <strings.h>
+#include <uchar.h>
 #include <unistd.h>
+#include <wctype.h>
 #include <wlr/types/wlr_scene.h>
 #include <wlr/types/wlr_xdg_shell.h>
 #include <wlr/util/log.h>
@@ -131,7 +133,7 @@ validate(void)
 }
 
 static struct menuitem *
-item_create(struct menu *menu, const char *text, const char *icon_name, bool show_arrow)
+item_create(struct menu *menu, char *text, const char *icon_name, bool show_arrow)
 {
 	assert(menu);
 	assert(text);
@@ -145,25 +147,33 @@ item_create(struct menu *menu, const char *text, const char *icon_name, bool sho
 	menuitem->arrow = show_arrow ? "›" : NULL;
 
 	const char *it = text;
-	/* Skip emojis and whitespace */
-	while (*it != '\0') {
-		unsigned char c = (unsigned char)*it;
-
-		if (isspace(c) || c > 127) {
-			it++;
-		} else {
-			break;
-		}
-	}
-
-	menuitem->accelerator = tolower(*it);
+	uint32_t accelerator = 0;
 	while (*it != '\0') {
 		if (*it == '_') {
-			menuitem->accelerator = tolower(*(it + 1));
+			char32_t codepoint = 0;
+			mbstate_t state = {0};
+			size_t bytes = mbrtoc32(&codepoint, it + 1, MB_CUR_MAX, &state);
+			if (bytes > 0 && bytes <= 4) {
+				accelerator = (uint32_t)towlower((wint_t)codepoint);
+			}
+
 			break;
 		}
 		it++;
 	}
+
+	/* Fallback to the first character of the label */
+	if (accelerator == 0 && text[0] != '\0') {
+		char32_t codepoint = 0;
+		mbstate_t state = {0};
+
+		size_t bytes = mbrtoc32(&codepoint, text, MB_CUR_MAX, &state);
+		if (bytes > 0 && bytes <= 4) {
+			accelerator = (uint32_t)towlower((wint_t)codepoint);
+		}
+	}
+
+	menuitem->accelerator = accelerator;
 
 #if HAVE_LIBSFDO
 	if (rc.menu_show_icons && !string_null_or_empty(icon_name)) {
@@ -1483,7 +1493,7 @@ menu_item_select_previous(void)
 }
 
 bool
-menu_item_select_by_accelerator(char accelerator)
+menu_item_select_by_accelerator(uint32_t accelerator)
 {
 	struct menu *menu = get_selection_leaf();
 	if (!menu || wl_list_empty(&menu->menuitems)) {

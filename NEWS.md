@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog]
 
 | Date       | All Changes   | wlroots version | lines-of-code |
 |------------|---------------|-----------------|---------------|
+| 2026-04-17 | [0.9.7]       | 0.19.2          | 29277         |
 | 2026-03-15 | [0.9.6]       | 0.19.2          | 29271         |
 | 2026-03-04 | [0.9.5]       | 0.19.2          | 29251         |
 | 2026-02-27 | [0.9.4]       | 0.19.2          | 29225         |
@@ -42,6 +43,7 @@ The format is based on [Keep a Changelog]
 | 2021-04-15 | [0.2.0]       | 0.13.0          | 5011          |
 | 2021-03-05 | [0.1.0]       | 0.12.0          | 4627          |
 
+[0.9.7]: NEWS.md#097---2026-04-17
 [0.9.6]: NEWS.md#096---2026-03-15
 [0.9.5]: NEWS.md#095---2026-03-04
 [0.9.4]: NEWS.md#094---2026-02-27
@@ -109,13 +111,35 @@ There are some regression warnings worth noting for the switch to wlroots 0.19:
 [wlroots-5098]:https://gitlab.freedesktop.org/wlroots/wlroots/-/merge_requests/5098
 [gtk-8792]: https://gitlab.gnome.org/GNOME/gtk/-/merge_requests/8792
 
+## 0.9.7 - 2026-04-17
+
+[0.9.7-commits]
+
+This is a small bug fix release.
+
+```
+               0.9.6--------0.9.7  <--- v0.9 branch with bug-fixes only
+                /
+               /
+0.9.4--------0.9.5--------  <-- master (built with wlroots-0.20)
+```
+
+## Fixed
+
+- Fix intermittent failed-to-get-texture issue with some clients (e.g. foot)
+  when using the window-switcher in the thumbnail mode. [#3511] @yuiiio
+- Fix tablet tool tilt motion. [#3494] @jp7677
+- Handle window-switcher buffer allocation failure when in 'thumbnail' mode.
+  This is believed to be very unlikely to happen, but has been reported by one
+  user and is believed to be GPU driver related. [#3490] @Consolatis
+
 ## 0.9.6 - 2026-03-15
 
 [0.9.6-commits]
 
 This is an earlier-than-usual release containing bug fixes only. It has been
-done on a separate branch (0.9.5-maintenance) to avoid the inclusion of
-refactoring and new features.
+done on a separate branch (v0.9) to avoid the inclusion of refactoring and new
+features.
 
 ```
                0.9.6  <--- bug-fixes only
@@ -2641,6 +2665,7 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
   ShowMenu
 
 [Keep a Changelog]: https://keepachangelog.com/en/1.0.0/
+[0.9.7-commits]: https://github.com/labwc/labwc/compare/0.9.6...0.9.7
 [0.9.6-commits]: https://github.com/labwc/labwc/compare/0.9.5...0.9.6
 [0.9.5-commits]: https://github.com/labwc/labwc/compare/0.9.4...0.9.5
 [0.9.4-commits]: https://github.com/labwc/labwc/compare/0.9.3...0.9.4
@@ -3184,3 +3209,6 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
 [#3441]: https://github.com/labwc/labwc/pull/3441
 [#3443]: https://github.com/labwc/labwc/pull/3443
 [#3445]: https://github.com/labwc/labwc/pull/3445
+[#3490]: https://github.com/labwc/labwc/pull/3490
+[#3494]: https://github.com/labwc/labwc/pull/3494
+[#3511]: https://github.com/labwc/labwc/pull/3511

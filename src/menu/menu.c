@@ -155,22 +155,16 @@ item_create(struct menu *menu, char *text, const char *icon_name, bool show_arro
 			size_t bytes = mbrtoc32(&codepoint, it + 1,
 				MB_CUR_MAX, &state);
 			if (bytes > 0 && bytes <= 4) {
-				accelerator =
-					(uint32_t)towlower((wint_t)codepoint);
+				accelerator = (uint32_t)towlower((wint_t)codepoint);
 			}
 
 			if (*(it + 1) != '\0') {
 				int underscore_index = it - text;
-				new_text = malloc(strlen(text) + 8);
-				if (!new_text) {
-					break;
-				}
-				memcpy(new_text, text, underscore_index);
-				sprintf(new_text + underscore_index, "<u>%c</u>%s",
-					*(it + 1), it + 2);
+				new_text = strdup_printf("%.*s<u>%.*s</u>%s",
+					underscore_index, text, (int)bytes,
+					it + 1, it + 1 + bytes);
+				break;
 			}
-
-			break;
 		}
 		it++;
 	}
@@ -189,8 +183,10 @@ item_create(struct menu *menu, char *text, const char *icon_name, bool show_arro
 	menuitem->accelerator = accelerator;
 	if (new_text) {
 		menuitem->text = xstrdup(new_text);
+		menuitem->use_markup = true;
 	} else {
 		menuitem->text = xstrdup(text);
+		menuitem->use_markup = false;
 	}
 
 #if HAVE_LIBSFDO
@@ -263,7 +259,7 @@ item_create_scene_for_state(struct menuitem *item, float *text_color,
 	struct scaled_font_buffer *label_buffer = scaled_font_buffer_create(tree);
 	assert(label_buffer);
 	scaled_font_buffer_update(label_buffer, item->text, label_max_width,
-		&rc.font_menuitem, text_color, bg_color);
+		&rc.font_menuitem, text_color, bg_color, item->use_markup);
 	/* Vertically center and left-align label */
 	int x = theme->menu_items_padding_x + icon_width;
 	int y = (theme->menu_item_height - label_buffer->height) / 2;
@@ -277,7 +273,7 @@ item_create_scene_for_state(struct menuitem *item, float *text_color,
 	struct scaled_font_buffer *arrow_buffer = scaled_font_buffer_create(tree);
 	assert(arrow_buffer);
 	scaled_font_buffer_update(arrow_buffer, item->arrow, -1,
-		&rc.font_menuitem, text_color, bg_color);
+		&rc.font_menuitem, text_color, bg_color, false);
 	/* Vertically center and right-align arrow */
 	x += label_max_width + theme->menu_items_padding_x;
 	y = (theme->menu_item_height - label_buffer->height) / 2;
@@ -416,7 +412,7 @@ title_create_scene(struct menuitem *menuitem, int *item_y)
 		scaled_font_buffer_create(menuitem->normal_tree);
 	assert(title_font_buffer);
 	scaled_font_buffer_update(title_font_buffer, menuitem->text,
-		text_width, &rc.font_menuheader, text_color, bg_color);
+		text_width, &rc.font_menuheader, text_color, bg_color, false);
 
 	int title_x = 0;
 	switch (theme->menu_title_text_justify) {

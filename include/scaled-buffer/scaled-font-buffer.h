@@ -15,6 +15,7 @@ struct scaled_font_buffer {
 
 	/* Private */
 	char *text;
+	bool use_markup;
 	int max_width;
 	float color[4];
 	float bg_color[4];
@@ -71,6 +72,6 @@ scaled_font_buffer_create_for_titlebar(struct wlr_scene_tree *parent,
  */
 void scaled_font_buffer_update(struct scaled_font_buffer *self, const char *text,
 	int max_width, struct font *font, const float *color,
-	const float *bg_color);
+	const float *bg_color, bool use_markup);
 
 #endif /* LABWC_SCALED_FONT_BUFFER_H */

@@ -112,7 +112,7 @@ create_label(struct wlr_scene_tree *parent, struct view *view,
 		scaled_font_buffer_create(parent);
 	scaled_font_buffer_update(buffer, buf.data,
 		switcher_theme->item_width - 2 * switcher_theme->item_padding,
-		&rc.font_osd, text_color, bg_color);
+		&rc.font_osd, text_color, bg_color, false);
 	buf_reset(&buf);
 	wlr_scene_node_set_position(&buffer->scene_buffer->node,
 		(switcher_theme->item_width - buffer->width) / 2, y);

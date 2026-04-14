@@ -27,6 +27,7 @@ struct menuitem {
 	struct menu *parent;
 	struct menu *submenu;
 	bool selectable;
+	bool use_markup;
 	enum menuitem_type type;
 	int native_width;
 	struct wlr_scene_tree *tree;

@@ -473,7 +473,7 @@ ssd_update_title(struct ssd *ssd)
 		const float bg_color[4] = {0, 0, 0, 0}; /* ignored */
 		scaled_font_buffer_update(subtree->title, view->title,
 			title_bg_width, font,
-			text_color, bg_color);
+			text_color, bg_color, false);
 
 		/* And finally update the cache */
 		dstate->width = subtree->title->width;

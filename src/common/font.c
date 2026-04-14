@@ -123,7 +123,13 @@ font_buffer_create(struct lab_data_buffer **buffer, int max_width,
 	PangoLayout *layout = pango_cairo_create_layout(cairo);
 	pango_context_set_round_glyph_positions(pango_layout_get_context(layout), false);
 	pango_layout_set_width(layout, width * PANGO_SCALE);
-	use_markup ? pango_layout_set_markup(layout, text, -1) : pango_layout_set_text(layout, text, -1);
+
+	if (use_markup) {
+		pango_layout_set_markup(layout, text, -1);
+	} else {
+		pango_layout_set_text(layout, text, -1);
+	}
+
 	pango_layout_set_ellipsize(layout, PANGO_ELLIPSIZE_END);
 
 	if (!opaque_bg) {

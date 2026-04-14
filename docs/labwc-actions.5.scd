@@ -424,6 +424,13 @@ Actions are used in menus and keyboard/mouse bindings.
 	Toggle the screen magnifier on or off at the last magnification level
 	used.
 
+*<action name="ToggleShowDesktop" />*
+	Minimize all windows in the current workspace so that the desktop becomes
+	visible. On calling the action again the hidden windows are unminimized,
+	provided that - since the initial `ShowDesktop` - (a) no windows have been
+	unminimized; (b) workspaces have not been switched; and (c) no new
+	applications have been started.
+
 *<action name="ZoomIn">*++
 *<action name="ZoomOut">*
 	Increase or decrease the magnification level for the screen magnifier.
@@ -435,6 +442,10 @@ Actions are used in menus and keyboard/mouse bindings.
 *<action name="None" />*
 	If used as the only action for a binding: clear an earlier defined
 	binding.
+
+*<action name="DebugToggleKeyStateIndicator" />*
+	Toggle visibility of key-state on-screen display (OSD). Note: This is for
+	debugging purposes only.
 
 # CONDITIONAL ACTIONS
 

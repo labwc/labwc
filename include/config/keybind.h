@@ -23,6 +23,7 @@ struct keybind {
 	struct wl_list actions;  /* struct action.link */
 	struct wl_list link;     /* struct rcxml.keybinds */
 	bool on_release;
+	bool override_inhibition;
 };
 
 /**

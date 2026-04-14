@@ -21,12 +21,14 @@
 #include "cycle.h"
 #include "debug.h"
 #include "input/keyboard.h"
+#include "input/key-state.h"
 #include "labwc.h"
 #include "magnifier.h"
 #include "menu/menu.h"
 #include "output.h"
 #include "output-virtual.h"
 #include "regions.h"
+#include "show-desktop.h"
 #include "ssd.h"
 #include "theme.h"
 #include "translate.h"
@@ -132,8 +134,10 @@ struct action_arg_list {
 	X(TOGGLE_MAGNIFY, "ToggleMagnify") \
 	X(ZOOM_IN, "ZoomIn") \
 	X(ZOOM_OUT, "ZoomOut") \
+	X(TOGGLE_SHOW_DESKTOP, "ToggleShowDesktop") \
 	X(WARP_CURSOR, "WarpCursor") \
-	X(HIDE_CURSOR, "HideCursor")
+	X(HIDE_CURSOR, "HideCursor") \
+	X(DEBUG_TOGGLE_KEY_STATE_INDICATOR, "DebugToggleKeyStateIndicator")
 
 /*
  * Will expand to:
@@ -1560,6 +1564,9 @@ run_action(struct view *view, struct action *action,
 	case ACTION_TYPE_ZOOM_OUT:
 		magnifier_set_scale(MAGNIFY_DECREASE);
 		break;
+	case ACTION_TYPE_TOGGLE_SHOW_DESKTOP:
+		show_desktop_toggle();
+		break;
 	case ACTION_TYPE_WARP_CURSOR: {
 		const char *to = action_get_str(action, "to", "output");
 		const char *x = action_get_str(action, "x", "center");
@@ -1569,6 +1576,9 @@ run_action(struct view *view, struct action *action,
 	}
 	case ACTION_TYPE_HIDE_CURSOR:
 		cursor_set_visible(&server.seat, false);
+		break;
+	case ACTION_TYPE_DEBUG_TOGGLE_KEY_STATE_INDICATOR:
+		key_state_indicator_toggle();
 		break;
 	case ACTION_TYPE_INVALID:
 		wlr_log(WLR_ERROR, "Not executing unknown action");

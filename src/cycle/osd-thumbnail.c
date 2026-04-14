@@ -2,6 +2,7 @@
 #include <assert.h>
 #include <wlr/render/allocator.h>
 #include <wlr/render/swapchain.h>
+#include <wlr/types/wlr_buffer.h>
 #include <wlr/types/wlr_output_layout.h>
 #include <wlr/types/wlr_scene.h>
 #include "config/rcxml.h"
@@ -46,8 +47,12 @@ render_node(struct wlr_render_pass *pass,
 		if (!scene_buffer->buffer) {
 			break;
 		}
-		struct wlr_texture *texture = wlr_texture_from_buffer(
-			server.renderer, scene_buffer->buffer);
+		struct wlr_texture *texture = NULL;
+		struct wlr_client_buffer *client_buffer =
+			wlr_client_buffer_get(scene_buffer->buffer);
+		if (client_buffer) {
+			texture = client_buffer->texture;
+		}
 		if (!texture) {
 			break;
 		}
@@ -62,7 +67,6 @@ render_node(struct wlr_render_pass *pass,
 			},
 			.transform = scene_buffer->transform,
 		});
-		wlr_texture_destroy(texture);
 		break;
 	}
 	case WLR_SCENE_NODE_RECT:

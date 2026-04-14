@@ -760,7 +760,8 @@ References:
 	Stores the keyboard layout either globally or per window and restores
 	it when switching back to the window. Default is global.
 
-*<keyboard><keybind key="" layoutDependent="" onRelease="" allowWhenLocked="">*
+*<keyboard><keybind key="" layoutDependent="" onRelease="" allowWhenLocked=""
+overrideInhibition="">*
 	Define a *key* binding in the format *modifier-key*, where supported
 	modifiers are:
 	- S (shift)
@@ -807,6 +808,11 @@ References:
 
 	*allowWhenLocked* [yes|no]
 	Make this keybind work even if the screen is locked. Default is no.
+
+	*overrideInhibition* [yes|no]
+	Make this keybind work even if the view inhibits keybinds. Default is no.
+	This can be used to prevent W-Tab and similar keybinds from being
+	delivered to Virtual Machines, VNC clients or nested compositors.
 
 	*onRelease* [yes|no]
 	When yes, fires the keybind action when the key or key
@@ -1444,6 +1450,52 @@ situation.
 *<magnifier><useFilter>* [yes|no|default]
 	Whether to apply a bilinear filter to the magnified image, or
 	just to use nearest-neighbour. Default is true - bilinear filtered.
+
+## PRIVILEGED INTERFACES
+
+Labwc supports a small set of privileged wayland interfaces. All of these
+interfaces are enabled by default for applications unless they are running
+via a sandbox environment supporting the security-context-v1 protocol.
+
+Security conscious users are suggested to use a sandbox framework to run
+potentially untrusted applications as it additionally limits access to the
+filesystem (including labwc configuration) and other services like dbus.
+
+In addition to that, privileged protocols can be restricted for non-sandboxed
+clients by defining a `<privilegedInterfaces>` block:
+
+```
+<privilegedInterfaces>
+  <allow>zwlr_layer_shell_v1</allow>
+  <allow>zwlr_virtual_pointer_manager_v1</allow>
+</privilegedInterfaces>
+```
+
+*<privilegedInterfaces><allow>*
+	Name of the interface that should be allowed.
+
+This is the full list of interfaces that can be controlled with this mechanism:
+
+- `wp_drm_lease_device_v1`
+- `zwlr_gamma_control_manager_v1`
+- `zwlr_output_manager_v1`
+- `zwlr_output_power_manager_v1`
+- `zwp_input_method_manager_v2`
+- `zwlr_virtual_pointer_manager_v1`
+- `zwp_virtual_keyboard_manager_v1`
+- `zwlr_export_dmabuf_manager_v1`
+- `zwlr_screencopy_manager_v1`
+- `ext_data_control_manager_v1`
+- `zwlr_data_control_manager_v1`
+- `wp_security_context_manager_v1`
+- `ext_idle_notifier_v1`
+- `zwlr_foreign_toplevel_manager_v1`
+- `ext_foreign_toplevel_list_v1`
+- `ext_session_lock_manager_v1`
+- `zwlr_layer_shell_v1`
+- `ext_workspace_manager_v1`
+- `ext_image_copy_capture_manager_v1`
+- `ext_output_image_capture_source_manager_v1`
 
 ## ENVIRONMENT VARIABLES
 

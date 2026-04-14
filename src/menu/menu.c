@@ -143,18 +143,31 @@ item_create(struct menu *menu, char *text, const char *icon_name, bool show_arro
 	menuitem->parent = menu;
 	menuitem->selectable = true;
 	menuitem->type = LAB_MENU_ITEM;
-	menuitem->text = xstrdup(text);
 	menuitem->arrow = show_arrow ? "›" : NULL;
 
-	const char *it = text;
 	uint32_t accelerator = 0;
+	char *new_text = NULL;
+	char *it = text;
 	while (*it != '\0') {
 		if (*it == '_') {
 			char32_t codepoint = 0;
 			mbstate_t state = {0};
-			size_t bytes = mbrtoc32(&codepoint, it + 1, MB_CUR_MAX, &state);
+			size_t bytes = mbrtoc32(&codepoint, it + 1,
+				MB_CUR_MAX, &state);
 			if (bytes > 0 && bytes <= 4) {
-				accelerator = (uint32_t)towlower((wint_t)codepoint);
+				accelerator =
+					(uint32_t)towlower((wint_t)codepoint);
+			}
+
+			if (*(it + 1) != '\0') {
+				int underscore_index = it - text;
+				new_text = malloc(strlen(text) + 8);
+				if (!new_text) {
+					break;
+				}
+				memcpy(new_text, text, underscore_index);
+				sprintf(new_text + underscore_index, "<u>%c</u>%s",
+					*(it + 1), it + 2);
 			}
 
 			break;
@@ -174,6 +187,11 @@ item_create(struct menu *menu, char *text, const char *icon_name, bool show_arro
 	}
 
 	menuitem->accelerator = accelerator;
+	if (new_text) {
+		menuitem->text = xstrdup(new_text);
+	} else {
+		menuitem->text = xstrdup(text);
+	}
 
 #if HAVE_LIBSFDO
 	if (rc.menu_show_icons && !string_null_or_empty(icon_name)) {

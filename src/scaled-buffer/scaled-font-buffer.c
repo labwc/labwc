@@ -26,7 +26,7 @@ _create_buffer(struct scaled_buffer *scaled_buffer, double scale)
 
 	/* Buffer gets free'd automatically along the backing wlr_buffer */
 	font_buffer_create(&buffer, self->max_width, self->height, self->text,
-		&self->font, self->color, bg_pattern, scale);
+		&self->font, self->color, bg_pattern, scale, true);
 
 	if (!buffer) {
 		wlr_log(WLR_ERROR, "font_buffer_create() failed");

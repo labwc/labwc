@@ -13,6 +13,7 @@
 #include "config/rcxml.h"
 #include "cycle.h"
 #include "idle.h"
+#include "overview.h"
 #include "input/ime.h"
 #include "input/key-state.h"
 #include "labwc.h"
@@ -488,6 +489,24 @@ handle_cycle_view_key(struct keyinfo *keyinfo)
 	return false;
 }
 
+/* Returns true if the keystroke is consumed */
+static bool
+handle_overview_key(struct keyinfo *keyinfo)
+{
+	if (keyinfo->is_modifier) {
+		return false;
+	}
+
+	for (int i = 0; i < keyinfo->translated.nr_syms; i++) {
+		if (keyinfo->translated.syms[i] == XKB_KEY_Escape) {
+			/* Esc deactivates overview */
+			overview_finish(/*focus_selected*/ false);
+			return true;
+		}
+	}
+	return false;
+}
+
 static enum lab_key_handled
 handle_compositor_keybindings(struct keyboard *keyboard,
 		struct wlr_keyboard_key_event *event)
@@ -531,6 +550,11 @@ handle_compositor_keybindings(struct keyboard *keyboard,
 			return LAB_KEY_HANDLED_TRUE;
 		} else if (server.input_mode == LAB_INPUT_STATE_CYCLE) {
 			if (handle_cycle_view_key(&keyinfo)) {
+				key_state_store_pressed_key_as_bound(event->keycode);
+				return LAB_KEY_HANDLED_TRUE;
+			}
+		} else if (server.input_mode == LAB_INPUT_STATE_OVERVIEW) {
+			if (handle_overview_key(&keyinfo)) {
 				key_state_store_pressed_key_as_bound(event->keycode);
 				return LAB_KEY_HANDLED_TRUE;
 			}

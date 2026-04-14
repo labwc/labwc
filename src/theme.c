@@ -962,6 +962,10 @@ entry(struct theme *theme, const char *key, const char *value)
 	if (match_glob(key, "osd.border.color")) {
 		parse_color(value, theme->osd_border_color);
 	}
+
+	if (match_glob(key, "overview.bg.color")) {
+		parse_color(value, theme->overview_bg_color);
+	}
 	/* classic window switcher */
 	if (match_glob(key, "osd.window-switcher.style-classic.width")
 			|| match_glob(key, "osd.window-switcher.width")) {

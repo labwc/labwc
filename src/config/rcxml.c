@@ -1195,6 +1195,9 @@ entry(xmlNode *node, char *nodename, char *content)
 		set_bool(content, &rc.focus_follow_mouse_requires_movement);
 	} else if (!strcasecmp(nodename, "raiseOnFocus.focus")) {
 		set_bool(content, &rc.raise_on_focus);
+	} else if (!strcasecmp(nodename, "raiseOnFocusDelay.focus")) {
+		long val = strtol(content, NULL, 10);
+		rc.raise_on_focus_delay_ms = val > 0 ? (uint32_t)val : 0;
 	} else if (!strcasecmp(nodename, "doubleClickTime.mouse")) {
 		long doubleclick_time_parsed = strtol(content, NULL, 10);
 		if (doubleclick_time_parsed > 0) {
@@ -1530,6 +1533,7 @@ rcxml_init(void)
 	rc.focus_follow_mouse = false;
 	rc.focus_follow_mouse_requires_movement = true;
 	rc.raise_on_focus = false;
+	rc.raise_on_focus_delay_ms = 0;
 
 	rc.doubleclick_time = 500;
 

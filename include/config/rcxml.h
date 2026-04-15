@@ -90,6 +90,7 @@ struct rcxml {
 	bool focus_follow_mouse;
 	bool focus_follow_mouse_requires_movement;
 	bool raise_on_focus;
+	uint32_t raise_on_focus_delay_ms;
 
 	/* theme */
 	char *theme_name;

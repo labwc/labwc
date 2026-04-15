@@ -182,7 +182,7 @@ item_create(struct menu *menu, char *text, const char *icon_name, bool show_arro
 
 	menuitem->accelerator = accelerator;
 	if (new_text) {
-		menuitem->text = xstrdup(new_text);
+		menuitem->text = new_text;
 		menuitem->use_markup = true;
 	} else {
 		menuitem->text = xstrdup(text);

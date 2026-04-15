@@ -989,6 +989,9 @@ parse_criteria(const char *cmd, struct view_query **query)
 	const char *p = cmd + 1;
 	*query = view_query_create();
 
+	/* Allow safe destruction of view query */
+	wl_list_init(&(*query)->link);
+
 	while (*p && *p != ']') {
 		while (*p == ' ') {
 			p++;

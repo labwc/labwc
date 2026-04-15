@@ -81,7 +81,6 @@ struct view_query *
 view_query_create(void)
 {
 	struct view_query *query = znew(*query);
-	wl_list_init(&query->link);
 	/* Must be synced with view_matches_criteria() in window-rules.c */
 	query->window_type = LAB_WINDOW_TYPE_INVALID;
 	query->maximized = VIEW_AXIS_INVALID;

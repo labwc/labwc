@@ -553,6 +553,9 @@ ipc_json_view_node(struct view *view)
 	if (view->type == LAB_XDG_SHELL_VIEW) {
 		json_object_object_add(obj, "app_id",
 			json_object_new_string(view->app_id));
+		json_object_object_add(obj, "identifier",
+			json_object_new_string(foreign_toplevel_get_identifier(
+				view->foreign_toplevel)));
 		json_object_object_add(obj, "shell",
 			json_object_new_string("xdg_shell"));
 		json_object_object_add(obj, "window", json_object_new_null());
@@ -560,6 +563,9 @@ ipc_json_view_node(struct view *view)
 #if HAVE_XWAYLAND
 	else if (view->type == LAB_XWAYLAND_VIEW) {
 		json_object_object_add(obj, "app_id", json_object_new_null());
+		json_object_object_add(obj, "identifier",
+			json_object_new_string(foreign_toplevel_get_identifier(
+				view->foreign_toplevel)));
 		json_object_object_add(obj, "shell",
 			json_object_new_string("xwayland"));
 
@@ -598,11 +604,6 @@ ipc_json_view_node(struct view *view)
 		}
 	}
 #endif
-
-	/* identifier for grim -T / ext-foreign-toplevel-list-v1 support */
-	json_object_object_add(obj, "identifier",
-		json_object_new_string(foreign_toplevel_get_identifier(
-			view->foreign_toplevel)));
 
 	pid_t pid = -1;
 	if (view->impl && view->impl->get_pid) {

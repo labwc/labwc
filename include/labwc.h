@@ -314,8 +314,6 @@ struct server {
 	struct sfdo *sfdo;
 
 	pid_t primary_client_pid;
-
-	struct wl_list ipc_clients;
 };
 
 /* defined in main.c */

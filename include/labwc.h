@@ -1,10 +1,10 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 #ifndef LABWC_H
 #define LABWC_H
-#include "config.h"
 #include <wlr/util/box.h>
 #include <wlr/util/log.h>
 #include "common/set.h"
+#include "config.h"
 #include "cycle.h"
 #include "input/cursor.h"
 #include "overlay.h"
@@ -65,9 +65,9 @@ struct seat {
 	struct input_method_relay *input_method_relay;
 
 	/**
-	 * Cursor context saved when a mouse button is pressed on a view/surface.
-	 * It is used to send cursor motion events to a surface even though
-	 * the cursor has left the surface in the meantime.
+	 * Cursor context saved when a mouse button is pressed on a
+	 * view/surface. It is used to send cursor motion events to a surface
+	 * even though the cursor has left the surface in the meantime.
 	 *
 	 * This allows to keep dragging a scrollbar or selecting text even
 	 * when moving outside of the window.
@@ -236,7 +236,8 @@ struct server {
 	 */
 	struct wlr_scene_tree *xdg_popup_tree;
 #if HAVE_XWAYLAND
-	/* Tree for unmanaged xsurfaces without initialized view (usually popups) */
+	/* Tree for unmanaged xsurfaces without initialized view (usually
+	 * popups) */
 	struct wlr_scene_tree *unmanaged_tree;
 #endif
 	struct wlr_scene_tree *cycle_preview_tree;
@@ -245,7 +246,7 @@ struct server {
 
 	/* Workspaces */
 	struct {
-		struct wl_list all;  /* struct workspace.link */
+		struct wl_list all; /* struct workspace.link */
 		struct workspace *current;
 		struct workspace *last;
 		struct wlr_ext_workspace_manager_v1 *ext_manager;
@@ -313,6 +314,8 @@ struct server {
 	struct sfdo *sfdo;
 
 	pid_t primary_client_pid;
+
+	struct wl_list ipc_clients;
 };
 
 /* defined in main.c */
@@ -395,7 +398,8 @@ void seat_pointer_end_grab(struct seat *seat, struct wlr_surface *surface);
  */
 void seat_focus_lock_surface(struct seat *seat, struct wlr_surface *surface);
 
-void seat_set_focus_layer(struct seat *seat, struct wlr_layer_surface_v1 *layer);
+void seat_set_focus_layer(struct seat *seat,
+	struct wlr_layer_surface_v1 *layer);
 void seat_output_layout_changed(struct seat *seat);
 
 /*
@@ -446,7 +450,6 @@ void server_start(void);
 void server_finish(void);
 
 void create_constraint(struct wl_listener *listener, void *data);
-void constrain_cursor(struct wlr_pointer_constraint_v1
-	*constraint);
+void constrain_cursor(struct wlr_pointer_constraint_v1 *constraint);
 
 #endif /* LABWC_H */

@@ -59,3 +59,11 @@ endif
 
 clients = files('lab-sensible-terminal')
 install_data(clients, install_dir: get_option('bindir'))
+
+jsonc_client = dependency('json-c')
+executable(
+  'labmsg',
+  files('labmsg.c'),
+  dependencies: [jsonc_client],
+  install: true,
+)

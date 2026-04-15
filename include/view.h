@@ -236,6 +236,12 @@ struct view {
 	/* Set temporarily when moving view due to layout change */
 	bool adjusting_for_layout_change;
 
+	/*
+	 * Last geometry reported to IPC subscribers. Used to detect
+	 * actual position/size changes and emit move/resize events.
+	 */
+	struct wlr_box ipc_last_geo;
+
 	/* used by xdg-shell views */
 	uint32_t pending_configure_serial;
 	struct wl_event_source *pending_configure_timeout;

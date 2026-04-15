@@ -17,6 +17,7 @@
 #include "config/rcxml.h"
 #include "config/session.h"
 #include "foreign-toplevel/foreign.h"
+#include "ipc.h"
 #include "labwc.h"
 #include "node.h"
 #include "output.h"
@@ -580,6 +581,7 @@ handle_set_title(struct wl_listener *listener, void *data)
 	struct view *view = wl_container_of(listener, view, set_title);
 	struct xwayland_view *xwayland_view = xwayland_view_from_view(view);
 	view_set_title(view, xwayland_view->xwayland_surface->title);
+	ipc_event_window("title", view);
 }
 
 static void
@@ -824,6 +826,8 @@ handle_map(struct wl_listener *listener, void *data)
 
 	view_impl_map(view);
 	view->been_mapped = true;
+	ipc_event_window("new", view);
+	view->ipc_last_geo = view->current;
 }
 
 static void
@@ -835,6 +839,7 @@ handle_unmap(struct wl_listener *listener, void *data)
 	}
 	view->mapped = false;
 	view_impl_unmap(view);
+	ipc_event_window("close", view);
 
 	/*
 	 * Destroy the content_tree at unmap. Alternatively, we could

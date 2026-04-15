@@ -201,7 +201,7 @@ action_arg_add_bool(struct action *action, const char *key, bool value)
 	wl_list_append(&action->args, &arg->base.link);
 }
 
-static void
+void
 action_arg_add_int(struct action *action, const char *key, int value)
 {
 	assert(action);

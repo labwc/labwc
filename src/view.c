@@ -19,6 +19,7 @@
 #include "cycle.h"
 #include "foreign-toplevel/foreign.h"
 #include "input/keyboard.h"
+#include "ipc.h"
 #include "labwc.h"
 #include "menu/menu.h"
 #include "output.h"
@@ -80,6 +81,7 @@ struct view_query *
 view_query_create(void)
 {
 	struct view_query *query = znew(*query);
+	wl_list_init(&query->link);
 	/* Must be synced with view_matches_criteria() in window-rules.c */
 	query->window_type = LAB_WINDOW_TYPE_INVALID;
 	query->maximized = VIEW_AXIS_INVALID;
@@ -567,6 +569,25 @@ view_moved(struct view *view)
 	if (rc.resize_indicator && server.grabbed_view == view) {
 		resize_indicator_update(view);
 	}
+
+	/*
+	 * Fallback IPC emission: catch geometry corrections made by
+	 * the client on commit (e.g. terminal snapping to char grid).
+	 * The primary emission point is in view_move_resize() which
+	 * fires immediately using view->pending. The ipc_last_geo
+	 * dedup ensures no duplicates when pending == current.
+	 */
+	if (view->mapped) {
+		struct wlr_box *last = &view->ipc_last_geo;
+		struct wlr_box *cur = &view->current;
+		if (cur->x != last->x || cur->y != last->y) {
+			ipc_event_window("move", view);
+		}
+		if (cur->width != last->width || cur->height != last->height) {
+			ipc_event_window("resize", view);
+		}
+		*last = *cur;
+	}
 }
 
 void
@@ -589,6 +610,25 @@ view_move_resize(struct view *view, struct wlr_box geo)
 	 */
 	if (!view->adjusting_for_layout_change) {
 		view_save_last_placement(view);
+	}
+
+	/*
+	 * Emit IPC move/resize events based on pending geometry.
+	 * This fires immediately when the resize is requested rather
+	 * than waiting for the client to commit, giving subscribers
+	 * realtime tracking that matches interactive move behaviour.
+	 */
+	if (view->mapped) {
+		struct wlr_box *last = &view->ipc_last_geo;
+		struct wlr_box *pending = &view->pending;
+		if (pending->x != last->x || pending->y != last->y) {
+			ipc_event_window("move", view);
+		}
+		if (pending->width != last->width
+				|| pending->height != last->height) {
+			ipc_event_window("resize", view);
+		}
+		*last = *pending;
 	}
 }
 

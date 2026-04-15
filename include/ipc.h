@@ -71,6 +71,7 @@ void ipc_event_workspace(const char *change, struct workspace *current,
 	struct workspace *old);
 void ipc_event_output(const char *change);
 void ipc_event_window(const char *change, struct view *view);
+void ipc_event_window_geometry(struct view *view, struct wlr_box *new_geo);
 void ipc_event_shutdown(void);
 
 #endif /* LABWC_IPC_H */

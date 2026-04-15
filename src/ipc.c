@@ -60,6 +60,8 @@
 static int ipc_socket_fd = -1;
 static char *ipc_socket_path;
 static struct wl_event_source *ipc_event_source;
+static struct wl_list ipc_clients;
+
 
 static void ipc_client_disconnect(struct ipc_client *client);
 static void ipc_handle_message(struct ipc_client *client, uint32_t type,
@@ -205,7 +207,7 @@ handle_new_connection(int fd, uint32_t mask, void *data)
 	client->fd = client_fd;
 	client->readable = wl_event_loop_add_fd(server.wl_event_loop, client_fd,
 		WL_EVENT_READABLE, handle_client_readable, client);
-	wl_list_insert(&server.ipc_clients, &client->link);
+	wl_list_insert(&ipc_clients, &client->link);
 
 	return 0;
 }
@@ -226,7 +228,7 @@ ipc_client_disconnect(struct ipc_client *client)
 void
 ipc_init(void)
 {
-	wl_list_init(&server.ipc_clients);
+	wl_list_init(&ipc_clients);
 
 	ipc_socket_fd = socket(AF_UNIX, SOCK_STREAM, 0);
 	if (ipc_socket_fd < 0) {
@@ -297,7 +299,7 @@ ipc_finish(void)
 	}
 
 	struct ipc_client *client, *tmp;
-	wl_list_for_each_safe(client, tmp, &server.ipc_clients, link) {
+	wl_list_for_each_safe(client, tmp, &ipc_clients, link) {
 		ipc_client_disconnect(client);
 	}
 
@@ -1565,7 +1567,7 @@ ipc_handle_message(struct ipc_client *client, uint32_t type,
 			json_object_new_string(payload ? payload : ""));
 		const char *tick_str = json_object_to_json_string(tick_event);
 		struct ipc_client *c;
-		wl_list_for_each(c, &server.ipc_clients, link) {
+		wl_list_for_each(c, &ipc_clients, link) {
 			if (c->subscriptions & IPC_SUB_TICK) {
 				ipc_send_reply(c, IPC_EVENT_TICK, tick_str,
 					strlen(tick_str));
@@ -1613,7 +1615,7 @@ ipc_broadcast_event(uint32_t event_type, uint32_t sub_bit,
 	const char *str = json_object_to_json_string(event);
 	size_t len = strlen(str);
 	struct ipc_client *client;
-	wl_list_for_each(client, &server.ipc_clients, link) {
+	wl_list_for_each(client, &ipc_clients, link) {
 		if (client->subscriptions & sub_bit) {
 			ipc_send_reply(client, event_type, str, len);
 		}

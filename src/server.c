@@ -89,6 +89,12 @@ reload_config_and_theme(void)
 	/* Avoid UAF when dialog client is used during reconfigure */
 	action_prompts_destroy();
 
+	/*
+	 * Cancel any pending auto-raise before reloading config in case the
+	 * raiseOnFocusDelay option was disabled or changed.
+	 */
+	desktop_cancel_pending_auto_raise();
+
 	scaled_buffer_invalidate_sharing();
 	rcxml_finish();
 	rcxml_read(rc.config_file);

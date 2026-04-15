@@ -573,19 +573,11 @@ view_moved(struct view *view)
 	 * Fallback IPC emission: catch geometry corrections made by
 	 * the client on commit (e.g. terminal snapping to char grid).
 	 * The primary emission point is in view_move_resize() which
-	 * fires immediately using view->pending. The ipc_last_geo
-	 * dedup ensures no duplicates when pending == current.
+	 * fires immediately using view->pending. Events are
+	 * deduplicated in ipc_event_window_geometry().
 	 */
 	if (view->mapped) {
-		struct wlr_box *last = &view->ipc_last_geo;
-		struct wlr_box *cur = &view->current;
-		if (cur->x != last->x || cur->y != last->y) {
-			ipc_event_window("move", view);
-		}
-		if (cur->width != last->width || cur->height != last->height) {
-			ipc_event_window("resize", view);
-		}
-		*last = *cur;
+		ipc_event_window_geometry(view, &view->current);
 	}
 }
 
@@ -618,16 +610,7 @@ view_move_resize(struct view *view, struct wlr_box geo)
 	 * realtime tracking that matches interactive move behaviour.
 	 */
 	if (view->mapped) {
-		struct wlr_box *last = &view->ipc_last_geo;
-		struct wlr_box *pending = &view->pending;
-		if (pending->x != last->x || pending->y != last->y) {
-			ipc_event_window("move", view);
-		}
-		if (pending->width != last->width
-				|| pending->height != last->height) {
-			ipc_event_window("resize", view);
-		}
-		*last = *pending;
+		ipc_event_window_geometry(view, &view->pending);
 	}
 }
 

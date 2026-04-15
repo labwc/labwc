@@ -28,7 +28,6 @@
 #include "input/keyboard.h"
 #include "input/tablet.h"
 #include "input/touch.h"
-#include "ipc.h"
 #include "labwc.h"
 #include "layers.h"
 #include "menu/menu.h"
@@ -375,22 +374,6 @@ process_cursor_resize(uint32_t time)
 		view_move_resize(view, new_view_geo);
 	} else {
 		resize_outlines_update(view, new_view_geo);
-		if (view->mapped) {
-			view->current = new_view_geo;
-			struct wlr_box *last = &view->ipc_last_geo;
-			if (new_view_geo.x != last->x
-				|| new_view_geo.y != last->y) {
-				ipc_event_window("move", view);
-			}
-			if (new_view_geo.width != last->width
-				|| new_view_geo.height != last->height) {
-				ipc_event_window("resize", view);
-			}
-			last->x = new_view_geo.x;
-			last->y = new_view_geo.y;
-			last->width = new_view_geo.width;
-			last->height = new_view_geo.height;
-		}
 	}
 }
 

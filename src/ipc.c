@@ -631,9 +631,9 @@ ipc_json_view_node(struct view *view)
 
 	/* geometry */
 	json_object_object_add(obj, "position",
-		ipc_json_position(view->current));
+		ipc_json_position(view->ipc_last_geo));
 	json_object_object_add(obj, "dimension",
-		ipc_json_dimension(view->current));
+		ipc_json_dimension(view->ipc_last_geo));
 
 	return obj;
 }
@@ -1705,6 +1705,24 @@ ipc_event_window(const char *change, struct view *view)
 			json_object_new_null());
 	}
 	ipc_broadcast_event(IPC_EVENT_WINDOW, IPC_SUB_WINDOW, event);
+}
+
+void
+ipc_event_window_geometry(struct view *view, struct wlr_box *new_geo)
+{
+	struct wlr_box *last = &view->ipc_last_geo;
+
+	bool moved = new_geo->x != last->x || new_geo->y != last->y;
+	bool resized = new_geo->width != last->width || new_geo->height != last->height;
+	*last = *new_geo;
+
+	if (moved) {
+		ipc_event_window("move", view);
+	}
+
+	if (resized) {
+		ipc_event_window("resize", view);
+	}
 }
 
 void

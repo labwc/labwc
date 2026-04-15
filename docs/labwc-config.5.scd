@@ -493,6 +493,13 @@ this is for compatibility with Openbox.
 *<focus><raiseOnFocus>* [yes|no]
 	Raise window to top when focused. Default is no.
 
+*<focus><raiseOnFocusDelay>* [milliseconds]
+	When raiseOnFocus is enabled, delay the actual raise by this many
+	milliseconds. Default is 0 (raise immediately). A subsequent focus
+	change before the timer elapses restarts or cancels the pending raise.
+	Useful together with followMouse to avoid brief passes of the cursor
+	stacking up z-order changes.
+
 ## WINDOW SNAPPING
 
 Windows may be "snapped" to an edge or user-defined region of an output when

@@ -158,6 +158,8 @@
     <followMouse>no</followMouse>
     <followMouseRequiresMovement>yes</followMouseRequiresMovement>
     <raiseOnFocus>no</raiseOnFocus>
+    <!-- Delay (ms) before applying raise-on-focus. 0 = immediate. -->
+    <raiseOnFocusDelay>0</raiseOnFocusDelay>
   </focus>
 
   <snapping>

@@ -9,6 +9,7 @@
 #include <wlr/types/wlr_subcompositor.h>
 #include <wlr/types/wlr_xdg_shell.h>
 #include "common/scene-helpers.h"
+#include "config/rcxml.h"
 #include "dnd.h"
 #include "labwc.h"
 #include "layers.h"
@@ -65,6 +66,49 @@ set_or_offer_focus(struct view *view)
 	}
 }
 
+static int
+handle_auto_raise_timer(void *data)
+{
+	(void)data;
+	struct view *view = server.pending_auto_raise_view;
+	server.pending_auto_raise_view = NULL;
+
+	if (view && view->mapped) {
+		view_move_to_front(view);
+	}
+	return 0; /* ignored per wl_event_loop docs */
+}
+
+void
+desktop_cancel_pending_auto_raise(void)
+{
+	server.pending_auto_raise_view = NULL;
+	if (server.pending_auto_raise_timer) {
+		/* Disarm by setting to 0 ms */
+		wl_event_source_timer_update(server.pending_auto_raise_timer, 0);
+	}
+}
+
+static void
+schedule_auto_raise(struct view *view)
+{
+	if (rc.raise_on_focus_delay_ms == 0) {
+		/* Immediate raise — preserves original behavior */
+		desktop_cancel_pending_auto_raise();
+		view_move_to_front(view);
+		return;
+	}
+
+	server.pending_auto_raise_view = view;
+	if (!server.pending_auto_raise_timer) {
+		server.pending_auto_raise_timer =
+			wl_event_loop_add_timer(server.wl_event_loop,
+				handle_auto_raise_timer, NULL);
+	}
+	wl_event_source_timer_update(server.pending_auto_raise_timer,
+		rc.raise_on_focus_delay_ms);
+}
+
 void
 desktop_focus_view(struct view *view, bool raise)
 {
@@ -104,7 +148,13 @@ desktop_focus_view(struct view *view, bool raise)
 	}
 
 	if (raise) {
-		view_move_to_front(view);
+		schedule_auto_raise(view);
+	} else {
+		/*
+		 * A new focus change without a raise supersedes any
+		 * pending auto-raise from a previous focus event.
+		 */
+		desktop_cancel_pending_auto_raise();
 	}
 
 	/*

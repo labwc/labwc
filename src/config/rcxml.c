@@ -2017,6 +2017,10 @@ rcxml_read(const char *filename)
 			continue;
 		}
 
+		if (!rc.loaded_config_file) {
+			xstrdup_replace(rc.loaded_config_file, path->string);
+		}
+
 		wlr_log(WLR_INFO, "read config file %s", path->string);
 
 		rcxml_parse_xml(&b);
@@ -2046,6 +2050,7 @@ rcxml_finish(void)
 	zfree(rc.workspace_config.initial_workspace_name);
 	zfree(rc.tablet.output_name);
 	zfree(rc.window_switcher.osd.thumbnail_label_format);
+	zfree(rc.loaded_config_file);
 
 	clear_title_layout();
 

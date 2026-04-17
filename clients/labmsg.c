@@ -187,8 +187,9 @@ print_json(const char *data, bool pretty)
 		return;
 	}
 
-	int flags = pretty ? (JSON_C_TO_STRING_PRETTY | JSON_C_TO_STRING_SPACED)
-			   : JSON_C_TO_STRING_PLAIN;
+	int flags = JSON_C_TO_STRING_NOSLASHESCAPE
+			| (pretty ? (JSON_C_TO_STRING_PRETTY | JSON_C_TO_STRING_SPACED)
+				  : JSON_C_TO_STRING_PLAIN);
 
 	printf("%s\n", json_object_to_json_string_ext(obj, flags));
 	json_object_put(obj);

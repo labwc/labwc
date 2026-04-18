@@ -90,15 +90,8 @@ desktop_cancel_pending_auto_raise(void)
 }
 
 static void
-schedule_auto_raise(struct view *view)
+schedule_delayed_auto_raise(struct view *view)
 {
-	if (rc.raise_on_focus_delay_ms == 0) {
-		/* Immediate raise — preserves original behavior */
-		desktop_cancel_pending_auto_raise();
-		view_move_to_front(view);
-		return;
-	}
-
 	server.pending_auto_raise_view = view;
 	if (!server.pending_auto_raise_timer) {
 		server.pending_auto_raise_timer =
@@ -109,8 +102,15 @@ schedule_auto_raise(struct view *view)
 		rc.raise_on_focus_delay_ms);
 }
 
-void
-desktop_focus_view(struct view *view, bool raise)
+/*
+ * The raise_on_focus_delay is only meant to dampen z-order churn from
+ * focus-follows-mouse cursor passes. Explicit focus changes (alt-tab,
+ * Focus action, xdg/xwayland activation, etc.) should raise immediately.
+ * allow_delay is therefore only set when the caller is the sloppy-focus
+ * path in desktop_focus_view_or_surface().
+ */
+static void
+desktop_focus_view_internal(struct view *view, bool raise, bool allow_delay)
 {
 	assert(view);
 	/*
@@ -147,14 +147,17 @@ desktop_focus_view(struct view *view, bool raise)
 		workspaces_switch_to(view->workspace, /*update_focus*/ false);
 	}
 
+	/*
+	 * A new focus change supersedes any pending auto-raise from a
+	 * previous focus event, regardless of whether we raise now.
+	 */
+	desktop_cancel_pending_auto_raise();
 	if (raise) {
-		schedule_auto_raise(view);
-	} else {
-		/*
-		 * A new focus change without a raise supersedes any
-		 * pending auto-raise from a previous focus event.
-		 */
-		desktop_cancel_pending_auto_raise();
+		if (allow_delay && rc.raise_on_focus_delay_ms > 0) {
+			schedule_delayed_auto_raise(view);
+		} else {
+			view_move_to_front(view);
+		}
 	}
 
 	/*
@@ -168,6 +171,12 @@ desktop_focus_view(struct view *view, bool raise)
 	show_desktop_reset();
 }
 
+void
+desktop_focus_view(struct view *view, bool raise)
+{
+	desktop_focus_view_internal(view, raise, /*allow_delay*/ false);
+}
+
 /* TODO: focus layer-shell surfaces also? */
 void
 desktop_focus_view_or_surface(struct seat *seat, struct view *view,
@@ -175,7 +184,7 @@ desktop_focus_view_or_surface(struct seat *seat, struct view *view,
 {
 	assert(view || surface);
 	if (view) {
-		desktop_focus_view(view, raise);
+		desktop_focus_view_internal(view, raise, /*allow_delay*/ true);
 #if HAVE_XWAYLAND
 	} else {
 		struct wlr_xwayland_surface *xsurface =

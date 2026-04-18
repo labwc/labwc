@@ -8,6 +8,7 @@
 #include <unistd.h>
 #include <wlr/types/wlr_cursor.h>
 #include <wlr/types/wlr_scene.h>
+#include <wlr/types/wlr_seat.h>
 #include <wlr/util/log.h>
 #include "action-prompt-codes.h"
 #include "common/buf.h"
@@ -137,6 +138,7 @@ struct action_arg_list {
 	X(TOGGLE_SHOW_DESKTOP, "ToggleShowDesktop") \
 	X(WARP_CURSOR, "WarpCursor") \
 	X(HIDE_CURSOR, "HideCursor") \
+	X(SEND_KEY, "SendKey") \
 	X(DEBUG_TOGGLE_KEY_STATE_INDICATOR, "DebugToggleKeyStateIndicator")
 
 /*
@@ -531,6 +533,12 @@ action_arg_from_xml_node(struct action *action, const char *nodename, const char
 			goto cleanup;
 		}
 		break;
+	case ACTION_TYPE_SEND_KEY:
+		if (!strcasecmp(argument, "identifier")) {
+			action_arg_add_str(action, "identifier", content);
+			goto cleanup;
+		}
+		break;
 	case ACTION_TYPE_IF:
 		if (!strcmp(argument, "message.prompt")) {
 			action_arg_add_str(action, "message.prompt", content);
@@ -647,6 +655,9 @@ action_is_valid(struct action *action)
 	case ACTION_TYPE_TOGGLE_SNAP_TO_REGION:
 	case ACTION_TYPE_SNAP_TO_REGION:
 		arg_name = "region";
+		break;
+	case ACTION_TYPE_SEND_KEY:
+		arg_name = "identifier";
 		break;
 	case ACTION_TYPE_IF:
 	case ACTION_TYPE_FOR_EACH:
@@ -1425,6 +1436,35 @@ run_action(struct view *view, struct action *action,
 			get_target_output(output, action);
 		if (target_output) {
 			desktop_focus_output(target_output);
+		}
+		break;
+	}
+	case ACTION_TYPE_SEND_KEY: {
+		struct view *target_view;
+		struct wlr_seat *wlr_seat = server.seat.wlr_seat;
+		struct wlr_keyboard *kb = wlr_seat_get_keyboard(server.seat.wlr_seat);
+		if (!kb) break;
+		struct timespec now = { 0 };
+		clock_gettime(CLOCK_MONOTONIC, &now);
+		uint32_t time_msec = now.tv_nsec / 1000000;
+		for_each_view(target_view, &server.views, LAB_VIEW_CRITERIA_NONE) {
+			if (!strcasecmp(target_view->app_id, action_get_str(action, "identifier", NULL))) {
+				uint32_t *pressed_sent_keycodes = key_state_pressed_sent_keycodes();
+				int nr_pressed_sent_keycodes = key_state_nr_pressed_sent_keycodes();
+				wlr_seat_keyboard_notify_enter(wlr_seat, target_view->surface,
+					pressed_sent_keycodes, nr_pressed_sent_keycodes, &kb->modifiers);
+					wlr_seat_keyboard_notify_modifiers(wlr_seat, &kb->modifiers);
+					for (size_t i = 0; i < kb->num_keycodes; i++) {
+						wlr_seat_keyboard_notify_key(wlr_seat, time_msec, kb->keycodes[i], WL_KEYBOARD_KEY_STATE_PRESSED);
+					}
+					for (size_t i = 0; i < kb->num_keycodes; i++) {
+						wlr_seat_keyboard_notify_key(wlr_seat, time_msec, kb->keycodes[i], WL_KEYBOARD_KEY_STATE_RELEASED);
+					}
+				if (view) {
+					wlr_seat_keyboard_notify_enter(wlr_seat, view->surface,
+						pressed_sent_keycodes, nr_pressed_sent_keycodes, &kb->modifiers);
+				}
+			}
 		}
 		break;
 	}

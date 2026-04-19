@@ -1581,6 +1581,10 @@ view_toggle_visible_on_all_workspaces(struct view *view)
 	assert(view);
 	view->visible_on_all_workspaces = !view->visible_on_all_workspaces;
 	ssd_update_geometry(view->ssd);
+
+	if (view->foreign_toplevel) {
+		foreign_toplevel_refresh(view->foreign_toplevel);
+	}
 }
 
 void
@@ -1592,6 +1596,10 @@ view_move_to_workspace(struct view *view, struct workspace *workspace)
 		view->workspace = workspace;
 		wlr_scene_node_reparent(&view->scene_tree->node,
 			workspace->view_trees[view->layer]);
+
+		if (view->foreign_toplevel) {
+			foreign_toplevel_refresh(view->foreign_toplevel);
+		}
 	}
 }
 

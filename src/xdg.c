@@ -846,6 +846,11 @@ handle_map(struct wl_listener *listener, void *data)
 	}
 
 	view_impl_map(view);
+
+	if (view->foreign_toplevel) {
+		foreign_toplevel_refresh(view->foreign_toplevel);
+	}
+
 	view->been_mapped = true;
 }
 
@@ -856,6 +861,10 @@ handle_unmap(struct wl_listener *listener, void *data)
 	if (view->mapped) {
 		view->mapped = false;
 		view_impl_unmap(view);
+
+		if (view->foreign_toplevel) {
+			foreign_toplevel_refresh(view->foreign_toplevel);
+		}
 	}
 }
 

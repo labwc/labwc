@@ -24,6 +24,12 @@
 #include "show-desktop.h"
 #include "theme.h"
 #include "view.h"
+#include "common/macros.h"
+//#include "desktop.h"
+#include "foreign-toplevel/foreign.h"
+#include "input/keyboard.h"
+#include "labwc.h"
+#include "menu/menu.h"
 
 #define EXT_WORKSPACES_VERSION 1
 
@@ -464,8 +470,15 @@ workspaces_switch_to(struct workspace *target, bool update_focus)
 	/* Save the last visited workspace */
 	server.workspaces.last = server.workspaces.current;
 
-	/* Make sure new views will spawn on the new workspace */
+  /* Make sure new views will spawn on the new workspace */
 	server.workspaces.current = target;
+
+	struct view *it;
+	wl_list_for_each(it, &server.views, link) {
+		if (it->foreign_toplevel) {
+			foreign_toplevel_refresh(it->foreign_toplevel);
+		}
+	}
 
 	struct view *grabbed_view = server.grabbed_view;
 	if (grabbed_view) {

@@ -316,15 +316,13 @@ load_buttons(struct theme *theme)
 		.type = LAB_NODE_BUTTON_OMNIPRESENT,
 		.state_set = LAB_BS_TOGGLED,
 	}, {
-
-	// TODO Add proper bitmaps
 		.name = "ontop",
-		.fallback_button = (const char[]){ 0x33, 0x33, 0x00, 0x00, 0x33, 0x33 },
+		.fallback_button = (const char[]){ 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c },
 		.type = LAB_NODE_BUTTON_ONTOP,
 		.state_set = 0,
 	}, {
 		.name = "ontop_toggled",
-		.fallback_button = (const char[]){ 0x33, 0x3f, 0x1e, 0x1e, 0x3f, 0x33 },
+		.fallback_button = (const char[]){ 0x00, 0x0c, 0x1e, 0x33, 0x21, 0x00 },
 		.type = LAB_NODE_BUTTON_ONTOP,
 		.state_set = LAB_BS_TOGGLED,
 	}, {
@@ -373,6 +371,17 @@ load_buttons(struct theme *theme)
 		.name = "desk_toggled_hover",
 		.alt_name = "desk_hover_toggled",
 		.type = LAB_NODE_BUTTON_OMNIPRESENT,
+		.state_set = LAB_BS_TOGGLED | LAB_BS_HOVERED,
+		/* no fallback (non-hover variant is used instead) */
+	}, {
+		.name = "ontop_hover",
+		/* no fallback (non-hover variant is used instead) */
+		.type = LAB_NODE_BUTTON_ONTOP,
+		.state_set = LAB_BS_HOVERED,
+	}, {
+		.name = "ontop_toggled_hover",
+		.alt_name = "ontop_hover_toggled",
+		.type = LAB_NODE_BUTTON_ONTOP,
 		.state_set = LAB_BS_TOGGLED | LAB_BS_HOVERED,
 		/* no fallback (non-hover variant is used instead) */
 	}, {
@@ -848,6 +857,10 @@ entry(struct theme *theme, const char *key, const char *value)
 		parse_color(value, theme->window[SSD_ACTIVE]
 			.button_colors[LAB_NODE_BUTTON_OMNIPRESENT]);
 	}
+	if (match_glob(key, "window.active.button.ontop.unpressed.image.color")) {
+		parse_color(value, theme->window[SSD_ACTIVE]
+			.button_colors[LAB_NODE_BUTTON_ONTOP]);
+	}
 	if (match_glob(key, "window.active.button.close.unpressed.image.color")) {
 		parse_color(value, theme->window[SSD_ACTIVE]
 			.button_colors[LAB_NODE_BUTTON_CLOSE]);
@@ -873,6 +886,10 @@ entry(struct theme *theme, const char *key, const char *value)
 	if (match_glob(key, "window.inactive.button.desk.unpressed.image.color")) {
 		parse_color(value, theme->window[SSD_INACTIVE]
 			.button_colors[LAB_NODE_BUTTON_OMNIPRESENT]);
+	}
+	if (match_glob(key, "window.inactive.button.ontop.unpressed.image.color")) {
+		parse_color(value, theme->window[SSD_INACTIVE]
+			.button_colors[LAB_NODE_BUTTON_ONTOP]);
 	}
 	if (match_glob(key, "window.inactive.button.close.unpressed.image.color")) {
 		parse_color(value, theme->window[SSD_INACTIVE]

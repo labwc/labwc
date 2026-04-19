@@ -162,6 +162,13 @@ example: *LABWC_DEBUG_FOO=1 labwc*.
 	Enable logging of press and release events for bound keys (generally
 	key-combinations like *Ctrl-Alt-t*).
 
+*LABWC_IPC_SOCK*
+	Path to the IPC UNIX domain socket for the running labwc instance.
+	Set automatically by labwc at startup to
+	_$XDG_RUNTIME_DIR/labwc-ipc.<pid>.sock_ and exported to child
+	processes. Used by *labmsg*(1) to connect to the compositor. Can be
+	overridden to connect to a specific instance.
+
 # SEE ALSO
 
-labwc-actions(5), labwc-config(5), labwc-menu(5), labwc-theme(5)
+labmsg(1), labwc-actions(5), labwc-config(5), labwc-menu(5), labwc-theme(5)

@@ -187,9 +187,12 @@ print_json(const char *data, bool pretty)
 		return;
 	}
 
-	int flags = JSON_C_TO_STRING_NOSLASHESCAPE
-			| (pretty ? (JSON_C_TO_STRING_PRETTY | JSON_C_TO_STRING_SPACED)
-				  : JSON_C_TO_STRING_PLAIN);
+	int flags = JSON_C_TO_STRING_NOSLASHESCAPE;
+	if (pretty) {
+		flags |= JSON_C_TO_STRING_PRETTY | JSON_C_TO_STRING_SPACED;
+	} else {
+		flags |= JSON_C_TO_STRING_PLAIN;
+	}
 
 	printf("%s\n", json_object_to_json_string_ext(obj, flags));
 	json_object_put(obj);
@@ -217,7 +220,7 @@ check_command_success(const char *data)
 					/* Print error to stderr */
 					struct json_object *err = NULL;
 					if (json_object_object_get_ex(item,
-						    "error", &err)) {
+							"error", &err)) {
 						fprintf(stderr, "Error: %s\n",
 							json_object_get_string(
 								err));
@@ -374,7 +377,7 @@ main(int argc, char *argv[])
 		while (1) {
 			resp_payload = NULL;
 			if (!ipc_recv(fd, &resp_type, &resp_payload,
-				    &resp_len)) {
+					&resp_len)) {
 				break;
 			}
 			if (!quiet && resp_payload) {

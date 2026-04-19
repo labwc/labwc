@@ -316,6 +316,18 @@ load_buttons(struct theme *theme)
 		.type = LAB_NODE_BUTTON_OMNIPRESENT,
 		.state_set = LAB_BS_TOGGLED,
 	}, {
+
+	// TODO Add proper bitmaps
+		.name = "ontop",
+		.fallback_button = (const char[]){ 0x33, 0x33, 0x00, 0x00, 0x33, 0x33 },
+		.type = LAB_NODE_BUTTON_ONTOP,
+		.state_set = 0,
+	}, {
+		.name = "ontop_toggled",
+		.fallback_button = (const char[]){ 0x33, 0x3f, 0x1e, 0x1e, 0x3f, 0x33 },
+		.type = LAB_NODE_BUTTON_ONTOP,
+		.state_set = LAB_BS_TOGGLED,
+	}, {
 		.name = "close",
 		.fallback_button = (const char[]){ 0x33, 0x3f, 0x1e, 0x1e, 0x3f, 0x33 },
 		.type = LAB_NODE_BUTTON_CLOSE,

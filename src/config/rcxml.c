@@ -184,6 +184,8 @@ fill_section(const char *content, enum lab_node_type *buttons, int *count,
 			type = LAB_NODE_BUTTON_SHADE;
 		} else if (!strcmp(identifier, "desk")) {
 			type = LAB_NODE_BUTTON_OMNIPRESENT;
+		} else if (!strcmp(identifier, "ontop")) {
+			type = LAB_NODE_BUTTON_ONTOP;
 		} else {
 			wlr_log(WLR_ERROR, "invalid titleLayout identifier '%s'",
 				identifier);

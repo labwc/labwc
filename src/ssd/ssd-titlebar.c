@@ -299,6 +299,14 @@ ssd_titlebar_update(struct ssd *ssd)
 		ssd->state.was_omnipresent = view->visible_on_all_workspaces;
 	}
 
+	printf("%d\n\n",ssd->state.was_ontop);
+
+	if (ssd->state.was_ontop != (view->layer == VIEW_LAYER_ALWAYS_ON_TOP)) {
+		set_alt_button_icon(ssd, LAB_NODE_BUTTON_ONTOP,
+			view->layer);
+		ssd->state.was_ontop = view->layer;
+	}
+
 	if (width == ssd->state.geometry.width) {
 		return;
 	}

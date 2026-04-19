@@ -55,13 +55,13 @@
 
 /* ===================================================================
  * Section 1: Protocol & Client Management
- * =================================================================== */
+ * ===================================================================
+ */
 
 static int ipc_socket_fd = -1;
 static char *ipc_socket_path;
 static struct wl_event_source *ipc_event_source;
 static struct wl_list ipc_clients;
-
 
 static void ipc_client_disconnect(struct ipc_client *client);
 static void ipc_handle_message(struct ipc_client *client, uint32_t type,
@@ -317,7 +317,8 @@ ipc_finish(void)
 
 /* ===================================================================
  * Section 2: JSON Builders
- * =================================================================== */
+ * ===================================================================
+ */
 
 static struct json_object *
 ipc_json_position(struct wlr_box box)
@@ -756,7 +757,9 @@ ipc_json_get_version(void)
 	/* Parse version string X.Y.Z */
 	const char *ver = LABWC_VERSION;
 	int major = 0, minor = 0, patch = 0;
-	sscanf(ver, "%d.%d.%d", &major, &minor, &patch);
+	if (sscanf(ver, "%d.%d.%d", &major, &minor, &patch) < 3) {
+		wlr_log(WLR_ERROR, "IPC: failed to parse version: %s", ver);
+	}
 
 	json_object_object_add(obj, "major", json_object_new_int(major));
 	json_object_object_add(obj, "minor", json_object_new_int(minor));
@@ -864,8 +867,8 @@ ipc_json_input_device(struct input *input)
 			const char *active_name =
 				xkb_keymap_layout_get_name(keymap, active);
 			json_object_object_add(obj, "xkb_active_layout_name",
-				json_object_new_string(active_name ? active_name
-								   : ""));
+				json_object_new_string(
+					active_name ? active_name : ""));
 			json_object_object_add(obj, "xkb_active_layout_index",
 				json_object_new_int(active));
 
@@ -874,8 +877,8 @@ ipc_json_input_device(struct input *input)
 				const char *name =
 					xkb_keymap_layout_get_name(keymap, i);
 				json_object_array_add(layouts,
-					json_object_new_string(name ? name
-								    : ""));
+					json_object_new_string(
+						name ? name : ""));
 			}
 			json_object_object_add(obj, "xkb_layout_names",
 				layouts);
@@ -932,7 +935,8 @@ ipc_json_get_seats(void)
 
 /* ===================================================================
  * Section 3: Sway-Compatible Command Parser
- * =================================================================== */
+ * ===================================================================
+ */
 
 /*
  * Helper to create an action, add a single string arg, execute it via
@@ -1251,7 +1255,9 @@ execute_single_command(const char *cmd)
 				return cmd_result(false, "No focused window");
 			}
 			int x = 0, y = 0;
-			sscanf(arg + 9, "%d %d", &x, &y);
+			if (sscanf(arg + 9, "%d %d", &x, &y) < 2) {
+				return cmd_result(false, "Invalid position arguments");
+			}
 			struct action *a = action_create("MoveTo");
 			if (a) {
 				action_arg_add_int(a, "x", x);
@@ -1358,7 +1364,9 @@ execute_single_command(const char *cmd)
 		/* resize set W H */
 		if (!strncmp(arg, "set ", 4)) {
 			int w = 0, h = 0;
-			sscanf(arg + 4, "%d %d", &w, &h);
+			if (sscanf(arg + 4, "%d %d", &w, &h) < 2) {
+				return cmd_result(false, "Invalid resize arguments");
+			}
 			struct action *a = action_create("ResizeTo");
 			if (a) {
 				action_arg_add_int(a, "width", w);
@@ -1467,7 +1475,8 @@ ipc_cmd_run(const char *payload)
 
 /* ===================================================================
  * Section 3b: SUBSCRIBE handler
- * =================================================================== */
+ * ===================================================================
+ */
 
 static struct json_object *
 ipc_cmd_subscribe(struct ipc_client *client, const char *payload)
@@ -1512,7 +1521,8 @@ ipc_cmd_subscribe(struct ipc_client *client, const char *payload)
 
 /* ===================================================================
  * Message dispatch
- * =================================================================== */
+ * ===================================================================
+ */
 
 static void
 ipc_handle_message(struct ipc_client *client, uint32_t type,
@@ -1604,7 +1614,8 @@ ipc_handle_message(struct ipc_client *client, uint32_t type,
 
 /* ===================================================================
  * Section 4: Event Emitters
- * =================================================================== */
+ * ===================================================================
+ */
 
 static void
 ipc_broadcast_event(uint32_t event_type, uint32_t sub_bit,

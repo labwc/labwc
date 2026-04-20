@@ -508,11 +508,11 @@ over the button in question:
 - menu_hover.xbm
 - max_toggled_hover.xbm
 - desk_hover.xbm
-- desk_toggle_hover.xbm
+- desk_toggled_hover.xbm
 - ontop_hover.xbm
-- ontop_toggle_hover.xbm
+- ontop_toggled_hover.xbm
 - shade_hover.xbm
-- shade_toggle_hover.xbm
+- shade_toggled_hover.xbm
 
 One advantage of xbm buttons over other formats is that they change color based
 on the theme. Other formats use the suffices "-active" and "-inactive" to align

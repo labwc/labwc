@@ -24,7 +24,7 @@
 #include "node.h"
 #include "output.h"
 
-#define LAB_LAYERSHELL_VERSION 4
+#define LAB_LAYERSHELL_VERSION 5
 
 static void
 apply_override(struct output *output, struct wlr_box *usable_area)

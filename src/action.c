@@ -19,6 +19,7 @@
 #include "common/spawn.h"
 #include "common/string-helpers.h"
 #include "config/rcxml.h"
+#include "config/keybind.h"
 #include "cycle.h"
 #include "debug.h"
 #include "input/keyboard.h"
@@ -534,8 +535,8 @@ action_arg_from_xml_node(struct action *action, const char *nodename, const char
 		}
 		break;
 	case ACTION_TYPE_SEND_KEY:
-		if (!strcasecmp(argument, "identifier")) {
-			action_arg_add_str(action, "identifier", content);
+		if (!strcasecmp(argument, "identifier") || !strcasecmp(argument, "key")) {
+			action_arg_add_str(action, argument, content);
 			goto cleanup;
 		}
 		break;
@@ -1062,6 +1063,141 @@ warp_cursor(struct view *view, const char *to, const char *x, const char *y)
 }
 
 static void
+action_key_update_keycodes_iter(struct xkb_keymap *keymap, xkb_keycode_t key, void *data)
+{
+	struct keybind *keybind = (struct keybind *)data;
+	const xkb_keysym_t *syms;
+
+	xkb_layout_index_t layouts = xkb_keymap_num_layouts(keymap);
+	for (xkb_layout_index_t layout = 0; layout < layouts; layout++) {
+		int nr_syms = xkb_keymap_key_get_syms_by_level(keymap, key, layout, 0, &syms);
+		if (!nr_syms) {
+			continue;
+		}
+		if (keybind->keycodes_layout >= 0
+				&& (xkb_layout_index_t)keybind->keycodes_layout != layout) {
+			/* Prevent storing keycodes from multiple layouts */
+			continue;
+		}
+		if (keybind_contains_any_keysym(keybind, syms, nr_syms)) {
+			if (keybind_contains_keycode(keybind, key)) {
+				/* Prevent storing the same keycode twice */
+				continue;
+			}
+			if (keybind->keycodes_len == MAX_KEYCODES) {
+				wlr_log(WLR_ERROR,
+					"Already stored %lu keycodes for keybind",
+					keybind->keycodes_len);
+				continue;
+			}
+			keybind->keycodes[keybind->keycodes_len++] = key;
+			keybind->keycodes_layout = layout;
+		}
+	}
+}
+
+static void
+action_key_update_keycodes(struct keybind *keybind, struct xkb_keymap *keymap)
+{
+	keybind->keycodes_len = 0;
+	keybind->keycodes_layout = -1;
+
+	xkb_keymap_key_for_each(keymap, action_key_update_keycodes_iter, keybind);
+}
+
+static bool
+action_key_parse(const char *key, struct wlr_keyboard_modifiers *modifiers,
+	uint32_t *keycodes, size_t *num_keycodes)
+{
+	struct wlr_keyboard *kb = wlr_seat_get_keyboard(server.seat.wlr_seat);
+	if (!kb) {
+		return false;
+	}
+	if (!key) {
+		*modifiers = kb->modifiers;
+		*num_keycodes = kb->num_keycodes > MAX_KEYCODES ? MAX_KEYCODES : kb->num_keycodes;
+		for (size_t i = 0; i < *num_keycodes; ++i) {
+			keycodes[i] = kb->keycodes[i];
+		}
+		return true;
+	}
+	if (!kb->keymap) {
+		return false;
+	}
+	struct keybind *k = NULL;
+	k = keybind_create(key);
+	if (!k) {
+		return false;
+	}
+
+	action_key_update_keycodes(k, kb->keymap);
+	modifiers->depressed = k->modifiers;
+	*num_keycodes = k->keycodes_len;
+	for (size_t i = 0; i < *num_keycodes; ++i) {
+		if (k->keycodes[i] < 8) {
+			keybind_destroy(k);
+			return false;
+		}
+		keycodes[i] = k->keycodes[i] - 8;
+	}
+	keybind_destroy(k);
+	if (modifiers->depressed == 0 && *num_keycodes == 0) {
+		return false;
+	}
+	return true;
+}
+
+static void
+action_send_key(struct action *action, struct view *view)
+{
+	struct view *target_view;
+	struct wlr_seat *wlr_seat = server.seat.wlr_seat;
+	struct wlr_keyboard *kb = wlr_seat_get_keyboard(server.seat.wlr_seat);
+	if (!kb) {
+		return;
+	}
+	struct timespec now = {0};
+	clock_gettime(CLOCK_MONOTONIC, &now);
+	uint64_t time_msec = now.tv_sec * 1000 + now.tv_nsec / 1000000;
+	const char *identifier = action_get_str(action, "identifier", NULL);
+	if (!identifier) {
+		return;
+	}
+	uint32_t *sent_keycodes = key_state_pressed_sent_keycodes();
+	int num_sent_keycodes = key_state_nr_pressed_sent_keycodes();
+	const char *key = action_get_str(action, "key", NULL);
+	struct wlr_keyboard_modifiers modifiers = {0};
+	uint32_t keycodes[MAX_KEYCODES];
+	size_t num_keycodes = 0;
+	if (!action_key_parse(key, &modifiers, keycodes, &num_keycodes)) {
+		wlr_log(WLR_ERROR, "Failed to parse key: %s", key);
+		return;
+	}
+	bool sent = false;
+	for_each_view(target_view, &server.views, LAB_VIEW_CRITERIA_NONE) {
+		if (target_view->surface && !strcasecmp(target_view->app_id, identifier)) {
+			wlr_seat_keyboard_notify_enter(wlr_seat, target_view->surface,
+				sent_keycodes, num_sent_keycodes, &modifiers);
+			wlr_seat_keyboard_notify_modifiers(wlr_seat, &modifiers);
+			for (size_t i = 0; i < num_keycodes; i++) {
+				wlr_seat_keyboard_notify_key(wlr_seat, (uint32_t)time_msec,
+					keycodes[i], WL_KEYBOARD_KEY_STATE_PRESSED);
+			}
+			for (size_t i = num_keycodes; i > 0; i--) {
+				wlr_seat_keyboard_notify_key(wlr_seat, (uint32_t)time_msec,
+					keycodes[i-1], WL_KEYBOARD_KEY_STATE_RELEASED);
+			}
+			sent = true;
+		}
+	}
+	if (sent && view && view->surface) {
+		wlr_seat_keyboard_notify_enter(wlr_seat, view->surface,
+			sent_keycodes, num_sent_keycodes, &kb->modifiers);
+		wlr_seat_keyboard_notify_modifiers(wlr_seat, &kb->modifiers);
+	}
+}
+
+static void
 run_action(struct view *view, struct action *action,
 	struct cursor_context *ctx)
 {
@@ -1439,35 +1575,9 @@ run_action(struct view *view, struct action *action,
 		}
 		break;
 	}
-	case ACTION_TYPE_SEND_KEY: {
-		struct view *target_view;
-		struct wlr_seat *wlr_seat = server.seat.wlr_seat;
-		struct wlr_keyboard *kb = wlr_seat_get_keyboard(server.seat.wlr_seat);
-		if (!kb) break;
-		struct timespec now = { 0 };
-		clock_gettime(CLOCK_MONOTONIC, &now);
-		uint32_t time_msec = now.tv_nsec / 1000000;
-		for_each_view(target_view, &server.views, LAB_VIEW_CRITERIA_NONE) {
-			if (!strcasecmp(target_view->app_id, action_get_str(action, "identifier", NULL))) {
-				uint32_t *pressed_sent_keycodes = key_state_pressed_sent_keycodes();
-				int nr_pressed_sent_keycodes = key_state_nr_pressed_sent_keycodes();
-				wlr_seat_keyboard_notify_enter(wlr_seat, target_view->surface,
-					pressed_sent_keycodes, nr_pressed_sent_keycodes, &kb->modifiers);
-					wlr_seat_keyboard_notify_modifiers(wlr_seat, &kb->modifiers);
-					for (size_t i = 0; i < kb->num_keycodes; i++) {
-						wlr_seat_keyboard_notify_key(wlr_seat, time_msec, kb->keycodes[i], WL_KEYBOARD_KEY_STATE_PRESSED);
-					}
-					for (size_t i = 0; i < kb->num_keycodes; i++) {
-						wlr_seat_keyboard_notify_key(wlr_seat, time_msec, kb->keycodes[i], WL_KEYBOARD_KEY_STATE_RELEASED);
-					}
-				if (view) {
-					wlr_seat_keyboard_notify_enter(wlr_seat, view->surface,
-						pressed_sent_keycodes, nr_pressed_sent_keycodes, &kb->modifiers);
-				}
-			}
-		}
+	case ACTION_TYPE_SEND_KEY:
+		action_send_key(action, view);
 		break;
-	}
 	case ACTION_TYPE_IF: {
 		/* At least one of the queries was matched or there was no query */
 		if (action_get_str(action, "message.prompt", NULL)) {

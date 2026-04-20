@@ -593,6 +593,8 @@ fill_keybind(xmlNode *node)
 		keybind = keybind_create(keyname);
 		if (!keybind) {
 			wlr_log(WLR_ERROR, "Invalid keybind: %s", keyname);
+		} else {
+			wl_list_append(&rc.keybinds, &keybind->link);
 		}
 	}
 	if (!keybind) {
@@ -1590,7 +1592,7 @@ load_default_key_bindings(void)
 		if (!k) {
 			continue;
 		}
-
+		wl_list_append(&rc.keybinds, &k->link);
 		action = action_create(current->action);
 		wl_list_append(&k->actions, &action->link);
 

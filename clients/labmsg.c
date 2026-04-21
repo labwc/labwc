@@ -35,8 +35,6 @@ enum ipc_msg_type {
 	IPC_GET_SEATS = 101,
 };
 
-static const char *version_str = "labmsg 0.1";
-
 static const struct option long_options[] = {{"help", no_argument, NULL, 'h'},
 	{"monitor", no_argument, NULL, 'm'}, {"pretty", no_argument, NULL, 'p'},
 	{"quiet", no_argument, NULL, 'q'}, {"raw", no_argument, NULL, 'r'},
@@ -283,7 +281,7 @@ main(int argc, char *argv[])
 			type_str = optarg;
 			break;
 		case 'v':
-			printf("%s\n", version_str);
+			printf("labmsg " LABWC_VERSION "\n");
 			return 0;
 		default:
 			fprintf(stderr, "%s", usage_str);

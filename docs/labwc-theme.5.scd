@@ -127,10 +127,10 @@ window.active.title.bg: sunken gradient vertical
 ```
 window.*.title.bg: doubleraised
 ```
-	  
+	
 	- *DoubleSunken* adds a sunken bevel to the outer edge, and a raised bevel
 	  slightly inset.
-	  
+	
 ```
 window.*.title.bg: doublesunken
 ```
@@ -148,8 +148,8 @@ window.*.title.bg: none
 ```
 
 *Bevel-Related Properties*
-	  
-  	Beveled elements have paired properties *highlight* and *shadow* which indicate how much lighter
+	
+	Beveled elements have paired properties *highlight* and *shadow* which indicate how much lighter
 	or darker than the base color the "highlighted" and "shadowed" edges will be.  "256" represents
 	a 100% increase or decrease in brightness.
 

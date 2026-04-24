@@ -375,7 +375,7 @@ render_detailed(cairo_t *cairo, struct nag *nag, uint32_t y)
 	bool show_buttons = nag->details.offset > 0;
 	int button_width = get_detailed_scroll_button_width(cairo, nag);
 	if (show_buttons) {
-		nag->details.width -= button_width;
+		nag->details.width += border - button_width;
 		pango_layout_set_width(layout,
 				(nag->details.width - padding * 2) * PANGO_SCALE);
 	}
@@ -388,7 +388,7 @@ render_detailed(cairo_t *cairo, struct nag *nag, uint32_t y)
 
 			if (!show_buttons) {
 				show_buttons = true;
-				nag->details.width -= button_width;
+				nag->details.width += border - button_width;
 				pango_layout_set_width(layout,
 					(nag->details.width - padding * 2) * PANGO_SCALE);
 			}
@@ -408,16 +408,17 @@ render_detailed(cairo_t *cairo, struct nag *nag, uint32_t y)
 
 	if (show_buttons) {
 		nag->details.button_up.x = nag->details.x + nag->details.width;
-		nag->details.button_up.y = nag->details.y;
+		nag->details.button_up.y = nag->details.y - border;
 		nag->details.button_up.width = button_width;
-		nag->details.button_up.height = nag->details.height / 2;
+		nag->details.button_up.height = (border_rect_height + border) / 2;
 		render_details_scroll_button(cairo, nag, &nag->details.button_up);
 
 		nag->details.button_down.x = nag->details.x + nag->details.width;
 		nag->details.button_down.y =
 			nag->details.button_up.y + nag->details.button_up.height;
 		nag->details.button_down.width = button_width;
-		nag->details.button_down.height = nag->details.height / 2;
+		nag->details.button_down.height =
+			border_rect_height - nag->details.button_up.height;
 		render_details_scroll_button(cairo, nag, &nag->details.button_down);
 	}
 

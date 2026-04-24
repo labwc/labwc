@@ -302,10 +302,10 @@ render_details_scroll_button(cairo_t *cairo, struct nag *nag,
 	get_text_size(cairo, nag->conf->font_description, &text_width,
 		&text_height, NULL, 1, true, "%s", button->text);
 
-	int border = nag->conf->button_border_thickness;
-	int padding = nag->conf->button_padding;
+	int border = nag->conf->details_border_thickness;
+	int padding = (nag->conf->button_padding / 3) + 2;
 
-	cairo_set_source_u32(cairo, nag->conf->details_background);
+	cairo_set_source_u32(cairo, nag->conf->details_border_color);
 	cairo_rectangle(cairo, button->x, button->y,
 			button->width, button->height);
 	cairo_fill(cairo);
@@ -333,8 +333,8 @@ get_detailed_scroll_button_width(cairo_t *cairo, struct nag *nag)
 		NULL, 1, true, "%s", nag->details.button_down.text);
 
 	int text_width =  up_width > down_width ? up_width : down_width;
-	int border = nag->conf->button_border_thickness;
-	int padding = nag->conf->button_padding;
+	int border = nag->conf->details_border_thickness;
+	int padding = (nag->conf->button_padding / 3) + 2;
 
 	return text_width + border * 2 + padding * 2;
 }

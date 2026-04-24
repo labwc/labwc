@@ -212,9 +212,11 @@ install_data('data/labwc.desktop', install_dir: get_option('datadir') / 'wayland
 install_data('data/labwc-portals.conf', install_dir: get_option('datadir') / 'xdg-desktop-portal')
 
 # Install labwc-session.target so that systemd user services with
-# WantedBy=graphical-session.target start under labwc. Labwc activates
-# this target itself in src/config/session.c on autostart.
-systemd = dependency('systemd', required: false)
+# WantedBy=graphical-session.target can be started and stopped in sync
+# with a labwc session (see labwc(1) SESSION MANAGEMENT for the opt-in
+# autostart/shutdown snippet).
+systemd_feat = get_option('systemd-session')
+systemd = dependency('systemd', required: systemd_feat)
 if systemd.found()
   install_data('data/labwc-session.target',
     install_dir: systemd.get_variable('systemduserunitdir'))

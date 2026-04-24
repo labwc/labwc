@@ -95,6 +95,12 @@ _labnag_ [options...]
 *--details-border-size* <size>
 	Set the thickness for the details border.
 
+*--details-border-color* <RRGGBB[AA]>
+	Set the color of the details border.
+
+*--details-margin* <margin>
+	Set the margin for the details.
+
 *--button-border-size* <size>
 	Set the thickness for the button border.
 

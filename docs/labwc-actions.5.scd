@@ -145,6 +145,10 @@ Actions are used in menus and keyboard/mouse bindings.
 	This determines whether to cycle through all windows or only windows of the
 	same application as the currently focused window. Default is "all".
 
+	*immediate* [yes|no]
+	This determines whether the switch happens immediately, useful when bound to
+	a key without modifier. Default is "no".
+
 *<action name="Reconfigure" />*
 	Re-load configuration and theme files.
 

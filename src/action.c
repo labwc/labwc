@@ -372,6 +372,10 @@ action_arg_from_xml_node(struct action *action, const char *nodename, const char
 			}
 			goto cleanup;
 		}
+		if (!strcasecmp(argument, "immediate")) {
+			action_arg_add_bool(action, argument, parse_bool(content, false));
+			goto cleanup;
+		}
 		break;
 	case ACTION_TYPE_SHOW_MENU:
 		if (!strcmp(argument, "menu")) {
@@ -1143,7 +1147,7 @@ run_action(struct view *view, struct action *action,
 			cycle_step(dir);
 		} else {
 			cycle_begin(dir, filter);
-			if (!rc.window_switcher.osd.show) {
+			if (action_get_bool(action, "immediate", false)) {
 				cycle_finish(true);
 				if (view && dir == LAB_CYCLE_DIR_FORWARD) {
 					view_move_to_back(view);

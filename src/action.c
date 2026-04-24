@@ -1143,6 +1143,12 @@ run_action(struct view *view, struct action *action,
 			cycle_step(dir);
 		} else {
 			cycle_begin(dir, filter);
+			if (!rc.window_switcher.osd.show) {
+				cycle_finish(true);
+				if (view && dir == LAB_CYCLE_DIR_FORWARD) {
+					view_move_to_back(view);
+				}
+			}
 		}
 		break;
 	}

@@ -1140,6 +1140,7 @@ Note: To rotate touch events with output rotation, use the libinput
     <disableWhileTyping></disableWhileTyping>
     <clickMethod></clickMethod>
     <scrollMethod></scrollMethod>
+    <scrollButton></scrollButton>
     <sendEventsMode></sendEventsMode>
     <calibrationMatrix></calibrationMatrix>
     <scrollFactor>1.0</scrollFactor>
@@ -1244,18 +1245,23 @@ Note: To rotate touch events with output rotation, use the libinput
 
 	The default method depends on the touchpad hardware.
 
-*<libinput><device><scrollMethod>* [none|twofinger|edge]
-	Configure the method by which physical movements on a touchpad are
-	mapped to scroll events.
+*<libinput><device><scrollMethod>* [none|twofinger|edge|onbutton]
+	Configure the method by which physical movements are mapped to scroll events.
 
 	The scroll methods available are:
 	- *twofinger* - Scroll by two fingers being placed on the surface of the
 	  touchpad, then moving those fingers vertically or horizontally.
 	- *edge* - Scroll by moving a single finger along the right edge
 	  (vertical scroll) or bottom edge (horizontal scroll).
+	- *onbutton* - Scroll by pressing a button.
 	- *none* - No scroll events will be produced.
 
 	The default method depends on the touchpad hardware.
+
+*<libinput><device><scrollButton>* [button]
+	Set the button used for the *onbutton* scroll method.
+
+	*button* is the decimal form of a value from `linux/input-event-codes.h`.
 
 *<libinput><device><sendEventsMode>* [yes|no|disabledOnExternalMouse]
 	Optionally enable or disable sending any device events.

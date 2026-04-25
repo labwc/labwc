@@ -132,17 +132,12 @@ validate(void)
 	}
 }
 
-static void
-item_parse_accelerator(struct menuitem *item, const char *text)
+static uint32_t
+get_unicode_char(const char *first_byte, size_t *out_bytes)
 {
-	char *underscore = strchr(text, '_');
-	while (underscore && *(underscore + 1) == '_') {
-		/* Ignore escaped underscores */
-		underscore = strchr(underscore + 2, '_');
-	}
-	if (underscore && underscore[1] == '\0') {
-		/* Ignore empty accelerator*/
-		underscore = NULL;
+	if (!first_byte || first_byte[0] == '\0') {
+		*out_bytes = 0;
+		return 0;
 	}
 
 	/* Temporarily set locale to UTF-8 */
@@ -152,13 +147,17 @@ item_parse_accelerator(struct menuitem *item, const char *text)
 		old_locale = uselocale(utf8_locale);
 	}
 
+	uint32_t result = 0;
+
 	char32_t codepoint = 0;
 	mbstate_t state = {0};
-	size_t bytes = mbrtoc32(&codepoint,
-		underscore ? (underscore + 1) : text,
-		4, &state);
+	size_t bytes = mbrtoc32(&codepoint, first_byte, 4, &state);
 	if (bytes > 0 && bytes <= 4) {
-		item->accelerator = (uint32_t)towlower((wint_t)codepoint);
+		*out_bytes = bytes;
+		result = (uint32_t)towlower((wint_t)codepoint);
+	} else {
+		*out_bytes = 1;
+		result = (uint32_t)(unsigned char)first_byte[0];
 	}
 
 	/* Restore previous locale */
@@ -167,18 +166,57 @@ item_parse_accelerator(struct menuitem *item, const char *text)
 		freelocale(utf8_locale);
 	}
 
-	if (!underscore) {
+	return result;
+}
+
+static void
+item_parse_accelerator(struct menuitem *item, const char *text)
+{
+	const char *accel_ptr = NULL;
+	char *underscore = strchr(text, '_');
+
+	while (underscore) {
+		if (underscore[1] == '_') {
+			/* Ignore escaped underscores */
+			underscore = strchr(underscore + 2, '_');
+		} else if (underscore[1] != '\0') {
+			/* Found a valid accelerator */
+			accel_ptr = underscore + 1;
+			break;
+		} else {
+			/* Ignore empty accelertor */
+			break;
+		}
+	}
+
+	size_t bytes = 0;
+	if (!accel_ptr) {
 		item->text = xstrdup(text);
+		item->accelerator = get_unicode_char(text, &bytes);
 	} else {
 		item->use_markup = true;
+		item->accelerator = get_unicode_char(accel_ptr, &bytes);
 		item->text = strdup_printf("%.*s<u>%.*s</u>%s",
 			/* Prefix length + prefix */
-			underscore - text, text,
+			(int)(accel_ptr - 1 - text), text,
 			/* Accelerator (utf-8 byte) length + accelerator */
-			(int)bytes, underscore + 1,
+			(int)bytes, accel_ptr,
 			/* Remainder */
-			underscore + 1 + bytes);
+			accel_ptr + bytes);
 	}
+
+	/* Remove undescores used for escaping */
+	char *src = item->text;
+	char *dst = item->text;
+	while (*src) {
+		if (*src == '_' && *(src + 1) == '_') {
+			*dst++ = '_';
+			src += 2;
+		} else {
+			*dst++ = *src++;
+		}
+	}
+	*dst = '\0';
 }
 
 static struct menuitem *

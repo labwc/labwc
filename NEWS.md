@@ -9,7 +9,8 @@ The format is based on [Keep a Changelog]
 
 | Date       | All Changes   | wlroots version | lines-of-code |
 |------------|---------------|-----------------|---------------|
-| 2026-03-31 | [unreleased]  | 0.20.0          | 27402         |
+| 2026-04-17 | [unreleased]  | 0.20.0          | 27753         |
+| 2026-04-17 | [0.9.7]       | 0.19.2          | 29277         |
 | 2026-03-15 | [0.9.6]       | 0.19.2          | 29271         |
 | 2026-03-04 | [0.9.5]       | 0.19.2          | 29251         |
 | 2026-02-27 | [0.9.4]       | 0.19.2          | 29225         |
@@ -44,6 +45,7 @@ The format is based on [Keep a Changelog]
 | 2021-03-05 | [0.1.0]       | 0.12.0          | 4627          |
 
 [unreleased]: NEWS.md#unreleased
+[0.9.7]: NEWS.md#097---2026-04-17
 [0.9.6]: NEWS.md#096---2026-03-15
 [0.9.5]: NEWS.md#095---2026-03-04
 [0.9.4]: NEWS.md#094---2026-02-27
@@ -117,8 +119,20 @@ There are some regression warnings worth noting for the switch to wlroots 0.19:
 
 The codebase has been ported to wlroots 0.20 [#2956] @Consolatis
 
+Note to maintainers:
+- libinput >=1.26 is required in support of tablet tool pressure range
+  configuration.
+
 ### Added
 
+- Add `overrideInhibition` option to `<keybind>` [#3507] @drougas
+- Add action `ToggleShowDesktop` to hide/unhide windows [#3500] @johanmalm
+- Add `<privilegedInterfaces>` config option so that privileged protocols can be
+  restricted [#3493] @xi
+- Add action `DebugToggleKeyStateIndicator` to show a key-state on-screen
+  display (OSD) for debugging. [#3499] @johanmalm @tokyo4j
+- Add support for `color-management-v1` and `color-representation-manager-v1`
+  protocols [#3469] @ManuLinares
 - Add configuration option `<tabletTool minPressure="0.0" maxPressure="1.0" />`
   to enable tablet tool pressure range libinput settings [#2916] @jp7677
 - Add `wl_fixes` interface [#2956] @kode54
@@ -144,19 +158,41 @@ The codebase has been ported to wlroots 0.20 [#2956] @Consolatis
   compositor and, unlike DRM outputs, these cannot be reconnected after being
   destroyed. [#3440] @marler8997
 - Allow policy-based placement to apply when an initially-maximized/fullscreen
-  view is restored to floating geometry. [#3387] @jlindgren90
+  view is restored to floating geometry. [#3387] [#3502] @jlindgren90
 
 ### Changed
 
 - Drop cosmic-workspace protocol [#3031] @tokyo4j
+
+## 0.9.7 - 2026-04-17
+
+[0.9.7-commits]
+
+This is a small bug fix release.
+
+```
+               0.9.6--------0.9.7  <--- v0.9 branch with bug-fixes only
+                /
+               /
+0.9.4--------0.9.5--------  <-- master (built with wlroots-0.20)
+```
+
+## Fixed
+
+- Fix intermittent failed-to-get-texture issue with some clients (e.g. foot)
+  when using the window-switcher in the thumbnail mode. [#3511] @yuiiio
+- Fix tablet tool tilt motion. [#3494] @jp7677
+- Handle window-switcher buffer allocation failure when in 'thumbnail' mode.
+  This is believed to be very unlikely to happen, but has been reported by one
+  user and is believed to be GPU driver related. [#3490] @Consolatis
 
 ## 0.9.6 - 2026-03-15
 
 [0.9.6-commits]
 
 This is an earlier-than-usual release containing bug fixes only. It has been
-done on a separate branch (0.9.5-maintenance) to avoid the inclusion of
-refactoring and new features.
+done on a separate branch (v0.9) to avoid the inclusion of refactoring and new
+features.
 
 ```
                0.9.6  <--- bug-fixes only
@@ -2682,6 +2718,7 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
 
 [Keep a Changelog]: https://keepachangelog.com/en/1.0.0/
 [unreleased-commits]: https://github.com/labwc/labwc/compare/0.9.5...HEAD
+[0.9.7-commits]: https://github.com/labwc/labwc/compare/0.9.6...0.9.7
 [0.9.6-commits]: https://github.com/labwc/labwc/compare/0.9.5...0.9.6
 [0.9.5-commits]: https://github.com/labwc/labwc/compare/0.9.4...0.9.5
 [0.9.4-commits]: https://github.com/labwc/labwc/compare/0.9.3...0.9.4
@@ -3232,3 +3269,12 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
 [#3445]: https://github.com/labwc/labwc/pull/3445
 [#3446]: https://github.com/labwc/labwc/pull/3446
 [#3450]: https://github.com/labwc/labwc/pull/3450
+[#3469]: https://github.com/labwc/labwc/pull/3469
+[#3490]: https://github.com/labwc/labwc/pull/3490
+[#3493]: https://github.com/labwc/labwc/pull/3493
+[#3494]: https://github.com/labwc/labwc/pull/3494
+[#3499]: https://github.com/labwc/labwc/pull/3499
+[#3500]: https://github.com/labwc/labwc/pull/3500
+[#3502]: https://github.com/labwc/labwc/pull/3502
+[#3507]: https://github.com/labwc/labwc/pull/3507
+[#3511]: https://github.com/labwc/labwc/pull/3511

@@ -145,13 +145,26 @@ item_parse_accelerator(struct menuitem *item, const char *text)
 		underscore = NULL;
 	}
 
+	/* Temporarily set locale to UTF-8 */
+	locale_t utf8_locale = newlocale(LC_CTYPE_MASK, "C.UTF-8", (locale_t)0);
+	locale_t old_locale = (locale_t)0;
+	if (utf8_locale != (locale_t)0) {
+		old_locale = uselocale(utf8_locale);
+	}
+
 	char32_t codepoint = 0;
 	mbstate_t state = {0};
 	size_t bytes = mbrtoc32(&codepoint,
 		underscore ? (underscore + 1) : text,
-		MB_CUR_MAX, &state);
+		4, &state);
 	if (bytes > 0 && bytes <= 4) {
 		item->accelerator = (uint32_t)towlower((wint_t)codepoint);
+	}
+
+	/* Restore previous locale */
+	if (utf8_locale != (locale_t)0) {
+		uselocale(old_locale);
+		freelocale(utf8_locale);
 	}
 
 	if (!underscore) {

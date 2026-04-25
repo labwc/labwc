@@ -4,6 +4,7 @@
 #include <assert.h>
 #include <ctype.h>
 #include <libxml/parser.h>
+#include <locale.h>
 #include <signal.h>
 #include <stdlib.h>
 #include <string.h>

@@ -592,7 +592,7 @@
       - accelProfile [flat|adaptive]
       - tapButtonMap [lrm|lmr]
       - clickMethod [none|buttonAreas|clickfinger]
-      - scrollMethod [twoFinger|edge|none]
+      - scrollMethod [twoFinger|edge|onbutton|none]
       - sendEventsMode [yes|no|disabledOnExternalMouse]
       - calibrationMatrix [six float values split by space]
       - scrollFactor [float]
@@ -618,6 +618,7 @@
       <!-- <disableWhileTyping>yes</disableWhileTyping> -->
       <!-- <clickMethod>buttonAreas</clickMethod> -->
       <!-- <scrollMethod>twofinger</scrollMethod> -->
+      <!-- <scrollButton>274</scrollButton> -->
       <!-- <sendEventsMode>yes</sendEventsMode> -->
       <!-- <calibrationMatrix>1 0 0 0 1 0</calibrationMatrix> -->
       <scrollFactor>1.0</scrollFactor>

@@ -891,8 +891,18 @@ fill_libinput_category(xmlNode *node)
 			} else if (!strcasecmp(content, "twofinger")) {
 				category->scroll_method =
 					LIBINPUT_CONFIG_SCROLL_2FG;
+			} else if (!strcasecmp(content, "onbutton")) {
+				category->scroll_method =
+					LIBINPUT_CONFIG_SCROLL_ON_BUTTON_DOWN;
 			} else {
 				wlr_log(WLR_ERROR, "invalid scrollMethod");
+			}
+		} else if (!strcasecmp(key, "scrollButton")) {
+			int button = atoi(content);
+			if (button != 0) {
+				category->scroll_button = button;
+			} else {
+				wlr_log(WLR_ERROR, "invalid scrollButton");
 			}
 		} else if (!strcasecmp(key, "sendEventsMode")) {
 			category->send_events_mode =

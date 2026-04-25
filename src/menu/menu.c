@@ -132,8 +132,44 @@ validate(void)
 	}
 }
 
+static void
+item_parse_accelerator(struct menuitem *item, const char *text)
+{
+	char *underscore = strchr(text, '_');
+	while (underscore && *(underscore + 1) == '_') {
+		/* Ignore escaped underscores */
+		underscore = strchr(underscore + 2, '_');
+	}
+	if (underscore && underscore[1] == '\0') {
+		/* Ignore empty accelerator*/
+		underscore = NULL;
+	}
+
+	char32_t codepoint = 0;
+	mbstate_t state = {0};
+	size_t bytes = mbrtoc32(&codepoint,
+		underscore ? (underscore + 1) : text,
+		MB_CUR_MAX, &state);
+	if (bytes > 0 && bytes <= 4) {
+		item->accelerator = (uint32_t)towlower((wint_t)codepoint);
+	}
+
+	if (!underscore) {
+		item->text = xstrdup(text);
+	} else {
+		item->use_markup = true;
+		item->text = strdup_printf("%.*s<u>%.*s</u>%s",
+			/* Prefix length + prefix */
+			underscore - text, text,
+			/* Accelerator (utf-8 byte) length + accelerator */
+			(int)bytes, underscore + 1,
+			/* Remainder */
+			underscore + 1 + bytes);
+	}
+}
+
 static struct menuitem *
-item_create(struct menu *menu, char *text, const char *icon_name, bool show_arrow)
+item_create(struct menu *menu, const char *text, const char *icon_name, bool show_arrow)
 {
 	assert(menu);
 	assert(text);
@@ -144,50 +180,7 @@ item_create(struct menu *menu, char *text, const char *icon_name, bool show_arro
 	menuitem->selectable = true;
 	menuitem->type = LAB_MENU_ITEM;
 	menuitem->arrow = show_arrow ? "›" : NULL;
-
-	uint32_t accelerator = 0;
-	char *new_text = NULL;
-	char *it = text;
-	while (*it != '\0') {
-		if (*it == '_') {
-			char32_t codepoint = 0;
-			mbstate_t state = {0};
-			size_t bytes = mbrtoc32(&codepoint, it + 1,
-				MB_CUR_MAX, &state);
-			if (bytes > 0 && bytes <= 4) {
-				accelerator = (uint32_t)towlower((wint_t)codepoint);
-			}
-
-			if (*(it + 1) != '\0') {
-				int underscore_index = it - text;
-				new_text = strdup_printf("%.*s<u>%.*s</u>%s",
-					underscore_index, text, (int)bytes,
-					it + 1, it + 1 + bytes);
-				break;
-			}
-		}
-		it++;
-	}
-
-	/* Fallback to the first character of the label */
-	if (accelerator == 0 && text[0] != '\0') {
-		char32_t codepoint = 0;
-		mbstate_t state = {0};
-
-		size_t bytes = mbrtoc32(&codepoint, text, MB_CUR_MAX, &state);
-		if (bytes > 0 && bytes <= 4) {
-			accelerator = (uint32_t)towlower((wint_t)codepoint);
-		}
-	}
-
-	menuitem->accelerator = accelerator;
-	if (new_text) {
-		menuitem->text = new_text;
-		menuitem->use_markup = true;
-	} else {
-		menuitem->text = xstrdup(text);
-		menuitem->use_markup = false;
-	}
+	item_parse_accelerator(menuitem, text);
 
 #if HAVE_LIBSFDO
 	if (rc.menu_show_icons && !string_null_or_empty(icon_name)) {

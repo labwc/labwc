@@ -116,7 +116,7 @@ update_key_indicator_callback(void *data)
 		buf_add_fmt(&buf, "%s (%d), ", keyname, pressed.values[i]);
 	}
 	scaled_font_buffer_update(indicator_state.sfb_pressed, buf.data,
-		-1, &rc.font_osd, black, white, false);
+		-1, &rc.font_osd, black, white);
 
 	buf_clear(&buf);
 	buf_add(&buf, "bound=");
@@ -126,7 +126,7 @@ update_key_indicator_callback(void *data)
 		buf_add_fmt(&buf, "%s (%d), ", keyname, bound.values[i]);
 	}
 	scaled_font_buffer_update(indicator_state.sfb_bound, buf.data,
-		-1, &rc.font_osd, black, white, false);
+		-1, &rc.font_osd, black, white);
 
 	buf_clear(&buf);
 	buf_add(&buf, "pressed_sent=");
@@ -136,7 +136,7 @@ update_key_indicator_callback(void *data)
 		buf_add_fmt(&buf, "%s (%d), ", keyname, pressed_sent.values[i]);
 	}
 	scaled_font_buffer_update(indicator_state.sfb_pressed_sent, buf.data, -1,
-		&rc.font_osd, black, white, false);
+		&rc.font_osd, black, white);
 
 	buf_clear(&buf);
 	buf_add(&buf, "modifiers=");
@@ -148,7 +148,7 @@ update_key_indicator_callback(void *data)
 	}
 	buf_add_fmt(&buf, "(%d)", all_modifiers);
 	scaled_font_buffer_update(indicator_state.sfb_modifiers, buf.data, -1,
-		&rc.font_osd, black, white, false);
+		&rc.font_osd, black, white);
 
 	buf_reset(&buf);
 }

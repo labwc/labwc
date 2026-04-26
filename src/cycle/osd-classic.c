@@ -59,7 +59,7 @@ create_fields_scene(struct view *view,
 					scaled_font_buffer_create(parent);
 				scaled_font_buffer_update(font_buffer,
 					buf.data, field_width, &rc.font_osd,
-					text_color, bg_color, false);
+					text_color, bg_color);
 				node = &font_buffer->scene_buffer->node;
 				height = font_height(&rc.font_osd);
 			}
@@ -143,7 +143,7 @@ cycle_osd_classic_init(struct cycle_osd_output *osd_output)
 		wlr_scene_node_set_position(&font_buffer->scene_buffer->node,
 			x, y + (switcher_theme->item_height - font_height(&font)) / 2);
 		scaled_font_buffer_update(font_buffer, workspace_name, 0,
-			&font, text_color, bg_color, false);
+			&font, text_color, bg_color);
 		y += switcher_theme->item_height;
 	}
 

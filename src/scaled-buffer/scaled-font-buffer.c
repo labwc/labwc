@@ -108,7 +108,7 @@ scaled_font_buffer_create_for_titlebar(struct wlr_scene_tree *parent,
 void
 scaled_font_buffer_update(struct scaled_font_buffer *self, const char *text,
 		int max_width, struct font *font, const float *color,
-		const float *bg_color, bool use_markup)
+		const float *bg_color)
 {
 	assert(self);
 	assert(text);
@@ -121,7 +121,7 @@ scaled_font_buffer_update(struct scaled_font_buffer *self, const char *text,
 
 	/* Update internal state */
 	self->text = xstrdup(text);
-	self->use_markup = use_markup;
+	self->use_markup = false;
 	self->max_width = max_width;
 	if (font->name) {
 		self->font.name = xstrdup(font->name);
@@ -140,4 +140,13 @@ scaled_font_buffer_update(struct scaled_font_buffer *self, const char *text,
 		self->fixed_height : computed_height;
 	scaled_buffer_request_update(self->scaled_buffer,
 		self->width, self->height);
+}
+
+void
+scaled_font_buffer_update_markup(struct scaled_font_buffer *self, const char *text,
+		int max_width, struct font *font, const float *color,
+		const float *bg_color, bool use_markup)
+{
+	scaled_font_buffer_update(self, text, max_width, font, color, bg_color);
+	self->use_markup = use_markup;
 }

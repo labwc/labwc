@@ -167,7 +167,7 @@ cycle_begin(enum lab_cycle_dir direction,
 
 	struct view *active_view = server.active_view;
 	if (active_view && active_view->cycle_link.next) {
-		/* Select the active view it's in the cycle list */
+		/* Select the active view if it's in the cycle list */
 		server.cycle.selected_view = active_view;
 	} else {
 		/* Otherwise, select the first view in the cycle list */

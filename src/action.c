@@ -1150,6 +1150,15 @@ run_action(struct view *view, struct action *action,
 			if (action_get_bool(action, "immediate", false)) {
 				cycle_finish(true);
 				if (view && dir == LAB_CYCLE_DIR_FORWARD) {
+					/*
+					 * With immediate=no, running NextWindow just
+					 * once places the previously selected view
+					 * second from the top, causing the next call
+					 * to select it again. For immediate=yes, to
+					 * prevent getting stuck between the topmost
+					 * two views, we move the previously selected
+					 * view to the bottom.
+					 */
 					view_move_to_back(view);
 				}
 			}

@@ -4,6 +4,7 @@
 
 #include <cairo.h>
 #include <pango/pango-font.h>
+#include <stdbool.h>
 
 struct lab_data_buffer;
 
@@ -43,10 +44,11 @@ void font_get_buffer_size(int max_width, const char *text, struct font *font,
  * @font: font description
  * @color: foreground color in rgba format
  * @bg_pattern: background pattern
+ * @use_markup: flag to render pango markup
  */
 void font_buffer_create(struct lab_data_buffer **buffer, int max_width,
 	int height, const char *text, struct font *font, const float *color,
-	cairo_pattern_t *bg_pattern, double scale);
+	cairo_pattern_t *bg_pattern, double scale, bool use_markup);
 
 /**
  * font_finish - free some font related resources

@@ -11,6 +11,7 @@
 #include <wlr/backend/multi.h>
 #include <wlr/config.h>
 #include <wlr/util/log.h>
+#include "action.h"
 #include "common/buf.h"
 #include "common/dir.h"
 #include "common/file-helpers.h"
@@ -219,12 +220,12 @@ execute_update(const char *env_keys, const char *env_unset_keys, bool initialize
 	char *cmd =
 		strdup_printf("dbus-update-activation-environment %s",
 			initialize ? env_keys : env_unset_keys);
-	spawn_async_no_shell(cmd);
+	spawn_async_no_shell(cmd, -1);
 	free(cmd);
 
 	cmd = strdup_printf("systemctl --user %s %s",
 		initialize ? "import-environment" : "unset-environment", env_keys);
-	spawn_async_no_shell(cmd);
+	spawn_async_no_shell(cmd, -1);
 	free(cmd);
 }
 
@@ -303,6 +304,13 @@ session_environment_init(void)
 	paths_destroy(&paths);
 }
 
+static void
+session_run_rc_autostart(void)
+{
+	wlr_log(WLR_INFO, "run autostart actions");
+	actions_run(NULL, &rc.autostart, NULL);
+}
+
 void
 session_run_script(const char *script)
 {
@@ -320,7 +328,7 @@ session_run_script(const char *script)
 		}
 		wlr_log(WLR_INFO, "run session script %s", path->string);
 		char *cmd = strdup_printf("sh %s", path->string);
-		spawn_async_no_shell(cmd);
+		spawn_async_no_shell(cmd, -1);
 		free(cmd);
 
 		if (!should_merge_config) {
@@ -335,6 +343,7 @@ session_autostart_init(void)
 {
 	/* Update dbus and systemd user environment, each may fail gracefully */
 	update_activation_env(/* initialize */ true);
+	session_run_rc_autostart();
 	session_run_script("autostart");
 }
 

@@ -1,6 +1,7 @@
 labwc_sources = files(
   'action.c',
   'buffer.c',
+  'permissions.c',
   'debug.c',
   'desktop.c',
   'dnd.c',
@@ -56,5 +57,6 @@ subdir('foreign-toplevel')
 subdir('img')
 subdir('input')
 subdir('menu')
+subdir('protocols')
 subdir('scaled-buffer')
 subdir('ssd')

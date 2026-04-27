@@ -318,7 +318,7 @@ render_details_scroll_button(cairo_t *cairo, struct nag *nag,
 
 	cairo_set_source_u32(cairo, nag->conf->button_text);
 	cairo_move_to(cairo, button->x + border + padding,
-			button->y + border + (button->height - text_height) / 2);
+			button->y + (button->height - text_height) / 2);
 	render_text(cairo, nag->conf->font_description, 1, true,
 			"%s", button->text);
 }
@@ -415,10 +415,10 @@ render_detailed(cairo_t *cairo, struct nag *nag, uint32_t y)
 
 		nag->details.button_down.x = nag->details.x + nag->details.width;
 		nag->details.button_down.y =
-			nag->details.button_up.y + nag->details.button_up.height;
+			nag->details.button_up.y + nag->details.button_up.height - border;
 		nag->details.button_down.width = button_width;
 		nag->details.button_down.height =
-			border_rect_height - nag->details.button_up.height;
+			border_rect_height - nag->details.button_up.height + border;
 		render_details_scroll_button(cairo, nag, &nag->details.button_down);
 	}
 

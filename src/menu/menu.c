@@ -2,12 +2,16 @@
 #define _POSIX_C_SOURCE 200809L
 #include "menu/menu.h"
 #include <assert.h>
+#include <ctype.h>
 #include <libxml/parser.h>
+#include <locale.h>
 #include <signal.h>
 #include <stdlib.h>
 #include <string.h>
 #include <strings.h>
+#include <uchar.h>
 #include <unistd.h>
+#include <wctype.h>
 #include <wlr/types/wlr_scene.h>
 #include <wlr/types/wlr_xdg_shell.h>
 #include <wlr/util/log.h>
@@ -129,6 +133,93 @@ validate(void)
 	}
 }
 
+static uint32_t
+get_unicode_char(const char *first_byte, size_t *out_bytes)
+{
+	if (!first_byte || first_byte[0] == '\0') {
+		*out_bytes = 0;
+		return 0;
+	}
+
+	/* Temporarily set locale to UTF-8 */
+	locale_t utf8_locale = newlocale(LC_CTYPE_MASK, "C.UTF-8", (locale_t)0);
+	locale_t old_locale = (locale_t)0;
+	if (utf8_locale != (locale_t)0) {
+		old_locale = uselocale(utf8_locale);
+	}
+
+	uint32_t result = 0;
+
+	char32_t codepoint = 0;
+	mbstate_t state = {0};
+	size_t bytes = mbrtoc32(&codepoint, first_byte, 4, &state);
+	if (bytes > 0 && bytes <= 4) {
+		*out_bytes = bytes;
+		result = (uint32_t)towlower((wint_t)codepoint);
+	} else {
+		*out_bytes = 1;
+		result = (uint32_t)(unsigned char)first_byte[0];
+	}
+
+	/* Restore previous locale */
+	if (utf8_locale != (locale_t)0) {
+		uselocale(old_locale);
+		freelocale(utf8_locale);
+	}
+
+	return result;
+}
+
+static void
+item_parse_accelerator(struct menuitem *item, const char *text)
+{
+	const char *accel_ptr = NULL;
+	char *underscore = strchr(text, '_');
+
+	while (underscore) {
+		if (underscore[1] == '_') {
+			/* Ignore escaped underscores */
+			underscore = strchr(underscore + 2, '_');
+		} else if (underscore[1] != '\0') {
+			/* Found a valid accelerator */
+			accel_ptr = underscore + 1;
+			break;
+		} else {
+			/* Ignore empty accelertor */
+			break;
+		}
+	}
+
+	size_t bytes = 0;
+	if (!accel_ptr) {
+		item->text = xstrdup(text);
+		item->accelerator = get_unicode_char(text, &bytes);
+	} else {
+		item->use_markup = true;
+		item->accelerator = get_unicode_char(accel_ptr, &bytes);
+		item->text = strdup_printf("%.*s<u>%.*s</u>%s",
+			/* Prefix length + prefix */
+			(int)(accel_ptr - 1 - text), text,
+			/* Accelerator (utf-8 byte) length + accelerator */
+			(int)bytes, accel_ptr,
+			/* Remainder */
+			accel_ptr + bytes);
+	}
+
+	/* Remove undescores used for escaping */
+	char *src = item->text;
+	char *dst = item->text;
+	while (*src) {
+		if (*src == '_' && *(src + 1) == '_') {
+			*dst++ = '_';
+			src += 2;
+		} else {
+			*dst++ = *src++;
+		}
+	}
+	*dst = '\0';
+}
+
 static struct menuitem *
 item_create(struct menu *menu, const char *text, const char *icon_name, bool show_arrow)
 {
@@ -140,8 +231,8 @@ item_create(struct menu *menu, const char *text, const char *icon_name, bool sho
 	menuitem->parent = menu;
 	menuitem->selectable = true;
 	menuitem->type = LAB_MENU_ITEM;
-	menuitem->text = xstrdup(text);
 	menuitem->arrow = show_arrow ? "›" : NULL;
+	item_parse_accelerator(menuitem, text);
 
 #if HAVE_LIBSFDO
 	if (rc.menu_show_icons && !string_null_or_empty(icon_name)) {
@@ -212,8 +303,8 @@ item_create_scene_for_state(struct menuitem *item, float *text_color,
 	/* Create label */
 	struct scaled_font_buffer *label_buffer = scaled_font_buffer_create(tree);
 	assert(label_buffer);
-	scaled_font_buffer_update(label_buffer, item->text, label_max_width,
-		&rc.font_menuitem, text_color, bg_color);
+	scaled_font_buffer_update_markup(label_buffer, item->text, label_max_width,
+		&rc.font_menuitem, text_color, bg_color, item->use_markup);
 	/* Vertically center and left-align label */
 	int x = theme->menu_items_padding_x + icon_width;
 	int y = (theme->menu_item_height - label_buffer->height) / 2;
@@ -1458,6 +1549,57 @@ void
 menu_item_select_previous(void)
 {
 	menu_item_select(/* forward */ false);
+}
+
+bool
+menu_item_select_by_accelerator(uint32_t accelerator)
+{
+	struct menu *menu = get_selection_leaf();
+	if (!menu || wl_list_empty(&menu->menuitems)) {
+		return false;
+	}
+
+	bool needs_exec = false;
+	bool matched = false;
+
+	struct menuitem *selection = menu->selection.item;
+	struct wl_list *start = selection ? &selection->link : &menu->menuitems;
+	struct wl_list *current = start;
+	struct menuitem *item = NULL;
+	struct menuitem *next_selection = NULL;
+	do {
+		current = current->next;
+		if (current == &menu->menuitems) {
+			/* Allow wrap around */
+			continue;
+		}
+		item = wl_container_of(current, item, link);
+		if (item->accelerator == accelerator) {
+			if (!matched) {
+				/* Found first match */
+				next_selection = item;
+				needs_exec = true;
+				matched = true;
+			} else {
+				/*
+				 * Found another match,
+				 * cycle selection instead of executing
+				 */
+				needs_exec = false;
+				break;
+			}
+		}
+	} while (current != start);
+
+	if (next_selection) {
+		menu_process_item_selection(next_selection);
+		if (needs_exec && next_selection->submenu) {
+			/* Since we can't execute a submenu, enter it. */
+			needs_exec = false;
+			menu_submenu_enter();
+		}
+	}
+	return needs_exec;
 }
 
 bool

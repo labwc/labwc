@@ -58,8 +58,8 @@ create_fields_scene(struct view *view,
 				struct scaled_font_buffer *font_buffer =
 					scaled_font_buffer_create(parent);
 				scaled_font_buffer_update(font_buffer,
-					buf.data, field_width,
-					&rc.font_osd, text_color, bg_color);
+					buf.data, field_width, &rc.font_osd,
+					text_color, bg_color);
 				node = &font_buffer->scene_buffer->node;
 				height = font_height(&rc.font_osd);
 			}

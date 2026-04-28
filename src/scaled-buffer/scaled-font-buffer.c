@@ -26,7 +26,7 @@ _create_buffer(struct scaled_buffer *scaled_buffer, double scale)
 
 	/* Buffer gets free'd automatically along the backing wlr_buffer */
 	font_buffer_create(&buffer, self->max_width, self->height, self->text,
-		&self->font, self->color, bg_pattern, scale);
+		&self->font, self->color, bg_pattern, scale, self->use_markup);
 
 	if (!buffer) {
 		wlr_log(WLR_ERROR, "font_buffer_create() failed");
@@ -56,6 +56,7 @@ _equal(struct scaled_buffer *scaled_buffer_a,
 	struct scaled_font_buffer *b = scaled_buffer_b->data;
 
 	return str_equal(a->text, b->text)
+		&& a->use_markup == b->use_markup
 		&& a->max_width == b->max_width
 		&& str_equal(a->font.name, b->font.name)
 		&& a->font.size == b->font.size
@@ -120,6 +121,7 @@ scaled_font_buffer_update(struct scaled_font_buffer *self, const char *text,
 
 	/* Update internal state */
 	self->text = xstrdup(text);
+	self->use_markup = false;
 	self->max_width = max_width;
 	if (font->name) {
 		self->font.name = xstrdup(font->name);
@@ -138,4 +140,13 @@ scaled_font_buffer_update(struct scaled_font_buffer *self, const char *text,
 		self->fixed_height : computed_height;
 	scaled_buffer_request_update(self->scaled_buffer,
 		self->width, self->height);
+}
+
+void
+scaled_font_buffer_update_markup(struct scaled_font_buffer *self, const char *text,
+		int max_width, struct font *font, const float *color,
+		const float *bg_color, bool use_markup)
+{
+	scaled_font_buffer_update(self, text, max_width, font, color, bg_color);
+	self->use_markup = use_markup;
 }

@@ -15,6 +15,7 @@ struct scaled_font_buffer {
 
 	/* Private */
 	char *text;
+	bool use_markup;
 	int max_width;
 	float color[4];
 	float bg_color[4];
@@ -69,8 +70,18 @@ scaled_font_buffer_create_for_titlebar(struct wlr_scene_tree *parent,
  * bg_color is ignored for font buffers created with
  * scaled_font_buffer_create_for_titlebar().
  */
-void scaled_font_buffer_update(struct scaled_font_buffer *self, const char *text,
-	int max_width, struct font *font, const float *color,
+void scaled_font_buffer_update(struct scaled_font_buffer *self,
+	const char *text, int max_width, struct font *font, const float *color,
 	const float *bg_color);
+
+/**
+ * Update an existing auto scaling font buffer allowing the use of pango markup.
+ *
+ * Behaves identically to scaled_font_buffer_update(), but allows customization
+ * of the `use_markup` field of the @self struct via @use_markup.
+ */
+void scaled_font_buffer_update_markup(struct scaled_font_buffer *self,
+	const char *text, int max_width, struct font *font, const float *color,
+	const float *bg_color, bool use_markup);
 
 #endif /* LABWC_SCALED_FONT_BUFFER_H */

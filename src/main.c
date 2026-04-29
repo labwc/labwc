@@ -13,6 +13,7 @@
 #include "theme.h"
 #include "translate.h"
 #include "menu/menu.h"
+#include "common/borderset.h"
 
 /*
  * Globals
@@ -39,6 +40,8 @@ static const struct option long_options[] = {
 	{"verbose", no_argument, NULL, 'V'},
 	{0, 0, 0, 0}
 };
+
+struct borderset *border_cache;
 
 static const char labwc_usage[] =
 "Usage: labwc [options...]\n"

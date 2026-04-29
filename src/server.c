@@ -75,6 +75,7 @@
 #include "view.h"
 #include "workspaces.h"
 #include "xwayland.h"
+#include "common/borderset.h"
 
 #define LAB_EXT_DATA_CONTROL_VERSION 1
 #define LAB_EXT_FOREIGN_TOPLEVEL_LIST_VERSION 1
@@ -97,6 +98,9 @@ reload_config_and_theme(void)
 
 	scaled_buffer_invalidate_sharing();
 	rcxml_finish();
+	clearborder_cache(border_cache);
+	border_cache = NULL;
+
 	rcxml_read(rc.config_file);
 	theme_finish(rc.theme);
 	theme_init(rc.theme, rc.theme_name);

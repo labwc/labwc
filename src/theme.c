@@ -91,6 +91,91 @@ draw_hover_overlay_on_button(cairo_t *cairo, int w, int h)
 	cairo_fill(cairo);
 }
 
+static void draw_beveled_border_on_button(cairo_t *cairo, int w, int h, int active, int hover)
+{
+	if (rc.theme->window[active].button_border_type) {
+		int bw = rc.theme->window[active].button_border_width;
+		float r, g, b, a;
+		if (!hover) {
+			r = rc.theme->window[active].button_border_color[0];
+			g = rc.theme->window[active].button_border_color[1];
+			b = rc.theme->window[active].button_border_color[2];
+			a = rc.theme->window[active].button_border_color[3];
+		} else {
+			r = rc.theme->window[active].button_hover_border_color[0];
+			g = rc.theme->window[active].button_hover_border_color[1];
+			b = rc.theme->window[active].button_hover_border_color[2];
+			a = rc.theme->window[active].button_hover_border_color[3];
+		}
+
+		uint32_t colour32 = (uint32_t)(a*255) << 24 |
+			(uint32_t)(r*255) << 16 |
+			(uint32_t)(g*255) << 8 |
+			(uint32_t)(b*255);
+		struct borderset *renderedborders = get_borders(colour32, bw,
+			rc.theme->window[active].button_border_type,
+			rc.theme->window[active].button_bevel_width,
+			rc.theme->window[active].button_highlight,
+			rc.theme->window[active].button_shadow);
+
+		cairo_set_source_surface(cairo, renderedborders->top->surface, 0, 0);
+		cairo_pattern_set_extend(cairo_get_source(cairo), CAIRO_EXTEND_REPEAT);
+		cairo_rectangle(cairo, bw, 0, w-bw*2, bw);
+		cairo_fill(cairo);
+
+		cairo_set_source_surface(cairo, renderedborders->bottom->surface, bw, h-bw);
+		cairo_pattern_set_extend(cairo_get_source(cairo), CAIRO_EXTEND_REPEAT);
+		cairo_rectangle(cairo, bw, h-bw, w-bw*2, bw);
+		cairo_fill(cairo);
+
+		cairo_set_source_surface(cairo, renderedborders->left->surface, 0, 0);
+		cairo_pattern_set_extend(cairo_get_source(cairo), CAIRO_EXTEND_REPEAT);
+		cairo_rectangle(cairo, 0, bw, bw, h-bw*2);
+		cairo_fill(cairo);
+
+		cairo_set_source_surface(cairo, renderedborders->right->surface, w-bw, bw);
+		cairo_pattern_set_extend(cairo_get_source(cairo), CAIRO_EXTEND_REPEAT);
+		cairo_rectangle(cairo, w-bw, bw, bw, h-bw*2);
+		cairo_fill(cairo);
+
+		cairo_set_source_surface(cairo, renderedborders->tl->surface, 0, 0);
+		cairo_rectangle(cairo, 0, 0, bw, bw);
+		cairo_fill(cairo);
+
+		cairo_set_source_surface(cairo, renderedborders->tr->surface, w-bw, 0);
+		cairo_rectangle(cairo, w - bw, 0, bw, bw);
+		cairo_fill(cairo);
+
+		cairo_set_source_surface(cairo, renderedborders->bl->surface, 0, h - bw);
+		cairo_rectangle(cairo, 0, h - bw, bw, bw);
+		cairo_fill(cairo);
+
+		cairo_set_source_surface(cairo, renderedborders->br->surface, w - bw, h -bw);
+		cairo_rectangle(cairo, w - bw, h - bw, bw, bw);
+		cairo_fill(cairo);
+	}
+}
+
+static void draw_hover_active_border_on_button(cairo_t *cairo, int w, int h)
+{
+	draw_beveled_border_on_button(cairo, w, h, SSD_ACTIVE, 1);
+}
+
+static void draw_hover_inactive_border_on_button(cairo_t *cairo, int w, int h)
+{
+	draw_beveled_border_on_button(cairo, w, h, SSD_INACTIVE, 1);
+}
+
+static void draw_nonhover_active_border_on_button(cairo_t *cairo, int w, int h)
+{
+	draw_beveled_border_on_button(cairo, w, h, SSD_ACTIVE, 0);
+}
+
+static void draw_nonhover_inactive_border_on_button(cairo_t *cairo, int w, int h)
+{
+	draw_beveled_border_on_button(cairo, w, h, SSD_INACTIVE, 0);
+}
+
 /* Round the buffer for the leftmost button in the titlebar */
 static void
 round_left_corner_button(cairo_t *cairo, int w, int h)
@@ -222,6 +307,21 @@ load_button(struct theme *theme, struct button *b, enum ssd_active_state active)
 			draw_hover_overlay_on_button);
 	}
 
+	if (theme->window[active].button_border_type) {
+		if (active) {
+			if (b->state_set & LAB_BS_HOVERED) {
+				lab_img_add_modifier(*img, draw_hover_active_border_on_button);
+			} else {
+				lab_img_add_modifier(*img, draw_nonhover_active_border_on_button);
+			}
+		} else {
+			if (b->state_set & LAB_BS_HOVERED) {
+				lab_img_add_modifier(*img, draw_hover_inactive_border_on_button);
+			} else {
+				lab_img_add_modifier(*img, draw_nonhover_inactive_border_on_button);
+			}
+		}
+	}
 	/*
 	 * If the loaded button is at the corner of the titlebar, also create
 	 * rounded variants.
@@ -450,6 +550,28 @@ parse_hexstrs(const char *hexes, float colors[3][4])
 	g_strfreev(elements);
 }
 
+static enum border_type parse_border_type(const char *str)
+{
+	char *lower = g_ascii_strdown(str, -1);
+	enum border_type border_type;
+	if (strstr(lower, "doublesunken")) {
+		border_type = BORDER_DOUBLE_INSET;
+	} else if (strstr(lower, "sunken")) {
+		border_type = BORDER_INSET;
+	} else if (strstr(lower, "doubleraised")) {
+		border_type = BORDER_DOUBLE;
+	} else if (strstr(lower, "raised")) {
+		border_type = BORDER_SINGLE;
+	} else if (strstr(lower, "flat")) {
+		border_type = BORDER_FLAT;
+	} else {
+		border_type = BORDER_NONE;
+	}
+
+	g_free(lower);
+	return border_type;
+}
+
 static void
 parse_color(const char *str, float *rgba)
 {
@@ -550,6 +672,40 @@ theme_builtin(struct theme *theme)
 	theme->window[SSD_INACTIVE].title_bg.color_to[0] = FLT_MIN;
 	theme->window[SSD_ACTIVE].title_bg.color_to_split_to[0] = FLT_MIN;
 	theme->window[SSD_INACTIVE].title_bg.color_to_split_to[0] = FLT_MIN;
+	theme->window[SSD_ACTIVE].bevel_width = 0;
+	theme->window[SSD_ACTIVE].border_type = BORDER_NONE;
+	theme->window[SSD_ACTIVE].highlight = 128;
+	theme->window[SSD_ACTIVE].shadow = 64;
+	theme->window[SSD_ACTIVE].title_bg.bevel_width = 0;
+	theme->window[SSD_ACTIVE].title_bg.border_width = 0;
+	theme->window[SSD_ACTIVE].title_bg.exclusive = FALSE;
+	theme->window[SSD_ACTIVE].title_bg.border_type = BORDER_NONE;
+	theme->window[SSD_ACTIVE].title_bg.highlight = 128;
+	theme->window[SSD_ACTIVE].title_bg.shadow = 64;
+	theme->window[SSD_INACTIVE].bevel_width = 0;
+	theme->window[SSD_INACTIVE].border_type = BORDER_NONE;
+	theme->window[SSD_INACTIVE].highlight = 128;
+	theme->window[SSD_INACTIVE].shadow = 64;
+	theme->window[SSD_INACTIVE].title_bg.bevel_width = 0;
+	theme->window[SSD_INACTIVE].title_bg.border_width = 0;
+	theme->window[SSD_INACTIVE].title_bg.exclusive = FALSE;
+	theme->window[SSD_INACTIVE].title_bg.border_type = BORDER_NONE;
+	theme->window[SSD_INACTIVE].title_bg.highlight = 128;
+	theme->window[SSD_INACTIVE].title_bg.shadow = 64;
+	theme->window[SSD_ACTIVE].button_border_type = BORDER_NONE;
+	theme->window[SSD_ACTIVE].button_border_width = 0;
+	theme->window[SSD_ACTIVE].button_bevel_width = 0;
+	theme->window[SSD_ACTIVE].button_highlight = 128;
+	theme->window[SSD_ACTIVE].button_shadow = 64;
+	theme->window[SSD_ACTIVE].button_border_color[0] = FLT_MIN;
+	theme->window[SSD_ACTIVE].button_hover_border_color[0] = FLT_MIN;
+	theme->window[SSD_INACTIVE].button_border_type = BORDER_NONE;
+	theme->window[SSD_INACTIVE].button_border_width = 0;
+	theme->window[SSD_INACTIVE].button_bevel_width = 0;
+	theme->window[SSD_INACTIVE].button_highlight = 128;
+	theme->window[SSD_INACTIVE].button_shadow = 64;
+	theme->window[SSD_INACTIVE].button_border_color[0] = FLT_MIN;
+	theme->window[SSD_INACTIVE].button_hover_border_color[0] = FLT_MIN;
 
 	parse_hexstr("#000000", theme->window[SSD_ACTIVE].label_text_color);
 	parse_hexstr("#000000", theme->window[SSD_INACTIVE].label_text_color);
@@ -581,6 +737,10 @@ theme_builtin(struct theme *theme)
 	theme->menu_max_width = 200;
 	theme->menu_border_width = INT_MIN;
 	theme->menu_border_color[0] = FLT_MIN;
+	theme->menu_border_type = BORDER_NONE;
+	theme->menu_highlight = 128;
+	theme->menu_shadow = 64;
+	theme->menu_bevel_width = 0;
 
 	theme->menu_items_padding_x = 7;
 	theme->menu_items_padding_y = 4;
@@ -588,6 +748,18 @@ theme_builtin(struct theme *theme)
 	parse_hexstr("#000000", theme->menu_items_text_color);
 	parse_hexstr("#e1dedb", theme->menu_items_active_bg_color);
 	parse_hexstr("#000000", theme->menu_items_active_text_color);
+	theme->menu_items_border_type = BORDER_NONE;
+	theme->menu_items_bevel_width = 0;
+	theme->menu_items_highlight = 128;
+	theme->menu_items_shadow = 64;
+	theme->menu_title_border_type = BORDER_NONE;
+	theme->menu_title_bevel_width = 0;
+	theme->menu_title_highlight = 128;
+	theme->menu_title_shadow = 64;
+	theme->menu_items_active_border_type = BORDER_NONE;
+	theme->menu_items_active_bevel_width = 0;
+	theme->menu_items_active_highlight = 128;
+	theme->menu_items_active_shadow = 64;
 
 	theme->menu_separator_line_thickness = 1;
 	theme->menu_separator_padding_width = 6;
@@ -633,6 +805,10 @@ theme_builtin(struct theme *theme)
 	theme->osd_border_width = INT_MIN;
 	theme->osd_border_color[0] = FLT_MIN;
 	theme->osd_label_text_color[0] = FLT_MIN;
+	theme->osd_border_type = BORDER_NONE;
+	theme->osd_border_bevel_width = 0;
+	theme->osd_highlight = 128;
+	theme->osd_shadow = 64;
 
 	if (wlr_renderer_is_pixman(server.renderer)) {
 		/* Draw only outlined overlay by default to save CPU resource */
@@ -695,6 +871,7 @@ entry(struct theme *theme, const char *key, const char *value)
 		theme->border_width = get_int_if_positive(
 			value, "border.width");
 	}
+
 	if (match_glob(key, "window.titlebar.padding.width")) {
 		theme->window_titlebar_padding_width = get_int_if_positive(
 			value, "window.titlebar.padding.width");
@@ -710,12 +887,70 @@ entry(struct theme *theme, const char *key, const char *value)
 		wlr_log(WLR_INFO, "padding.height is no longer supported");
 	}
 
+	if (match_glob(key, "window.active.title.bg") && parse_border_type(value)) {
+		theme->window[SSD_ACTIVE].title_bg.border_type = parse_border_type(value);
+	}
+	if (match_glob(key, "window.active.title.bg.width")) {
+		theme->window[SSD_ACTIVE].title_bg.border_width =
+			get_int_if_positive(value, "window.active.title.bg.width");
+	}
+	if (match_glob(key, "window.active.title.bg.highlight")) {
+		theme->window[SSD_ACTIVE].title_bg.highlight =
+			get_int_if_positive(value, "window.active.title.bg.highlight");
+	}
+	if (match_glob(key, "window.active.title.bg.shadow")) {
+		theme->window[SSD_ACTIVE].title_bg.shadow =
+			get_int_if_positive(value, "window.active.title.bg.shadow");
+	}
+
+	if (match_glob(key, "window.active.title.bg.exclusive")) {
+		set_bool(value, &theme->window[SSD_ACTIVE].title_bg.exclusive);
+	}
+	if (match_glob(key, "window.active.title.bg.bevel-width")) {
+		theme->window[SSD_ACTIVE].title_bg.bevel_width =
+			get_int_if_positive(value, "window.active.title.bg.bevel-width");
+	}
 	if (match_glob(key, "window.active.border.color")) {
 		parse_color(value, theme->window[SSD_ACTIVE].border_color);
 	}
+
+	if (match_glob(key, "window.active.border.type")) {
+		theme->window[SSD_ACTIVE].border_type = parse_border_type(value);
+	}
+	if (match_glob(key, "window.active.border.bevel-width")) {
+		theme->window[SSD_ACTIVE].bevel_width =
+			get_int_if_positive(value, "window.active.border.bevel-width");
+	}
+	if (match_glob(key, "window.active.border.highlight")) {
+		theme->window[SSD_ACTIVE].highlight =
+			get_int_if_positive(value, "window.active.border.highlight");
+	}
+	if (match_glob(key, "window.active.border.shadow")) {
+		theme->window[SSD_ACTIVE].shadow =
+			get_int_if_positive(value, "window.active.border.shadow");
+	}
+
 	if (match_glob(key, "window.inactive.border.color")) {
 		parse_color(value, theme->window[SSD_INACTIVE].border_color);
 	}
+
+	if (match_glob(key, "window.inactive.border.bevel-width")) {
+		theme->window[SSD_INACTIVE].bevel_width =
+			get_int_if_positive(value, "window.inactive.border.bevel-width");
+	}
+
+	if (match_glob(key, "window.inactive.border.type")) {
+		theme->window[SSD_INACTIVE].border_type = parse_border_type(value);
+	}
+	if (match_glob(key, "window.inactive.border.highlight")) {
+		theme->window[SSD_INACTIVE].highlight =
+			get_int_if_positive(value, "window.inactive.border.highlight");
+	}
+	if (match_glob(key, "window.inactive.border.shadow")) {
+		theme->window[SSD_INACTIVE].shadow =
+			get_int_if_positive(value, "window.inactive.border.shadow");
+	}
+
 	/* border.color is obsolete, but handled for backward compatibility */
 	if (match_glob(key, "border.color")) {
 		parse_color(value, theme->window[SSD_ACTIVE].border_color);
@@ -729,6 +964,30 @@ entry(struct theme *theme, const char *key, const char *value)
 	if (match_glob(key, "window.active.title.bg")) {
 		theme->window[SSD_ACTIVE].title_bg.gradient = parse_gradient(value);
 	}
+
+	if (match_glob(key, "window.inactive.title.bg") && parse_border_type(value)) {
+		theme->window[SSD_INACTIVE].title_bg.border_type = parse_border_type(value);
+	}
+	if (match_glob(key, "window.inactive.title.bg.highlight")) {
+		theme->window[SSD_INACTIVE].title_bg.highlight =
+			get_int_if_positive(value, "window.inactive.title.bg.highlight");
+	}
+	if (match_glob(key, "window.inactive.title.bg.shadow")) {
+		theme->window[SSD_INACTIVE].title_bg.shadow =
+			get_int_if_positive(value, "window.inactive.title.bg.shadow");
+	}
+	if (match_glob(key, "window.inactive.title.bg.width")) {
+		theme->window[SSD_INACTIVE].title_bg.border_width =
+			get_int_if_positive(value, "window.inactive.title.bg.width");
+	}
+	if (match_glob(key, "window.inactive.title.bg.bevel-width")) {
+		theme->window[SSD_INACTIVE].title_bg.bevel_width =
+			get_int_if_positive(value, "window.inactive.title.bg.bevel-width");
+	}
+	if (match_glob(key, "window.inactive.title.bg.exclusive")) {
+		set_bool(value, &theme->window[SSD_INACTIVE].title_bg.exclusive);
+	}
+
 	if (match_glob(key, "window.inactive.title.bg")) {
 		theme->window[SSD_INACTIVE].title_bg.gradient = parse_gradient(value);
 	}
@@ -786,6 +1045,62 @@ entry(struct theme *theme, const char *key, const char *value)
 	if (match_glob(key, "window.button.spacing")) {
 		theme->window_button_spacing = get_int_if_positive(
 			value, "window.button.spacing");
+	}
+
+	if (match_glob(key, "window.inactive.button.bg") && parse_border_type(value)) {
+		theme->window[SSD_INACTIVE].button_border_type = parse_border_type(value);
+	}
+	if (match_glob(key, "window.inactive.button.bg.highlight")) {
+		theme->window[SSD_INACTIVE].button_highlight =
+			get_int_if_positive(value, "window.inactive.button.bg.highlight");
+	}
+	if (match_glob(key, "window.inactive.button.bg.shadow")) {
+		theme->window[SSD_INACTIVE].button_shadow =
+			get_int_if_positive(value, "window.inactive.button.bg.shadow");
+	}
+	if (match_glob(key, "window.inactive.button.bg.width")) {
+		theme->window[SSD_INACTIVE].button_border_width =
+			get_int_if_positive(value, "window.inactive.button.bg.width");
+	}
+	if (match_glob(key, "window.inactive.button.bg.bevel-width")) {
+		theme->window[SSD_INACTIVE].button_bevel_width =
+			get_int_if_positive(value, "window.inactive.button.bg.bevel-width");
+	}
+
+	if (match_glob(key, "window.inactive.button.bg.border-color")) {
+		parse_color(value, theme->window[SSD_INACTIVE].button_border_color);
+	}
+
+	if (match_glob(key, "window.inactive.button.bg.border-hover-color")) {
+		parse_color(value, theme->window[SSD_INACTIVE].button_hover_border_color);
+	}
+
+	if (match_glob(key, "window.active.button.bg") && parse_border_type(value)) {
+		theme->window[SSD_ACTIVE].button_border_type = parse_border_type(value);
+	}
+	if (match_glob(key, "window.active.button.bg.highlight")) {
+		theme->window[SSD_ACTIVE].button_highlight =
+			get_int_if_positive(value, "window.active.button.bg.highlight");
+	}
+	if (match_glob(key, "window.active.button.bg.shadow")) {
+		theme->window[SSD_ACTIVE].button_shadow =
+			get_int_if_positive(value, "window.active.button.bg.shadow");
+	}
+	if (match_glob(key, "window.active.button.bg.width")) {
+		theme->window[SSD_ACTIVE].button_border_width =
+			get_int_if_positive(value, "window.active.button.bg.width");
+	}
+	if (match_glob(key, "window.inactive.button.bg.bevel-width")) {
+		theme->window[SSD_ACTIVE].button_bevel_width =
+			get_int_if_positive(value, "window.active.button.bg.bevel-width");
+	}
+
+	if (match_glob(key, "window.active.button.bg.border-color")) {
+		parse_color(value, theme->window[SSD_ACTIVE].button_border_color);
+	}
+
+	if (match_glob(key, "window.active.button.bg.border-hover-color")) {
+		parse_color(value, theme->window[SSD_ACTIVE].button_hover_border_color);
 	}
 
 	/* botton hover overlay */
@@ -905,6 +1220,22 @@ entry(struct theme *theme, const char *key, const char *value)
 		parse_color(value, theme->menu_border_color);
 	}
 
+	if (match_glob(key, "menu.bg")) {
+		theme->menu_border_type = parse_border_type(value);
+	}
+	if (match_glob(key, "menu.bg.bevel-width")) {
+		theme->menu_bevel_width =
+			get_int_if_positive(value, "menu.bg.bevel-width");
+	}
+	if (match_glob(key, "menu.bg.highlight")) {
+		theme->menu_highlight =
+			get_int_if_positive(value, "menu.bg.highlight");
+	}
+	if (match_glob(key, "menu.bg.shadow")) {
+		theme->menu_shadow =
+			get_int_if_positive(value, "menu.bg.shadow");
+	}
+
 	if (match_glob(key, "menu.items.padding.x")) {
 		theme->menu_items_padding_x = get_int_if_positive(
 			value, "menu.items.padding.x");
@@ -916,6 +1247,22 @@ entry(struct theme *theme, const char *key, const char *value)
 	if (match_glob(key, "menu.items.bg.color")) {
 		parse_color(value, theme->menu_items_bg_color);
 	}
+	if (match_glob(key, "menu.items.bg")) {
+		theme->menu_items_border_type = parse_border_type(value);
+	}
+	if (match_glob(key, "menu.items.bg.highlight")) {
+		theme->menu_items_highlight =
+			get_int_if_positive(value, "menu.items.bg.highlight");
+	}
+	if (match_glob(key, "menu.items.bg.shadow")) {
+		theme->menu_items_shadow =
+			get_int_if_positive(value, "menu.items.bg.shadow");
+	}
+	if (match_glob(key, "menu.items.bg.bevel-width")) {
+		theme->menu_items_bevel_width =
+			get_int_if_positive(value, "menu.items.bg.bevel-width");
+	}
+
 	if (match_glob(key, "menu.items.text.color")) {
 		parse_color(value, theme->menu_items_text_color);
 	}
@@ -924,6 +1271,22 @@ entry(struct theme *theme, const char *key, const char *value)
 	}
 	if (match_glob(key, "menu.items.active.text.color")) {
 		parse_color(value, theme->menu_items_active_text_color);
+	}
+
+	if (match_glob(key, "menu.items.active.bg")) {
+		theme->menu_items_active_border_type = parse_border_type(value);
+	}
+	if (match_glob(key, "menu.items.active.bg.highlight")) {
+		theme->menu_items_active_highlight =
+			get_int_if_positive(value, "menu.items.active,bg.highlight");
+	}
+	if (match_glob(key, "menu.items.active.bg.shadow")) {
+		theme->menu_items_active_shadow =
+			get_int_if_positive(value, "menu.items.active.bg.shadow");
+	}
+	if (match_glob(key, "menu.items.active.bg.bevel-width")) {
+		theme->menu_items_active_bevel_width =
+			get_int_if_positive(value, "menu.items.active.bg.bevel-width");
 	}
 
 	if (match_glob(key, "menu.separator.width")) {
@@ -952,6 +1315,22 @@ entry(struct theme *theme, const char *key, const char *value)
 		parse_color(value, theme->menu_title_text_color);
 	}
 
+	if (match_glob(key, "menu.title.bg")) {
+		theme->menu_title_border_type = parse_border_type(value);
+	}
+	if (match_glob(key, "menu.title.bg.highlight")) {
+		theme->menu_title_highlight =
+			get_int_if_positive(value, "menu.title.bg.highlight");
+	}
+	if (match_glob(key, "menu.title.bg.shadow")) {
+		theme->menu_title_shadow =
+			get_int_if_positive(value, "menu.title.bg.shadow");
+	}
+	if (match_glob(key, "menu.title.bg.bevel-width")) {
+		theme->menu_title_bevel_width =
+			get_int_if_positive(value, "menu.title.bg.bevel-width");
+	}
+
 	if (match_glob(key, "osd.bg.color")) {
 		parse_color(value, theme->osd_bg_color);
 	}
@@ -961,6 +1340,21 @@ entry(struct theme *theme, const char *key, const char *value)
 	}
 	if (match_glob(key, "osd.border.color")) {
 		parse_color(value, theme->osd_border_color);
+	}
+
+	if (match_glob(key, "osd.bg")) {
+		theme->osd_border_type = parse_border_type(value);
+	}
+	if (match_glob(key, "osd.bg.highlight")) {
+		theme->osd_highlight =
+			get_int_if_positive(value, "osd.bg.highlight");
+	}
+	if (match_glob(key, "osd.bg.shadow")) {
+		theme->osd_shadow =
+			get_int_if_positive(value, "osd.bg.shadow");
+	}
+	if (match_glob(key, "osd.bg.bevel-width")) {
+		theme->osd_border_bevel_width = get_int_if_positive(value, "osd.bg.bevel-width");
 	}
 	/* classic window switcher */
 	if (match_glob(key, "osd.window-switcher.style-classic.width")

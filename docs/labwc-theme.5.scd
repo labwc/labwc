@@ -67,7 +67,7 @@ labwc-config(5).
 	significant. The format is as follows:
 
 ```
-(Solid | Gradient <type>)
+(Solid | Gradient <type>) (Raised | Sunken | DoubleRaised | DoubleSunken)
 ```
 
 	... where *|* stands for "or".
@@ -107,11 +107,116 @@ window.*.title.bg.colorTo: #4d6982
 window.*.title.bg.colorTo.splitTo: #557485
 ```
 
+
+	- *Raised* adds a bevel to the element, lighter on the top/left and darker on
+	  the bottom/right
+```
+window.*.title.bg: Raised
+```
+	
+	- *Sunken* adds a similar bevel, but with darker hints on the top/left and lighter
+	  on the bottom/right
+	  
+```
+window.active.title.bg: sunken gradient vertical
+```
+	
+	- *DoubleRaised* adds a raised bevel on the outer edge of the element, and a 
+	  second sunken bevel slightly inset to that.
+
+```
+window.*.title.bg: doubleraised
+```
+	
+	- *DoubleSunken* adds a sunken bevel to the outer edge, and a raised bevel
+	  slightly inset.
+	
+```
+window.*.title.bg: doublesunken
+```
+	
+	- *Flat* uses a solid color border for the element, even if it otherwise has a gradient.
+	
+```
+window.*.title.bg: flat
+```
+	
+	- *None* draws no additional border for the element.
+	
+```
+window.*.title.bg: none
+```
+
+*Bevel-Related Properties*
+	
+	Beveled elements have paired properties *highlight* and *shadow* which indicate how much lighter
+	or darker than the base color the "highlighted" and "shadowed" edges will be.  "256" represents
+	a 100% increase or decrease in brightness.
+
+	For *highlight*, the default is 128 - 50% more brightness.
+	For *shadow*, the default is 64 - 25% less brightness.
+	
+	*DoubleRaised* and *DoubleSunken* bevels are paired with an additional *bevel-width* property
+	which controls how much of the space is devoted to the sub-bevels and how much remains in the
+	"base" colour.
+	
+```
+window.active.title.bg.highlight: 256
+window.active.title.bg.shadow: 256
+window.active.title.bg.bevel-width: 2
+
+window.active.border.highlight: 256
+window.active.border.shadow: 128
+window.active.border.bevel-width: 2
+
+window.active.button.bg.highlight: 128
+window.active.button.bg.shadow: 64
+window.active.button.bg.bevel-width: 2
+
+
+window.inactive.title.bg.highlight: 256
+window.inactive.title.bg.shadow: 128
+window.inactive.title.bg.bevel-width: 2
+
+window.inactive.border.highlight: 256
+window.inactive.border.shadow: 128
+window.inactive.border.bevel-width: 2
+
+window.inactive.button.bg.highlight: 128
+window.inactive.button.bg.shadow: 64
+window.inactive.button.bg.bevel-width: 2
+
+menu.bg.highlight: 256
+menu.bg.shadow: 128
+menu.bg.bevel-width: 2
+
+menu.items.bg.highlight: 256
+menu.items.bg.shadow: 128
+menu.items.bg.bevel-width: 3
+
+menu.items.active.bg.highlight: 256
+menu.items.active.bg.shadow: 128
+menu.items.active.bg.bevel-width: 3
+
+menu.title.bg.highlight: 256
+menu.title.bg.shadow: 128
+menu.title.bg.bevel-width: 3
+
+osd.bg.highlight: 256
+osd.bg.shadow: 128
+osd.bg.bevel-width:2
+```
+
 # THEME ELEMENTS
 
 *border.width*
 	Line width (integer) of border drawn around window frames.
 	Default is 1.
+
+*border.bevel-width*
+	Used with *window.active.border.type* and *window.inactive.border.type* *DoubleRaised* and *DoubleSunken*
+	The portion of *border.width* assigned to the inner and outer bevels.
+	Default is 0.
 
 *window.titlebar.padding.width*
 	Horizontal titlebar padding size, in pixels, between border and first
@@ -124,9 +229,15 @@ window.*.title.bg.colorTo.splitTo: #557485
 
 *window.active.border.color*
 	Border color of active window. Default is #aaaaaa.
+	
+*window.active.border.type*
+	Texture type for active window borders.  Default is "None".  Currently does not support gradients.
 
 *window.inactive.border.color*
 	Border color of inactive window. Default is #aaaaaa.
+
+*window.inactive.border.type*
+	Texture type for inactive window borders.  Default is "None".  Currently does not support gradients.
 
 *window.active.indicator.toggled-keybind.color*
 	Status indicator for the ToggleKeybinds action. Can be set to the same
@@ -137,6 +248,16 @@ window.*.title.bg.colorTo.splitTo: #557485
 	Texture for the focused window's titlebar. See texture section above.
 	Default is *Solid*
 
+*window.active.title.bg.width*
+	Used with beveled textures.
+	The width of the beveled borders on the focused window titlebar.
+	Default is 0.
+
+*window.active.title.bg.bevel-width*
+	Used with texture types *DoubleRaised* and *DoubleSunken*
+	The portion of the the focused window titlebar border width assigned to the inner and outer bevels.
+	Default is 0.
+
 *window.active.title.bg.color*
 	Background color for the focused window's titlebar. See texture section
 	for additional color fields associated with gradients.
@@ -146,6 +267,16 @@ window.*.title.bg.colorTo.splitTo: #557485
 	Texture for non-focused windows' titlebars. See texture section above.
 	Default is *Solid*
 
+*window.inactive.title.bg.width*
+	Used with beveled textures.
+	The width of the beveled borders on the non-focused window titlebar.
+	Default is 0.
+
+*window.inactive.title.bg.bevel-width*
+	Used with texture types *DoubleRaised* and *DoubleSunken*
+	The portion of the the non-focused window titlebar border width assigned to the inner and outer bevels.
+	Default is 0.
+	
 *window.inactive.title.bg.color*
 	Background color for non-focused windows' titlebars. See texture section
 	for additional color fields associated with gradients.
@@ -203,6 +334,48 @@ here for comparison only.
 *window.inactive.button.unpressed.image.color*
 	Color of the images in titlebar buttons in their default, unpressed,
 	state. This element is for non-focused windows. Default is #000000.
+	
+*window.active.button.bg.width*
+	Used with beveled textures.
+	The width of the beveled borders in titlebar buttons for focused windows.
+	Default is 0.
+
+*window.active.button.bg.bevel-width*
+	Used with beveled textures of type *DoubleRaised* or *DoubleSunken*
+	The width of the sub-bevels within focused windows' titlebar buttons.
+	Default is 0.
+
+*window.active.button.bg.border-color*
+	Used with beveled textures.
+	The color for the borders of focused windows' titlebar buttons.
+	Default is #000000.
+	
+*window.active.button.bg.border-hover-color*
+	Used with beveled textures.
+	The color for the buttons of focused windows' titlebar buttons when hovered over.
+	Default is #000000.
+	
+*window.inactive.button.bg.width*
+	Used with beveled textures.
+	The width of the beveled borders in titlebar buttons for non-focused windows.
+	Default is 0.
+
+*window.inactive.button.bg.bevel-width*
+	Used with beveled textures of type *DoubleRaised* or *DoubleSunken*
+	The width of the sub-bevels within non-focused windows' titlebar buttons.
+	Default is 0.
+
+*window.inactive.button.bg.border-color*
+	Used with beveled textures.
+	The color for the borders of non-focused windows' titlebar buttons.
+	Default is #000000.
+	
+*window.inactive.button.bg.border-hover-color*
+	Used with beveled textures.
+	The color for the buttons of non-focused windows' titlebar buttons when hovered over.
+	Default is #000000.
+
+
 
 Note: Button elements (i.e. window.[in]active.button.\*) may be defined uniquely
 for each type of button ("menu", "iconify", "max", "shade", "desk" or "close")
@@ -233,6 +406,15 @@ all are supported.
 *window.inactive.shadow.color*
 	Color of drop-shadows for non-focused windows, including opacity.
 	Default is #00000040 (black with 25% opacity).
+
+*menu.bg*
+	Texture for the overall menu borders.  Currently only supports bevels.
+	Default is "None"
+	
+*menu.bg.bevel-width*
+	Width of the sub-bevels on the outer edges of menu borders.
+	Used with texture types *DoubleRaised* and *DoubleSunken*
+	Default is 0.
 
 *menu.overlap.x*
 	Horizontal overlap in pixels between submenus and their parents. A
@@ -267,12 +449,28 @@ all are supported.
 *menu.items.padding.y*
 	Vertical padding of menu text entries in pixels.
 	Default is 4.
+	
+*menu.items.bg*
+	Texture for background of inactive menu items.  Currently only supports bevels.  Default is "None"
 
+*menu.items.bg.bevel-width*
+	Width of the sub-bevels on inactive menu items.
+	Used with texture types *DoubleRaised* and *DoubleSunken*
+	Default is 0.
+	
 *menu.items.bg.color*
 	Background color of inactive menu items. Default is #fcfbfa.
 
 *menu.items.text.color*
 	Text color of inactive menu item. Default is #000000.
+
+*menu.items.active.bg*
+	Texture for background of active menu items.  Currently only supports bevels.  Default is "None"
+
+*menu.items.active.bg.bevel-width*
+	Width of the sub-bevels on highlighted menu items.
+	Used with texture types *DoubleRaised* and *DoubleSunken*
+	Default is 0.
 
 *menu.items.active.bg.color*
 	Background color of active menu items. Default is #e1dedb.
@@ -292,6 +490,14 @@ all are supported.
 *menu.separator.color*
 	Menu separator color. Default is #888888.
 
+*menu.title.bg*
+	Texture for background of menu titles.  Currently only supports bevels.  Default is "None"
+
+*menu.title.bg.bevel-width*
+	Width of the sub-bevels on menu titles.
+	Used with texture types *DoubleRaised* and *DoubleSunken*
+	Default is 0.
+	
 *menu.title.bg.color*
 	Menu title color. Default is #589bda.
 	Note: A menu title is a separator with a label.
@@ -302,6 +508,15 @@ all are supported.
 
 *menu.title.text.color*
 	Text color of separator label. Default is #ffffff.
+
+*osd.bg*
+	Texture used for on-screen display elements like the window-cycle dialog.
+	Currently only supports bevels.  Default is "None"
+	
+*osd.bg.bevel-width*
+	Width of the sub-bevels on on-screen display borders.
+	Used with texture types *DoubleRaised* and *DoubleSunken*
+	Default is 0.
 
 *osd.bg.color*
 	Background color of on-screen-display. Inherits

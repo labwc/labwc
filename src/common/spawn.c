@@ -108,7 +108,7 @@ spawn_sync_no_shell(char const *command)
 	switch (child) {
 	case -1:
 		wlr_log(WLR_ERROR, "unable to fork()");
-		goto out;
+		break;
 	case 0:
 		reset_signals_and_limits();
 		execvp(argv[0], argv);
@@ -117,7 +117,6 @@ spawn_sync_no_shell(char const *command)
 		waitpid(child, NULL, 0);
 		break;
 	}
-out:
 	g_strfreev(argv);
 }
 

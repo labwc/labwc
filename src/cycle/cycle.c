@@ -4,6 +4,7 @@
 #include <wlr/types/wlr_scene.h>
 #include <wlr/util/box.h>
 #include <wlr/util/log.h>
+#include "common/array.h"
 #include "common/lab-scene-rect.h"
 #include "common/list.h"
 #include "common/mem.h"
@@ -320,6 +321,65 @@ handle_osd_tree_destroy(struct wl_listener *listener, void *data)
 	wl_list_remove(&osd_output->tree_destroy.link);
 	wl_list_remove(&osd_output->link);
 	free(osd_output);
+}
+
+void
+cycle_immediate(enum lab_cycle_dir direction, struct cycle_filter filter)
+{
+	if (wl_list_empty(&server.views)) {
+		return;
+	}
+	enum lab_view_criteria criteria =
+		LAB_VIEW_CRITERIA_NO_SKIP_WINDOW_SWITCHER
+		| LAB_VIEW_CRITERIA_NO_DIALOG;
+	if (filter.workspace == CYCLE_WORKSPACE_CURRENT) {
+		criteria |= LAB_VIEW_CRITERIA_CURRENT_WORKSPACE;
+	}
+	uint64_t cycle_outputs = get_outputs_by_filter(filter.output);
+	const char *cycle_app_id = NULL;
+	if (filter.app_id == CYCLE_APP_ID_CURRENT && server.active_view) {
+		cycle_app_id = server.active_view->app_id;
+	}
+
+	struct view *view;
+	struct view *view_to_focus = NULL;
+	struct view *view_to_back = NULL;
+	for_each_view(view, &server.views, criteria) {
+		if (filter.output != CYCLE_OUTPUT_ALL) {
+			if (!view->output || !(cycle_outputs & view->output->id_bit)) {
+				continue;
+			}
+		}
+		if (cycle_app_id && strcmp(view->app_id, cycle_app_id)) {
+			continue;
+		}
+		/* view matches the filters, now figure out the order */
+		if (server.active_view == view && direction == LAB_CYCLE_DIR_FORWARD) {
+			/* When cycling forward, the current active view needs to be sent to back
+			 * to keep the same sequence and avoid getting stuck in the 2 topmost views.
+			 * But if the active view does not match the filter, there's no need to do
+			 * the same since it's not part of the cycle, and this probably only happens
+			 * with output="cursor".
+			 */
+			view_to_back = view;
+			view_to_focus = view;
+			continue;
+		}
+		view_to_focus = view;
+		if (direction == LAB_CYCLE_DIR_FORWARD) {
+			/* When cycling forward, keep the second match and break,
+			 * otherwise keep going and keep the last one.
+			 */
+			break;
+		}
+	}
+	if (view_to_back && view_to_back != view_to_focus) {
+		view_move_to_back(view_to_back);
+	}
+	if (view_to_focus) {
+		desktop_focus_view(view_to_focus, true);
+	}
+	cursor_update_focus();
 }
 
 /* Return false on failure */

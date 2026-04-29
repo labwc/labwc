@@ -89,6 +89,38 @@ out:
 	g_strfreev(argv);
 }
 
+void
+spawn_sync_no_shell(char const *command)
+{
+	GError *err = NULL;
+	gchar **argv = NULL;
+
+	assert(command);
+
+	g_shell_parse_argv((gchar *)command, NULL, &argv, &err);
+	if (err) {
+		g_message("%s", err->message);
+		g_error_free(err);
+		return;
+	}
+
+	pid_t child = fork();
+	switch (child) {
+	case -1:
+		wlr_log(WLR_ERROR, "unable to fork()");
+		goto out;
+	case 0:
+		reset_signals_and_limits();
+		execvp(argv[0], argv);
+		_exit(1);
+	default:
+		waitpid(child, NULL, 0);
+		break;
+	}
+out:
+	g_strfreev(argv);
+}
+
 pid_t
 spawn_primary_client(const char *command)
 {

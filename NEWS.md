@@ -9,7 +9,7 @@ The format is based on [Keep a Changelog]
 
 | Date       | All Changes   | wlroots version | lines-of-code |
 |------------|---------------|-----------------|---------------|
-| 2026-04-17 | [unreleased]  | 0.20.0          | 27753         |
+| 2026-04-29 | [unreleased]  | 0.20.0          | 27849         |
 | 2026-04-17 | [0.9.7]       | 0.19.2          | 29277         |
 | 2026-03-15 | [0.9.6]       | 0.19.2          | 29271         |
 | 2026-03-04 | [0.9.5]       | 0.19.2          | 29251         |
@@ -125,6 +125,14 @@ Note to maintainers:
 
 ### Added
 
+- Add labnag options `--details-border-color` and `--details-margin`
+  @st0rm-shad0w [#3527]
+- Add config option `<focus><raiseOnFocusDelay>` to defer raise-on-focus by a
+  small amount when `raiseOnFocus` is enabled  @joske [#3513]
+- Install `labwc-session.target` systemd user unit when the systemd dependency
+  is available  @joske [#3534]
+- Add `onbutton` to config option `<libinput><device><scrollMethod>`. Also add
+  associated option `<libinput><device><scrollButton>`. @diniamo [#3540]
 - Add `overrideInhibition` option to `<keybind>` [#3507] @drougas
 - Add action `ToggleShowDesktop` to hide/unhide windows [#3500] @johanmalm
 - Add `<privilegedInterfaces>` config option so that privileged protocols can be
@@ -139,6 +147,11 @@ Note to maintainers:
 
 ### Fixed
 
+- Run session activation environment update synchronously to avoid a race
+  condition with the autostart script [#3543] @joske
+- Allow interactive resize on fully maximized windows so that a resize
+  initiated by modifier plus right-mouse-button-drag is not ignored [#3525]
+  @bjorn
 - Gracefully handle missing XWayland packages, so that a labwc compositor which
   has been built with XWayland support (which is optional) can be run even if
   XWayland is not installed. [#3401] @quite
@@ -162,6 +175,8 @@ Note to maintainers:
 
 ### Changed
 
+- Change the default keybinds for XF86Audio{LowerVolume,RaiseVolume,Mute} to use
+  pactl instead of amixer [#3484] @danielrrrr
 - Drop cosmic-workspace protocol [#3031] @tokyo4j
 
 ## 0.9.7 - 2026-04-17
@@ -3270,6 +3285,7 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
 [#3446]: https://github.com/labwc/labwc/pull/3446
 [#3450]: https://github.com/labwc/labwc/pull/3450
 [#3469]: https://github.com/labwc/labwc/pull/3469
+[#3484]: https://github.com/labwc/labwc/pull/3484
 [#3490]: https://github.com/labwc/labwc/pull/3490
 [#3493]: https://github.com/labwc/labwc/pull/3493
 [#3494]: https://github.com/labwc/labwc/pull/3494
@@ -3278,3 +3294,9 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
 [#3502]: https://github.com/labwc/labwc/pull/3502
 [#3507]: https://github.com/labwc/labwc/pull/3507
 [#3511]: https://github.com/labwc/labwc/pull/3511
+[#3513]: https://github.com/labwc/labwc/pull/3513
+[#3525]: https://github.com/labwc/labwc/pull/3525
+[#3527]: https://github.com/labwc/labwc/pull/3527
+[#3534]: https://github.com/labwc/labwc/pull/3534
+[#3540]: https://github.com/labwc/labwc/pull/3540
+[#3543]: https://github.com/labwc/labwc/pull/3543

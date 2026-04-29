@@ -150,6 +150,11 @@ struct seat {
 struct server {
 	struct wl_display *wl_display;
 	struct wl_event_loop *wl_event_loop;  /* Can be used for timer events */
+
+	/* Pending auto-raise timer (used when rc.raise_on_focus_delay_ms > 0) */
+	struct view *pending_auto_raise_view;
+	struct wl_event_source *pending_auto_raise_timer;
+
 	struct wlr_renderer *renderer;
 	struct wlr_allocator *allocator;
 	struct wlr_backend *backend;
@@ -342,6 +347,13 @@ void xdg_shell_finish(void);
  * session is locked; it will simply do nothing.
  */
 void desktop_focus_view(struct view *view, bool raise);
+
+/**
+ * desktop_cancel_pending_auto_raise() - cancel any pending delayed auto-raise
+ * (from raiseOnFocusDelay). Called when a view is being destroyed, on config
+ * reload, or when a new focus change with raise=false supersedes the pending.
+ */
+void desktop_cancel_pending_auto_raise(void);
 
 /**
  * desktop_focus_view_or_surface() - like desktop_focus_view() but can

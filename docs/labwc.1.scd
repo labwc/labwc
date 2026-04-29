@@ -118,6 +118,25 @@ this is accomplished by setting the session variables to empty strings. For
 systemd, the command `systemctl --user unset-environment` will be invoked to
 actually remove the variables from the activation environment.
 
+A systemd user unit named `labwc-session.target` is also shipped alongside
+the compositor for users who want to integrate labwc with systemd. It binds
+to the standard `graphical-session.target`, so systemd user services can
+start and stop in sync with the labwc session when they declare a WantedBy
+or PartOf relationship to that target. Labwc does not activate the target
+itself; users opt in by adding lines like the following to their
+*autostart* and *shutdown* files:
+
+```
+systemctl --user --no-block start labwc-session.target
+systemctl --user stop graphical-session.target
+```
+
+The example *autostart* and *shutdown* files shipped with labwc include
+these commented out. To have a user service automatically started with
+the session, enable it so the corresponding symlink under the
+graphical-session.target.wants directory exists, for example by running
+"systemctl --user enable dms.service".
+
 # ENVIRONMENT VARIABLES
 
 Set the environment variables listed below to enable specific debug options.

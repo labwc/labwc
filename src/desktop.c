@@ -9,6 +9,7 @@
 #include <wlr/types/wlr_subcompositor.h>
 #include <wlr/types/wlr_xdg_shell.h>
 #include "common/scene-helpers.h"
+#include "config/rcxml.h"
 #include "dnd.h"
 #include "labwc.h"
 #include "layers.h"
@@ -65,8 +66,51 @@ set_or_offer_focus(struct view *view)
 	}
 }
 
+static int
+handle_auto_raise_timer(void *data)
+{
+	(void)data;
+	struct view *view = server.pending_auto_raise_view;
+	server.pending_auto_raise_view = NULL;
+
+	if (view && view->mapped) {
+		view_move_to_front(view);
+	}
+	return 0; /* ignored per wl_event_loop docs */
+}
+
 void
-desktop_focus_view(struct view *view, bool raise)
+desktop_cancel_pending_auto_raise(void)
+{
+	server.pending_auto_raise_view = NULL;
+	if (server.pending_auto_raise_timer) {
+		/* Disarm by setting to 0 ms */
+		wl_event_source_timer_update(server.pending_auto_raise_timer, 0);
+	}
+}
+
+static void
+schedule_delayed_auto_raise(struct view *view)
+{
+	server.pending_auto_raise_view = view;
+	if (!server.pending_auto_raise_timer) {
+		server.pending_auto_raise_timer =
+			wl_event_loop_add_timer(server.wl_event_loop,
+				handle_auto_raise_timer, NULL);
+	}
+	wl_event_source_timer_update(server.pending_auto_raise_timer,
+		rc.raise_on_focus_delay_ms);
+}
+
+/*
+ * The raise_on_focus_delay is only meant to dampen z-order churn from
+ * focus-follows-mouse cursor passes. Explicit focus changes (alt-tab,
+ * Focus action, xdg/xwayland activation, etc.) should raise immediately.
+ * allow_delay is therefore only set when the caller is the sloppy-focus
+ * path in desktop_focus_view_or_surface().
+ */
+static void
+desktop_focus_view_internal(struct view *view, bool raise, bool allow_delay)
 {
 	assert(view);
 	/*
@@ -103,8 +147,17 @@ desktop_focus_view(struct view *view, bool raise)
 		workspaces_switch_to(view->workspace, /*update_focus*/ false);
 	}
 
+	/*
+	 * A new focus change supersedes any pending auto-raise from a
+	 * previous focus event, regardless of whether we raise now.
+	 */
+	desktop_cancel_pending_auto_raise();
 	if (raise) {
-		view_move_to_front(view);
+		if (allow_delay && rc.raise_on_focus_delay_ms > 0) {
+			schedule_delayed_auto_raise(view);
+		} else {
+			view_move_to_front(view);
+		}
 	}
 
 	/*
@@ -118,6 +171,12 @@ desktop_focus_view(struct view *view, bool raise)
 	show_desktop_reset();
 }
 
+void
+desktop_focus_view(struct view *view, bool raise)
+{
+	desktop_focus_view_internal(view, raise, /*allow_delay*/ false);
+}
+
 /* TODO: focus layer-shell surfaces also? */
 void
 desktop_focus_view_or_surface(struct seat *seat, struct view *view,
@@ -125,7 +184,7 @@ desktop_focus_view_or_surface(struct seat *seat, struct view *view,
 {
 	assert(view || surface);
 	if (view) {
-		desktop_focus_view(view, raise);
+		desktop_focus_view_internal(view, raise, /*allow_delay*/ true);
 #if HAVE_XWAYLAND
 	} else {
 		struct wlr_xwayland_surface *xsurface =

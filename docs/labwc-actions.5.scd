@@ -514,7 +514,7 @@ Actions that execute other actions. Used in keyboard/mouse bindings.
 			"right-occupied" directions will not wrap.
 
 		*tiled* [up|right|down|left|up-left|up-right|down-left|down-right|center|any]
-			Whether the client is tiled (snapped) along the the
+			Whether the client is tiled (snapped) along the
 			indicated screen edge.
 
 		*tiled_region*

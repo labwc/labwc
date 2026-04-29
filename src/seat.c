@@ -328,6 +328,16 @@ configure_libinput(struct wlr_input_device *wlr_input_device)
 		libinput_device_config_scroll_set_method(libinput_dev, dc->scroll_method);
 	}
 
+	libinput_device_config_scroll_set_button(libinput_dev,
+		libinput_device_config_scroll_get_default_button(libinput_dev));
+	if (dc->scroll_button < 0) {
+		wlr_log(WLR_INFO, "scroll button not configured");
+	} else {
+		wlr_log(WLR_INFO, "scroll button configured (%d)",
+			dc->scroll_button);
+		libinput_device_config_scroll_set_button(libinput_dev, dc->scroll_button);
+	}
+
 	libinput_device_config_send_events_set_mode(libinput_dev,
 		libinput_device_config_send_events_get_default_mode(libinput_dev));
 	if ((dc->send_events_mode != LIBINPUT_CONFIG_SEND_EVENTS_ENABLED

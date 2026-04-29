@@ -2521,6 +2521,10 @@ view_destroy(struct view *view)
 		server.active_view = NULL;
 	}
 
+	if (server.pending_auto_raise_view == view) {
+		desktop_cancel_pending_auto_raise();
+	}
+
 	if (server.session_lock_manager->last_active_view == view) {
 		server.session_lock_manager->last_active_view = NULL;
 	}

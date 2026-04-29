@@ -46,6 +46,7 @@ struct conf {
 	uint32_t button_text;
 	uint32_t button_background;
 	uint32_t details_background;
+	uint32_t details_border_color;
 	uint32_t background;
 	uint32_t text;
 	uint32_t button_border;
@@ -60,6 +61,7 @@ struct conf {
 	ssize_t button_gap_close;
 	ssize_t button_margin_right;
 	ssize_t button_padding;
+	ssize_t details_margin;
 };
 
 struct pointer {
@@ -300,10 +302,10 @@ render_details_scroll_button(cairo_t *cairo, struct nag *nag,
 	get_text_size(cairo, nag->conf->font_description, &text_width,
 		&text_height, NULL, 1, true, "%s", button->text);
 
-	int border = nag->conf->button_border_thickness;
-	int padding = nag->conf->button_padding;
+	int border = nag->conf->details_border_thickness;
+	int padding = (nag->conf->button_padding / 3) + 2;
 
-	cairo_set_source_u32(cairo, nag->conf->details_background);
+	cairo_set_source_u32(cairo, nag->conf->details_border_color);
 	cairo_rectangle(cairo, button->x, button->y,
 			button->width, button->height);
 	cairo_fill(cairo);
@@ -316,7 +318,7 @@ render_details_scroll_button(cairo_t *cairo, struct nag *nag,
 
 	cairo_set_source_u32(cairo, nag->conf->button_text);
 	cairo_move_to(cairo, button->x + border + padding,
-			button->y + border + (button->height - text_height) / 2);
+			button->y + (button->height - text_height) / 2);
 	render_text(cairo, nag->conf->font_description, 1, true,
 			"%s", button->text);
 }
@@ -331,8 +333,8 @@ get_detailed_scroll_button_width(cairo_t *cairo, struct nag *nag)
 		NULL, 1, true, "%s", nag->details.button_down.text);
 
 	int text_width =  up_width > down_width ? up_width : down_width;
-	int border = nag->conf->button_border_thickness;
-	int padding = nag->conf->button_padding;
+	int border = nag->conf->details_border_thickness;
+	int padding = (nag->conf->button_padding / 3) + 2;
 
 	return text_width + border * 2 + padding * 2;
 }
@@ -343,8 +345,9 @@ render_detailed(cairo_t *cairo, struct nag *nag, uint32_t y)
 	uint32_t width = nag->width;
 
 	int border = nag->conf->details_border_thickness;
+	int margin = nag->conf->details_margin;
 	int padding = nag->conf->message_padding;
-	int decor = padding + border;
+	int decor = margin + border;
 
 	nag->details.x = decor;
 	nag->details.y = y + decor;
@@ -372,7 +375,7 @@ render_detailed(cairo_t *cairo, struct nag *nag, uint32_t y)
 	bool show_buttons = nag->details.offset > 0;
 	int button_width = get_detailed_scroll_button_width(cairo, nag);
 	if (show_buttons) {
-		nag->details.width -= button_width;
+		nag->details.width += border - button_width;
 		pango_layout_set_width(layout,
 				(nag->details.width - padding * 2) * PANGO_SCALE);
 	}
@@ -385,7 +388,7 @@ render_detailed(cairo_t *cairo, struct nag *nag, uint32_t y)
 
 			if (!show_buttons) {
 				show_buttons = true;
-				nag->details.width -= button_width;
+				nag->details.width += border - button_width;
 				pango_layout_set_width(layout,
 					(nag->details.width - padding * 2) * PANGO_SCALE);
 			}
@@ -401,20 +404,28 @@ render_detailed(cairo_t *cairo, struct nag *nag, uint32_t y)
 
 	nag->details.visible_lines = pango_layout_get_line_count(layout);
 
+	int border_rect_height = nag->details.height + 2 * border;
+
 	if (show_buttons) {
 		nag->details.button_up.x = nag->details.x + nag->details.width;
-		nag->details.button_up.y = nag->details.y;
+		nag->details.button_up.y = nag->details.y - border;
 		nag->details.button_up.width = button_width;
-		nag->details.button_up.height = nag->details.height / 2;
+		nag->details.button_up.height = (border_rect_height + border) / 2;
 		render_details_scroll_button(cairo, nag, &nag->details.button_up);
 
 		nag->details.button_down.x = nag->details.x + nag->details.width;
 		nag->details.button_down.y =
-			nag->details.button_up.y + nag->details.button_up.height;
+			nag->details.button_up.y + nag->details.button_up.height - border;
 		nag->details.button_down.width = button_width;
-		nag->details.button_down.height = nag->details.height / 2;
+		nag->details.button_down.height =
+			border_rect_height - nag->details.button_up.height + border;
 		render_details_scroll_button(cairo, nag, &nag->details.button_down);
 	}
+
+	cairo_set_source_u32(cairo, nag->conf->details_border_color);
+	cairo_rectangle(cairo, margin, nag->details.y - border,
+			nag->details.width + 2 * border, border_rect_height);
+	cairo_fill(cairo);
 
 	cairo_set_source_u32(cairo, nag->conf->details_background);
 	cairo_rectangle(cairo, nag->details.x, nag->details.y,
@@ -447,7 +458,7 @@ render_button(cairo_t *cairo, struct nag *nag, struct button *button,
 	}
 
 	button->x = *x - border - text_width - padding * 2 + 1;
-	button->y = (int)(ideal_height - text_height) / 2 - padding + 1;
+	button->y = (int)(ideal_height - text_height) / 2 - padding;
 	button->width = text_width + padding * 2;
 	button->height = text_height + padding * 2;
 
@@ -1464,14 +1475,16 @@ conf_init(struct conf *conf)
 	conf->keyboard_focus = ZWLR_LAYER_SURFACE_V1_KEYBOARD_INTERACTIVITY_NONE;
 	conf->bar_border_thickness = 2;
 	conf->message_padding = 8;
-	conf->details_border_thickness = 3;
 	conf->button_border_thickness = 3;
 	conf->button_gap = 20;
 	conf->button_gap_close = 15;
 	conf->button_margin_right = 2;
 	conf->button_padding = 3;
 	conf->button_background = 0x680A0AFF;
+	conf->details_margin = 11;
+	conf->details_border_thickness = 3;
 	conf->details_background = 0x680A0AFF;
+	conf->details_border_color = 0x680A0AFF;
 	conf->background = 0x900000FF;
 	conf->text = 0xFFFFFFFF;
 	conf->button_text = 0xFFFFFFFF;
@@ -1551,16 +1564,18 @@ nag_parse_options(int argc, char **argv, struct nag *nag,
 		TO_COLOR_BORDER_BOTTOM,
 		TO_COLOR_BUTTON_BG,
 		TO_COLOR_DETAILS,
+		TO_COLOR_DETAILS_BORDER,
 		TO_COLOR_TEXT,
 		TO_COLOR_BUTTON_TEXT,
 		TO_THICK_BAR_BORDER,
 		TO_PADDING_MESSAGE,
-		TO_THICK_DET_BORDER,
+		TO_THICK_DETAILS_BORDER,
 		TO_THICK_BTN_BORDER,
 		TO_GAP_BTN,
 		TO_GAP_BTN_DISMISS,
 		TO_MARGIN_BTN_RIGHT,
 		TO_PADDING_BTN,
+		TO_MARGIN_DETAILS,
 	};
 
 	static const struct option opts[] = {
@@ -1587,8 +1602,10 @@ nag_parse_options(int argc, char **argv, struct nag *nag,
 		{"button-text-color", required_argument, NULL, TO_COLOR_BUTTON_TEXT},
 		{"border-bottom-size", required_argument, NULL, TO_THICK_BAR_BORDER},
 		{"message-padding", required_argument, NULL, TO_PADDING_MESSAGE},
-		{"details-border-size", required_argument, NULL, TO_THICK_DET_BORDER},
+		{"details-border-size", required_argument, NULL, TO_THICK_DETAILS_BORDER},
 		{"details-background-color", required_argument, NULL, TO_COLOR_DETAILS},
+		{"details-border-color", required_argument, NULL, TO_COLOR_DETAILS_BORDER},
+		{"details-margin", required_argument, NULL, TO_MARGIN_DETAILS},
 		{"button-border-size", required_argument, NULL, TO_THICK_BTN_BORDER},
 		{"button-gap", required_argument, NULL, TO_GAP_BTN},
 		{"button-dismiss-gap", required_argument, NULL, TO_GAP_BTN_DISMISS},
@@ -1633,6 +1650,9 @@ nag_parse_options(int argc, char **argv, struct nag *nag,
 		"  --details-border-size size       Thickness for the details border.\n"
 		"  --details-background-color RRGGBB[AA]\n"
 		"                                   Details background color.\n"
+		"  --details-border-color RRGGBB[AA]\n"
+		"                                   Details border color.\n"
+		"  --details-margin margin          Margin for the details.\n"
 		"  --button-border-size size        Thickness for the button border.\n"
 		"  --button-gap gap                 Size of the gap between buttons\n"
 		"  --button-dismiss-gap gap         Size of the gap for dismiss button.\n"
@@ -1769,6 +1789,11 @@ nag_parse_options(int argc, char **argv, struct nag *nag,
 				fprintf(stderr, "Invalid details background color: %s\n", optarg);
 			}
 			break;
+		case TO_COLOR_DETAILS_BORDER:
+			if (!parse_color(optarg, &conf->details_border_color)) {
+				fprintf(stderr, "Invalid details border color: %s\n", optarg);
+			}
+			break;
 		case TO_COLOR_TEXT: /* Text color */
 			if (!parse_color(optarg, &conf->text)) {
 				fprintf(stderr, "Invalid text color: %s\n", optarg);
@@ -1785,7 +1810,7 @@ nag_parse_options(int argc, char **argv, struct nag *nag,
 		case TO_PADDING_MESSAGE: /* Message padding */
 			conf->message_padding = strtol(optarg, NULL, 0);
 			break;
-		case TO_THICK_DET_BORDER: /* Details border thickness */
+		case TO_THICK_DETAILS_BORDER: /* Details border thickness */
 			conf->details_border_thickness = strtol(optarg, NULL, 0);
 			break;
 		case TO_THICK_BTN_BORDER: /* Button border thickness */
@@ -1802,6 +1827,9 @@ nag_parse_options(int argc, char **argv, struct nag *nag,
 			break;
 		case TO_PADDING_BTN: /* Padding for the button text */
 			conf->button_padding = strtol(optarg, NULL, 0);
+			break;
+		case TO_MARGIN_DETAILS:
+			conf->details_margin = strtol(optarg, NULL, 0);
 			break;
 		default: /* Help or unknown flag */
 			fprintf(c == 'h' ? stdout : stderr, "%s", usage);

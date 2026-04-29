@@ -88,21 +88,21 @@ static struct key_combos {
 		.action = "Execute",
 		.attributes[0] = {
 			.name = "command",
-			.value = "amixer sset Master 5%-",
+			.value = "pactl set-sink-volume @DEFAULT_SINK@ -5%",
 		},
 	}, {
 		.binding = "XF86AudioRaiseVolume",
 		.action = "Execute",
 		.attributes[0] = {
 			.name = "command",
-			.value = "amixer sset Master 5%+",
+			.value = "pactl set-sink-volume @DEFAULT_SINK@ +5%",
 		},
 	}, {
 		.binding = "XF86AudioMute",
 		.action = "Execute",
 		.attributes[0] = {
 			.name = "command",
-			.value = "amixer sset Master toggle",
+			.value = "pactl set-sink-mute @DEFAULT_SINK@ toggle",
 		},
 	}, {
 		.binding = "XF86MonBrightnessUp",

@@ -25,6 +25,7 @@ libinput_category_init(struct libinput_category *l)
 	l->dwt = -1;
 	l->click_method = -1;
 	l->scroll_method = -1;
+	l->scroll_button = -1;
 	l->send_events_mode = -1;
 	l->have_calibration_matrix = false;
 	l->scroll_factor = 1.0;

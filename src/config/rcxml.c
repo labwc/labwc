@@ -893,8 +893,18 @@ fill_libinput_category(xmlNode *node)
 			} else if (!strcasecmp(content, "twofinger")) {
 				category->scroll_method =
 					LIBINPUT_CONFIG_SCROLL_2FG;
+			} else if (!strcasecmp(content, "onbutton")) {
+				category->scroll_method =
+					LIBINPUT_CONFIG_SCROLL_ON_BUTTON_DOWN;
 			} else {
 				wlr_log(WLR_ERROR, "invalid scrollMethod");
+			}
+		} else if (!strcasecmp(key, "scrollButton")) {
+			int button = atoi(content);
+			if (button != 0) {
+				category->scroll_button = button;
+			} else {
+				wlr_log(WLR_ERROR, "invalid scrollButton");
 			}
 		} else if (!strcasecmp(key, "sendEventsMode")) {
 			category->send_events_mode =
@@ -1187,6 +1197,9 @@ entry(xmlNode *node, char *nodename, char *content)
 		set_bool(content, &rc.focus_follow_mouse_requires_movement);
 	} else if (!strcasecmp(nodename, "raiseOnFocus.focus")) {
 		set_bool(content, &rc.raise_on_focus);
+	} else if (!strcasecmp(nodename, "raiseOnFocusDelay.focus")) {
+		long val = strtol(content, NULL, 10);
+		rc.raise_on_focus_delay_ms = val > 0 ? (uint32_t)val : 0;
 	} else if (!strcasecmp(nodename, "doubleClickTime.mouse")) {
 		long doubleclick_time_parsed = strtol(content, NULL, 10);
 		if (doubleclick_time_parsed > 0) {
@@ -1522,6 +1535,7 @@ rcxml_init(void)
 	rc.focus_follow_mouse = false;
 	rc.focus_follow_mouse_requires_movement = true;
 	rc.raise_on_focus = false;
+	rc.raise_on_focus_delay_ms = 0;
 
 	rc.doubleclick_time = 500;
 

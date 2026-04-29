@@ -148,6 +148,8 @@ struct seat {
 };
 
 struct server {
+	uint32_t wlr_version;
+
 	struct wl_display *wl_display;
 	struct wl_event_loop *wl_event_loop;  /* Can be used for timer events */
 
@@ -191,6 +193,13 @@ struct server {
 
 	struct wlr_xdg_toplevel_icon_manager_v1 *xdg_toplevel_icon_manager;
 	struct wl_listener xdg_toplevel_icon_set_icon;
+
+	struct {
+		struct wlr_ext_foreign_toplevel_image_capture_source_manager_v1 *manager;
+		struct {
+			struct wl_listener new_request;
+		} on;
+	} toplevel_capture;
 
 	/* front to back order */
 	struct wl_list views;

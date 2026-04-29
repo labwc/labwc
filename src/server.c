@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 #define _POSIX_C_SOURCE 200809L
 #include "config.h"
+#include <assert.h>
 #include <signal.h>
 #include <string.h>
 #include <sys/wait.h>
@@ -410,6 +411,106 @@ handle_renderer_lost(struct wl_listener *listener, void *data)
 	wlr_renderer_destroy(old_renderer);
 }
 
+/*
+ * Partial workaround for toplevel capture on wlroots 0.20.0
+ * There is a second part of this workaround in src/output.c which handles
+ * stalls on the primary output itself. This one handles stalls on the capture
+ * source only.
+ *
+ * See https://gitlab.freedesktop.org/wlroots/wlroots/-/merge_requests/5315
+ *
+ * TODO: Remove once we start tracking wlroots 0.21.x
+ *       or labwc depends on wlroots >= 0.20.1
+ */
+
+static void
+workaround_frame_done_iter(struct wlr_scene_buffer *buffer, int sx, int sy, void *data)
+{
+	struct wlr_scene_surface *scene_surface = wlr_scene_surface_try_from_buffer(buffer);
+	if (!scene_surface) {
+		return;
+	}
+	wlr_surface_send_frame_done(scene_surface->surface, (struct timespec *)data);
+}
+
+static void
+handle_toplevel_capture_frame(struct wl_listener *listener, void *data)
+{
+	struct view *view = wl_container_of(listener, view, capture.on_capture_frame);
+	struct timespec now;
+	clock_gettime(CLOCK_MONOTONIC, &now);
+	wlr_scene_node_for_each_buffer(&view->capture.scene->tree.node,
+		workaround_frame_done_iter, &now);
+}
+
+/* Workaround for toplevel capture end */
+
+static void
+handle_toplevel_capture_source_destroy(struct wl_listener *listener, void *data)
+{
+	struct view *view = wl_container_of(listener, view, capture.on_capture_source_destroy);
+	assert(view->capture.source);
+	view->capture.source = NULL;
+
+	if (LAB_WLR_VERSION_LOWER(0, 20, 1)) {
+		/*
+		 * Workaround for toplevel capture on wlroots 0.20.0
+		 *
+		 * TODO: Remove once we start tracking wlroots 0.21.x
+		 *       or labwc depends on wlroots >= 0.20.1
+		 */
+		wl_list_remove(&view->capture.on_capture_frame.link);
+	}
+
+	wl_list_remove(&listener->link);
+}
+
+static void
+handle_toplevel_capture_request(struct wl_listener *listener, void *data)
+{
+	struct wlr_ext_foreign_toplevel_image_capture_source_manager_v1_request *request = data;
+	struct view *view = request->toplevel_handle->data;
+	assert(view);
+	wlr_log(WLR_DEBUG, "Capturing toplevel %s", view->app_id);
+
+	if (!view->capture.source) {
+		view->capture.source = wlr_ext_image_capture_source_v1_create_with_scene_node(
+			&view->capture.scene->tree.node, server.wl_event_loop,
+			server.allocator, server.renderer);
+		assert(view->capture.source);
+
+		view->capture.on_capture_source_destroy.notify =
+			handle_toplevel_capture_source_destroy;
+		wl_signal_add(&view->capture.source->events.destroy,
+			&view->capture.on_capture_source_destroy);
+
+		/*
+		 * Workaround for toplevel capture on wlroots 0.20.0
+		 *
+		 * TODO: Remove once we start tracking wlroots 0.21.x
+		 *       or labwc depends on wlroots >= 0.20.1
+		 */
+		if (LAB_WLR_VERSION_LOWER(0, 20, 1)) {
+			view->capture.on_capture_frame.notify = handle_toplevel_capture_frame;
+			wl_signal_add(&view->capture.source->events.frame,
+				&view->capture.on_capture_frame);
+		}
+	}
+
+	wlr_ext_foreign_toplevel_image_capture_source_manager_v1_request_accept(
+		request, view->capture.source);
+
+	if (LAB_WLR_VERSION_LOWER(0, 20, 1)) {
+		/*
+		 * Work around a memory leak in wlroots.
+		 * See https://gitlab.freedesktop.org/wlroots/wlroots/-/merge_requests/5328
+		 *
+		 * TODO: remove once we start tracking wlroots 0.21.x or depend on >= 0.20.1
+		 */
+		free(request);
+	}
+}
+
 void
 server_init(void)
 {
@@ -689,6 +790,19 @@ server_init(void)
 	wlr_screencopy_manager_v1_create(server.wl_display);
 	wlr_ext_image_copy_capture_manager_v1_create(server.wl_display, 1);
 	wlr_ext_output_image_capture_source_manager_v1_create(server.wl_display, 1);
+
+	server.toplevel_capture.manager =
+		wlr_ext_foreign_toplevel_image_capture_source_manager_v1_create(
+			server.wl_display, 1);
+	if (server.toplevel_capture.manager) {
+		server.toplevel_capture.on.new_request.notify = handle_toplevel_capture_request;
+		wl_signal_add(&server.toplevel_capture.manager->events.new_request,
+			&server.toplevel_capture.on.new_request);
+	} else {
+		/* Allow safe removal on shutdown */
+		wl_list_init(&server.toplevel_capture.on.new_request.link);
+	}
+
 	wlr_data_control_manager_v1_create(server.wl_display);
 	wlr_ext_data_control_manager_v1_create(server.wl_display,
 		LAB_EXT_DATA_CONTROL_VERSION);
@@ -822,6 +936,8 @@ server_finish(void)
 		wl_list_remove(&server.drm_lease_request.link);
 		server.drm_lease_request.notify = NULL;
 	}
+
+	wl_list_remove(&server.toplevel_capture.on.new_request.link);
 
 	wlr_backend_destroy(server.backend);
 	wlr_allocator_destroy(server.allocator);

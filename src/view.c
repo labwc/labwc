@@ -80,7 +80,7 @@ struct view_query *
 view_query_create(void)
 {
 	struct view_query *query = znew(*query);
-	/* Must be synced with view_matches_criteria() in window-rules.c */
+	/* Must be synced with view_matches_rule() in window-rules.c */
 	query->window_type = LAB_WINDOW_TYPE_INVALID;
 	query->maximized = VIEW_AXIS_INVALID;
 	query->decoration = LAB_SSD_MODE_INVALID;
@@ -263,8 +263,8 @@ view_get_root(struct view *view)
 	return view;
 }
 
-static bool
-matches_criteria(struct view *view, enum lab_view_criteria criteria)
+bool
+view_matches_criteria(struct view *view, enum lab_view_criteria criteria)
 {
 	if (!view_is_focusable(view)) {
 		return false;
@@ -316,7 +316,7 @@ view_next(struct wl_list *head, struct view *view, enum lab_view_criteria criter
 
 	for (elm = elm->next; elm != head; elm = elm->next) {
 		view = wl_container_of(elm, view, link);
-		if (matches_criteria(view, criteria)) {
+		if (view_matches_criteria(view, criteria)) {
 			return view;
 		}
 	}
@@ -332,7 +332,7 @@ view_prev(struct wl_list *head, struct view *view, enum lab_view_criteria criter
 
 	for (elm = elm->prev; elm != head; elm = elm->prev) {
 		view = wl_container_of(elm, view, link);
-		if (matches_criteria(view, criteria)) {
+		if (view_matches_criteria(view, criteria)) {
 			return view;
 		}
 	}

@@ -103,6 +103,10 @@ void cycle_finish(bool switch_focus);
 /* Re-initialize the window switcher */
 void cycle_reinitialize(void);
 
+/* Immediately cycle to next/previous window */
+void cycle_immediate(enum lab_cycle_dir direction,
+	struct cycle_filter filter);
+
 /* Focus the clicked window and close OSD */
 void cycle_on_cursor_release(struct wlr_scene_node *node);
 

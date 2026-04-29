@@ -630,4 +630,6 @@ enum lab_placement_policy view_placement_parse(const char *policy);
 /* xdg.c */
 struct wlr_xdg_surface *xdg_surface_from_view(struct view *view);
 
+bool view_matches_criteria(struct view *view, enum lab_view_criteria criteria);
+
 #endif /* LABWC_VIEW_H */

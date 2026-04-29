@@ -79,6 +79,7 @@ struct ssd {
 		 * such a small titlebar.
 		 */
 		bool was_squared;
+		bool was_ontop;
 
 		struct wlr_box geometry;
 		struct ssd_state_title {

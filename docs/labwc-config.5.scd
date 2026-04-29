@@ -614,6 +614,7 @@ extending outward from the snapped edge.
 	- 'close': close
 	- 'shade': shade toggle
 	- 'desk': all-desktops toggle
+	- 'ontop': always-on-top toggle
 
 	A colon deliminator is used to separate buttons on the left and right,
 	whereas commas are used to separate items within a section. It is
@@ -892,6 +893,8 @@ input-devices by the Wayland protocol.
 	- Maximize: A button that, by default, toggles maximization of a window.
 	- Shade: A button that, by default, toggles window shading.
 	- AllDesktops: A button that, by default, toggles omnipresence of a
+	  window.
+	- OnTop: A button that, by default, toggles always-on-top state of a
 	  window.
 	- Close: A button that, by default, closses a window.
 	- Border: The window's border including Top...BRCorner below.

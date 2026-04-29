@@ -84,6 +84,8 @@ struct action_arg_list {
 	X(SHRINK_TO_EDGE, "ShrinkToEdge") \
 	X(NEXT_WINDOW, "NextWindow") \
 	X(PREVIOUS_WINDOW, "PreviousWindow") \
+	X(NEXT_WINDOW_IMMEDIATE, "NextWindowImmediate") \
+	X(PREVIOUS_WINDOW_IMMEDIATE, "PreviousWindowImmediate") \
 	X(RECONFIGURE, "Reconfigure") \
 	X(SHOW_MENU, "ShowMenu") \
 	X(TOGGLE_MAXIMIZE, "ToggleMaximize") \
@@ -337,6 +339,8 @@ action_arg_from_xml_node(struct action *action, const char *nodename, const char
 		break;
 	case ACTION_TYPE_NEXT_WINDOW:
 	case ACTION_TYPE_PREVIOUS_WINDOW:
+	case ACTION_TYPE_NEXT_WINDOW_IMMEDIATE:
+	case ACTION_TYPE_PREVIOUS_WINDOW_IMMEDIATE:
 		if (!strcasecmp(argument, "workspace")) {
 			if (!strcasecmp(content, "all")) {
 				action_arg_add_int(action, argument, CYCLE_WORKSPACE_ALL);
@@ -1144,6 +1148,21 @@ run_action(struct view *view, struct action *action,
 		} else {
 			cycle_begin(dir, filter);
 		}
+		break;
+	}
+	case ACTION_TYPE_NEXT_WINDOW_IMMEDIATE:
+	case ACTION_TYPE_PREVIOUS_WINDOW_IMMEDIATE: {
+		enum lab_cycle_dir dir = (action->type == ACTION_TYPE_NEXT_WINDOW_IMMEDIATE) ?
+			LAB_CYCLE_DIR_FORWARD : LAB_CYCLE_DIR_BACKWARD;
+		struct cycle_filter filter = {
+			.workspace = action_get_int(action, "workspace",
+				rc.window_switcher.workspace_filter),
+			.output = action_get_int(action, "output",
+				CYCLE_OUTPUT_ALL),
+			.app_id = action_get_int(action, "identifier",
+				CYCLE_APP_ID_ALL),
+		};
+		cycle_immediate(dir, filter);
 		break;
 	}
 	case ACTION_TYPE_RECONFIGURE:

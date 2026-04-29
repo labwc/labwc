@@ -126,12 +126,17 @@ Actions are used in menus and keyboard/mouse bindings.
 	position if it had been maximized or tiled to a direction or region.
 
 *<action name="NextWindow" workspace="current" output="all" identifier="all" />*++
-*<action name="PreviousWindow" workspace="current" output="all" identifier="all" />*
+*<action name="PreviousWindow" workspace="current" output="all" identifier="all" />*++
+*<action name="NextWindowImmediate" workspace="current" output="all" identifier="all" />*++
+*<action name="PreviousWindowImmediate" workspace="current" output="all" identifier="all" />*++
 	Cycle focus to next/previous window, respectively.
 
 	Default keybinds for NextWindow and PreviousWindow are Alt-Tab and
 	Shift-Alt-Tab. While cycling through windows, the arrow keys move the
 	selected window forwards/backwards and the escape key halts the cycling.
+
+	NextWindowImmediate and PreviousWindowImmediate skip the Window Switcher
+	and OSD, useful for binding to keys without modifiers.
 
 	*workspace* [all|current]
 	This determines whether to cycle through windows on all workspaces or the

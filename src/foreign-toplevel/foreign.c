@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 #include "foreign-toplevel/foreign.h"
 #include <assert.h>
+#include <wlr/types/wlr_ext_foreign_toplevel_list_v1.h>
 #include "common/mem.h"
 #include "foreign-toplevel/ext-foreign.h"
 #include "foreign-toplevel/wlr-foreign.h"
@@ -27,7 +28,8 @@ foreign_toplevel_create(struct view *view)
 }
 
 void
-foreign_toplevel_set_parent(struct foreign_toplevel *toplevel, struct foreign_toplevel *parent)
+foreign_toplevel_set_parent(struct foreign_toplevel *toplevel,
+	struct foreign_toplevel *parent)
 {
 	assert(toplevel);
 	wlr_foreign_toplevel_set_parent(&toplevel->wlr_toplevel,
@@ -41,4 +43,18 @@ foreign_toplevel_destroy(struct foreign_toplevel *toplevel)
 	wlr_foreign_toplevel_finish(&toplevel->wlr_toplevel);
 	ext_foreign_toplevel_finish(&toplevel->ext_toplevel);
 	free(toplevel);
+}
+
+const char *
+foreign_toplevel_get_identifier(struct foreign_toplevel *toplevel)
+{
+	if (!toplevel) {
+		return "";
+	}
+	struct wlr_ext_foreign_toplevel_handle_v1 *handle =
+		toplevel->ext_toplevel.handle;
+	if (handle && handle->identifier) {
+		return handle->identifier;
+	}
+	return "";
 }

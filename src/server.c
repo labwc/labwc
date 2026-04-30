@@ -60,6 +60,7 @@
 #include "desktop-entry.h"
 #include "idle.h"
 #include "input/keyboard.h"
+#include "ipc.h"
 #include "labwc.h"
 #include "layers.h"
 #include "magnifier.h"
@@ -786,6 +787,8 @@ server_start(void)
 	/* Potentially set up the initial fallback output */
 	output_virtual_update_fallback();
 
+	ipc_init();
+
 	if (setenv("WAYLAND_DISPLAY", socket, true) < 0) {
 		wlr_log_errno(WLR_ERROR, "unable to set WAYLAND_DISPLAY");
 	} else {
@@ -831,6 +834,8 @@ server_finish(void)
 
 	workspaces_destroy();
 	wlr_scene_node_destroy(&server.scene->tree.node);
+
+	ipc_finish();
 
 	wl_display_destroy(server.wl_display);
 }

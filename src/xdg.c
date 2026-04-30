@@ -17,6 +17,7 @@
 #include "config/rcxml.h"
 #include "decorations.h"
 #include "foreign-toplevel/foreign.h"
+#include "ipc.h"
 #include "labwc.h"
 #include "menu/menu.h"
 #include "node.h"
@@ -572,6 +573,7 @@ handle_set_title(struct wl_listener *listener, void *data)
 	struct wlr_xdg_toplevel *toplevel = xdg_toplevel_from_view(view);
 
 	view_set_title(view, toplevel->title);
+	ipc_event_window("title", view);
 }
 
 static void
@@ -847,6 +849,8 @@ handle_map(struct wl_listener *listener, void *data)
 
 	view_impl_map(view);
 	view->been_mapped = true;
+	ipc_event_window("new", view);
+	view->ipc_last_geo = view->current;
 }
 
 static void
@@ -856,6 +860,7 @@ handle_unmap(struct wl_listener *listener, void *data)
 	if (view->mapped) {
 		view->mapped = false;
 		view_impl_unmap(view);
+		ipc_event_window("close", view);
 	}
 }
 

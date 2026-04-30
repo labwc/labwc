@@ -67,6 +67,7 @@ struct rcxml {
 	char *config_dir;
 	char *config_file;
 	bool merge_config;
+	char *loaded_config_file;
 
 	/* core */
 	bool xdg_shell_server_side_deco;

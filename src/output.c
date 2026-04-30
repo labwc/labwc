@@ -27,6 +27,7 @@
 #include "common/scene-helpers.h"
 #include "config/rcxml.h"
 #include "labwc.h"
+#include "ipc.h"
 #include "layers.h"
 #include "node.h"
 #include "output-state.h"
@@ -138,6 +139,7 @@ handle_output_destroy(struct wl_listener *listener, void *data)
 	wl_list_remove(&output->destroy.link);
 	wl_list_remove(&output->request_state.link);
 	seat_output_layout_changed(seat);
+	ipc_event_output("destroy");
 
 	for (size_t i = 0; i < ARRAY_SIZE(output->layer_tree); i++) {
 		wlr_scene_node_destroy(&output->layer_tree[i]->node);

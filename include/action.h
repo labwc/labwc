@@ -29,6 +29,7 @@ bool action_is_valid(struct action *action);
 bool action_is_show_menu(struct action *action);
 
 void action_arg_add_str(struct action *action, const char *key, const char *value);
+void action_arg_add_int(struct action *action, const char *key, int value);
 void action_arg_add_actionlist(struct action *action, const char *key);
 void action_arg_add_querylist(struct action *action, const char *key);
 

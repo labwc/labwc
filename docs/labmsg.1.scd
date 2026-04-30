@@ -152,6 +152,19 @@ The following commands are supported:
 *focus output* _<name>_|left|right|up|down
 	Focus the given output by name or direction.
 
+*focus*
+	Focus the target window. Raises the window to the front and gives it
+	keyboard focus. Typically used with criteria to focus a specific
+	window, e.g. *labmsg '[app_id="firefox"] focus'*.
+
+*focus next*
+	Focus the next window in z-order below the current one. Wraps to the
+	topmost window if the current window is at the bottom.
+
+*focus prev* (or *focus last*)
+	Focus the previous window in z-order above the current one. Wraps to
+	the bottommost window if the current window is at the top.
+
 *move position* _<x>_ _<y>_
 	Move the target window to absolute coordinates.
 
@@ -249,6 +262,24 @@ Chain multiple commands:
 
 ```
 labmsg 'workspace 3; exec firefox'
+```
+
+Focus a specific window by application ID:
+
+```
+labmsg '[app_id="foot"] focus'
+```
+
+Cycle focus to the next window:
+
+```
+labmsg 'focus next'
+```
+
+Cycle focus to the previous window:
+
+```
+labmsg 'focus prev'
 ```
 
 # SEE ALSO

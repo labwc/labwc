@@ -1242,6 +1242,74 @@ execute_single_command(const char *cmd)
 		return cmd_result(true, NULL);
 	}
 
+	/* --- focus --- */
+	if (!strcmp(cmd, "focus")) {
+		if (!target) {
+			return cmd_result(false, "No focused window");
+		}
+		desktop_focus_view(target, /*raise*/ true);
+		return cmd_result(true, NULL);
+	}
+
+	/* --- focus next --- */
+	if (!strcmp(cmd, "focus next")) {
+		struct view *next = NULL;
+		struct view *first = NULL;
+		bool found_active = false;
+		struct view *view;
+		for_each_view(view, &server.views, LAB_VIEW_CRITERIA_CURRENT_WORKSPACE) {
+			if (view->minimized) {
+				continue;
+			}
+			if (!first) {
+				first = view;
+			}
+			if (found_active) {
+				next = view;
+				break;
+			}
+			if (view == server.active_view) {
+				found_active = true;
+			}
+		}
+		if (!next) {
+			next = first;  /* wrap */
+		}
+		if (next) {
+			desktop_focus_view(next, true);
+		} else {
+			return cmd_result(false, "No focusable window");
+		}
+		return cmd_result(true, NULL);
+	}
+
+	/* --- focus prev --- */
+	if (!strcmp(cmd, "focus prev") || !strcmp(cmd, "focus last")) {
+		struct view *prev = NULL;
+		struct view *last = NULL;
+		struct view *view;
+		for_each_view(view, &server.views, LAB_VIEW_CRITERIA_CURRENT_WORKSPACE) {
+			if (view->minimized) {
+				continue;
+			}
+			if (view == server.active_view) {
+				break;
+			}
+			prev = view;
+			last = view;  /* keep track of last seen for wrap */
+		}
+		if (!prev) {
+			/* Find the last focusable view for wrap */
+			prev = last;
+		}
+		if (prev) {
+			desktop_focus_view(prev, true);
+		} else {
+			return cmd_result(false, "No focusable window");
+		}
+		return cmd_result(true, NULL);
+	}
+
 	/* --- move ... --- */
 	if (!strncmp(cmd, "move ", 5)) {
 		const char *arg = cmd + 5;

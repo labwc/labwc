@@ -20,6 +20,7 @@
 #include "config/rcxml.h"
 #include "cycle.h"
 #include "debug.h"
+#include "overview.h"
 #include "input/keyboard.h"
 #include "input/key-state.h"
 #include "labwc.h"
@@ -137,7 +138,10 @@ struct action_arg_list {
 	X(TOGGLE_SHOW_DESKTOP, "ToggleShowDesktop") \
 	X(WARP_CURSOR, "WarpCursor") \
 	X(HIDE_CURSOR, "HideCursor") \
-	X(DEBUG_TOGGLE_KEY_STATE_INDICATOR, "DebugToggleKeyStateIndicator")
+	X(DEBUG_TOGGLE_KEY_STATE_INDICATOR, "DebugToggleKeyStateIndicator") \
+	X(SHOW_OVERVIEW, "ShowOverview") \
+	X(HIDE_OVERVIEW, "HideOverview") \
+	X(TOGGLE_OVERVIEW, "ToggleOverview")
 
 /*
  * Will expand to:
@@ -1579,6 +1583,19 @@ run_action(struct view *view, struct action *action,
 		break;
 	case ACTION_TYPE_DEBUG_TOGGLE_KEY_STATE_INDICATOR:
 		key_state_indicator_toggle();
+		break;
+	case ACTION_TYPE_SHOW_OVERVIEW:
+		if (server.input_mode == LAB_INPUT_STATE_PASSTHROUGH) {
+			overview_begin();
+		}
+		break;
+	case ACTION_TYPE_HIDE_OVERVIEW:
+		if (server.input_mode == LAB_INPUT_STATE_OVERVIEW) {
+			overview_finish(/*focus_selected*/ false);
+		}
+		break;
+	case ACTION_TYPE_TOGGLE_OVERVIEW:
+		overview_toggle();
 		break;
 	case ACTION_TYPE_INVALID:
 		wlr_log(WLR_ERROR, "Not executing unknown action");

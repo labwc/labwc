@@ -9,6 +9,7 @@
 #define _POSIX_C_SOURCE 200809L
 #include "output.h"
 #include <assert.h>
+#include <drm_fourcc.h>
 #include <strings.h>
 #include <wlr/backend/wayland.h>
 #include <wlr/config.h>
@@ -50,6 +51,150 @@
 #if WLR_HAS_SESSION
 	#include <wlr/backend/session.h>
 #endif
+
+static uint32_t output_formats_8bit[] = {
+	/* 32 bpp RGB with 8 bit component width */
+	DRM_FORMAT_XRGB8888,
+	DRM_FORMAT_XBGR8888,
+	DRM_FORMAT_RGBX8888,
+	DRM_FORMAT_BGRX8888,
+
+	DRM_FORMAT_ARGB8888,
+	DRM_FORMAT_ABGR8888,
+	DRM_FORMAT_RGBA8888,
+	DRM_FORMAT_BGRA8888,
+
+	/* 24 bpp RGB */
+	DRM_FORMAT_RGB888,
+	DRM_FORMAT_BGR888,
+};
+
+uint32_t output_formats_10bit[] = {
+	/* 32 bpp RGB with 10 bit component width */
+	DRM_FORMAT_XRGB2101010,
+	DRM_FORMAT_XBGR2101010,
+	DRM_FORMAT_RGBX1010102,
+	DRM_FORMAT_BGRX1010102,
+
+	DRM_FORMAT_ARGB2101010,
+	DRM_FORMAT_ABGR2101010,
+	DRM_FORMAT_RGBA1010102,
+	DRM_FORMAT_BGRA1010102,
+};
+
+static bool
+output_set_render_format(struct output *output, uint32_t candidates[], size_t count)
+{
+	for (size_t i = 0; i < count; i++) {
+		wlr_output_state_set_render_format(&output->pending, candidates[i]);
+		if (wlr_output_test_state(output->wlr_output, &output->pending)) {
+			return true;
+		}
+	}
+	return false;
+}
+
+static bool
+output_format_in_candidates(uint32_t render_format, uint32_t candidates[], size_t count)
+{
+	for (size_t i = 0; i < count; i++) {
+		if (candidates[i] == render_format) {
+			return true;
+		}
+	}
+	return false;
+}
+
+static enum render_bit_depth
+bit_depth_from_format(uint32_t render_format)
+{
+	if (output_format_in_candidates(render_format, output_formats_10bit,
+			ARRAY_SIZE(output_formats_10bit))) {
+		return LAB_RENDER_BIT_DEPTH_10;
+	} else if (output_format_in_candidates(render_format, output_formats_8bit,
+			ARRAY_SIZE(output_formats_8bit))) {
+		return LAB_RENDER_BIT_DEPTH_8;
+	}
+	return LAB_RENDER_BIT_DEPTH_DEFAULT;
+}
+
+static enum render_bit_depth
+get_config_render_bit_depth(void)
+{
+	return rc.target_render_depth;
+}
+
+static bool
+output_supports_hdr(const struct wlr_output *output, const char **unsupported_reason_ptr)
+{
+	const char *unsupported_reason = NULL;
+	if (!(output->supported_primaries & WLR_COLOR_NAMED_PRIMARIES_BT2020)) {
+		unsupported_reason = "BT2020 primaries not supported by output";
+	} else if (!(output->supported_transfer_functions &
+		WLR_COLOR_TRANSFER_FUNCTION_ST2084_PQ)) {
+		unsupported_reason = "PQ transfer function not supported by output";
+	} else if (!server.renderer->features.output_color_transform) {
+		unsupported_reason = "renderer doesn't support output color transforms";
+	}
+	if (unsupported_reason_ptr) {
+		*unsupported_reason_ptr = unsupported_reason;
+	}
+	return !unsupported_reason;
+}
+
+void
+output_state_setup_hdr(struct output *output, bool silent)
+{
+	uint32_t render_format = output->wlr_output->render_format;
+	const char *unsupported_reason = NULL;
+	bool hdr_supported = output_supports_hdr(output->wlr_output,
+		&unsupported_reason);
+	bool hdr_succeeded = false;
+
+	enum render_bit_depth render_bit_depth = get_config_render_bit_depth();
+	if (render_bit_depth == LAB_RENDER_BIT_DEPTH_DEFAULT) {
+		render_bit_depth = bit_depth_from_format(render_format);
+	}
+
+	if (!hdr_supported && render_bit_depth == LAB_RENDER_BIT_DEPTH_10) {
+		if (!silent) {
+			wlr_log(WLR_INFO, "Cannot enable HDR on output %s: %s",
+				output->wlr_output->name, unsupported_reason);
+		}
+		render_bit_depth = LAB_RENDER_BIT_DEPTH_8;
+	}
+
+	if (render_bit_depth == LAB_RENDER_BIT_DEPTH_10 &&
+			bit_depth_from_format(render_format) == render_bit_depth) {
+		/* 10-bit was set successfully before, try to save some
+		 * tests by reusing the format
+		 */
+		hdr_succeeded = true;
+	} else if (render_bit_depth == LAB_RENDER_BIT_DEPTH_10) {
+		hdr_succeeded = output_set_render_format(output, output_formats_10bit,
+			ARRAY_SIZE(output_formats_10bit));
+		if (!hdr_succeeded) {
+			if (!silent) {
+				wlr_log(WLR_INFO, "No 10 bit color formats"
+					" supported, HDR disabled.");
+			}
+			if (!output_set_render_format(output, output_formats_8bit,
+					ARRAY_SIZE(output_formats_8bit))) {
+				if (!silent) {
+					wlr_log(WLR_ERROR, "No 8 bit color formats"
+						" supported either!");
+				}
+			}
+		}
+	} else {
+		if (!output_set_render_format(output, output_formats_8bit,
+				ARRAY_SIZE(output_formats_8bit)) && !silent) {
+			wlr_log(WLR_ERROR, "No 8 bit color formats supported!");
+		}
+	}
+
+	output_enable_hdr(output, &output->pending, hdr_succeeded, silent);
+}
 
 bool
 output_get_tearing_allowance(struct output *output)
@@ -371,7 +516,7 @@ configure_new_output(struct output *output)
 		output_enable_adaptive_sync(output, true);
 	}
 
-	output_state_commit(output);
+	output_state_setup_hdr(output, false);
 
 	wlr_output_effective_resolution(wlr_output,
 		&output->usable_area.width, &output->usable_area.height);
@@ -384,6 +529,13 @@ configure_new_output(struct output *output)
 	server.pending_output_layout_change++;
 	add_output_to_layout(output);
 	server.pending_output_layout_change--;
+
+	/*
+	 * Commit the output this way instead, HDR needs a buffer, and
+	 * this commit must be called after the output is added to the
+	 * layout above.
+	 */
+	lab_wlr_scene_output_commit(output->scene_output, &output->pending);
 }
 
 static uint64_t
@@ -653,6 +805,7 @@ output_config_apply(struct wlr_output_configuration_v1 *config)
 			wlr_output_state_set_transform(os, head->state.transform);
 			output_enable_adaptive_sync(output,
 				head->state.adaptive_sync_enabled);
+			output_state_setup_hdr(output, false);
 		}
 		if (!output_state_commit(output)) {
 			/*
@@ -664,6 +817,19 @@ output_config_apply(struct wlr_output_configuration_v1 *config)
 			wlr_log(WLR_INFO, "Output config commit failed: %s", o->name);
 			success = false;
 			break;
+		}
+
+		if (output_enabled) {
+			/*
+			 * The above commit was likely made without an image
+			 * buffer attached. This will break applying HDR color
+			 * transformation, since image descriptions must be
+			 * committed with a buffer attached. Queue the HDR mode
+			 * again if output is enabled, but make it silent,
+			 * since it would have emitted messages already when
+			 * called above.
+			 */
+			output_state_setup_hdr(output, true);
 		}
 
 		/*
@@ -1135,4 +1301,35 @@ output_set_has_fullscreen_view(struct output *output, bool has_fullscreen_view)
 	/* Enable adaptive sync if view is fullscreen */
 	output_enable_adaptive_sync(output, has_fullscreen_view);
 	output_state_commit(output);
+}
+
+void
+output_enable_hdr(struct output *output, struct wlr_output_state *os,
+	bool enabled, bool silent)
+{
+	if (enabled && !output_supports_hdr(output->wlr_output, NULL)) {
+		enabled = false;
+	}
+
+	if (!enabled) {
+		if (output->wlr_output->supported_primaries != 0 ||
+				output->wlr_output->supported_transfer_functions != 0) {
+			if (!silent) {
+				wlr_log(WLR_DEBUG, "Disabling HDR on output %s",
+					output->wlr_output->name);
+			}
+			wlr_output_state_set_image_description(os, NULL);
+		}
+		return;
+	}
+
+	if (!silent) {
+		wlr_log(WLR_DEBUG, "Enabling HDR on output %s",
+			output->wlr_output->name);
+	}
+	const struct wlr_output_image_description image_desc = {
+		.primaries = WLR_COLOR_NAMED_PRIMARIES_BT2020,
+		.transfer_function = WLR_COLOR_TRANSFER_FUNCTION_ST2084_PQ,
+	};
+	wlr_output_state_set_image_description(os, &image_desc);
 }

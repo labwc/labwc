@@ -1080,17 +1080,43 @@ output_usable_area_in_layout_coords(struct output *output)
 	return box;
 }
 
+static struct output *
+output_get_usable_mirror(struct output *output)
+{
+	struct output *mirror;
+	struct wlr_box mirror_box, output_box;
+	wlr_output_layout_get_box(server.output_layout, output->wlr_output, &output_box);
+	wl_list_for_each(mirror, &server.outputs, link) {
+		if (!output_is_usable(mirror) || output->id_bit == mirror->id_bit) {
+			continue;
+		}
+		wlr_output_layout_get_box(server.output_layout, mirror->wlr_output, &mirror_box);
+		if (wlr_box_equal(&output_box, &mirror_box)) {
+			return mirror;
+		}
+	}
+	return NULL;
+}
+
 void
 handle_output_power_manager_set_mode(struct wl_listener *listener, void *data)
 {
 	struct wlr_output_power_v1_set_mode_event *event = data;
 	struct output *output = event->output->data;
 	assert(output);
-
+	struct output *mirror = output_get_usable_mirror(output);
 	switch (event->mode) {
 	case ZWLR_OUTPUT_POWER_V1_MODE_OFF:
 		if (!event->output->enabled) {
 			return;
+		}
+		if (mirror) {
+			struct view *view;
+			for_each_view(view, &server.views, LAB_VIEW_CRITERIA_NONE) {
+				if (view->output == output) {
+					view->output = mirror;
+				}
+			}
 		}
 		wlr_output_state_set_enabled(&output->pending, false);
 		output_state_commit(output);

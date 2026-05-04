@@ -351,7 +351,7 @@ xpm_load_to_surface(struct file_handle *handle)
 			goto out;
 		}
 
-		for (int n = 0, xcnt = 0; n < wbytes; n += cpp, xcnt++) {
+		for (int n = 0; n < wbytes; n += cpp) {
 			g_strlcpy(pixel_str, &buffer[n], cpp + 1);
 
 			struct xpm_color *color =

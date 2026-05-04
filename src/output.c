@@ -952,15 +952,8 @@ output_nearest_to(int lx, int ly)
 	wlr_output_layout_closest_point(server.output_layout, NULL, lx, ly,
 		&closest_x, &closest_y);
 
-	struct output *output = output_from_wlr_output(wlr_output_layout_output_at(
-		server.output_layout, closest_x, closest_y));
-	if (output && !output_is_usable(output)) {
-		struct output *mirror = output_get_usable_mirror(output);
-		if (mirror) {
-			return mirror;
-		}
-	}
-	return output;
+	return output_from_wlr_output(wlr_output_layout_output_at(server.output_layout,
+		closest_x, closest_y));
 }
 
 struct output *
@@ -1124,6 +1117,14 @@ handle_output_power_manager_set_mode(struct wl_listener *listener, void *data)
 					view->output = mirror;
 				}
 			}
+			/**
+			 * Send the output that was turned off to the end of the list
+			 * so wlr_output_* functions pick the mirror first
+			 */
+			struct wlr_output_layout_output *layout_output =
+				wlr_output_layout_get(server.output_layout, output->wlr_output);
+			wl_list_remove(&layout_output->link);
+			wl_list_insert(server.output_layout->outputs.prev, &layout_output->link);
 		}
 		wlr_output_state_set_enabled(&output->pending, false);
 		output_state_commit(output);

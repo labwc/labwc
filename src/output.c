@@ -927,6 +927,24 @@ output_from_name(const char *name)
 	return NULL;
 }
 
+static struct output *
+output_get_usable_mirror(struct output *output)
+{
+	struct output *mirror;
+	struct wlr_box mirror_box, output_box;
+	wlr_output_layout_get_box(server.output_layout, output->wlr_output, &output_box);
+	wl_list_for_each(mirror, &server.outputs, link) {
+		if (!output_is_usable(mirror) || output->id_bit == mirror->id_bit) {
+			continue;
+		}
+		wlr_output_layout_get_box(server.output_layout, mirror->wlr_output, &mirror_box);
+		if (wlr_box_equal(&output_box, &mirror_box)) {
+			return mirror;
+		}
+	}
+	return NULL;
+}
+
 struct output *
 output_nearest_to(int lx, int ly)
 {
@@ -934,8 +952,15 @@ output_nearest_to(int lx, int ly)
 	wlr_output_layout_closest_point(server.output_layout, NULL, lx, ly,
 		&closest_x, &closest_y);
 
-	return output_from_wlr_output(wlr_output_layout_output_at(server.output_layout,
-			closest_x, closest_y));
+	struct output *output = output_from_wlr_output(wlr_output_layout_output_at(
+		server.output_layout, closest_x, closest_y));
+	if (output && !output_is_usable(output)) {
+		struct output *mirror = output_get_usable_mirror(output);
+		if (mirror) {
+			return mirror;
+		}
+	}
+	return output;
 }
 
 struct output *
@@ -1078,24 +1103,6 @@ output_usable_area_in_layout_coords(struct output *output)
 	box.x -= ox;
 	box.y -= oy;
 	return box;
-}
-
-static struct output *
-output_get_usable_mirror(struct output *output)
-{
-	struct output *mirror;
-	struct wlr_box mirror_box, output_box;
-	wlr_output_layout_get_box(server.output_layout, output->wlr_output, &output_box);
-	wl_list_for_each(mirror, &server.outputs, link) {
-		if (!output_is_usable(mirror) || output->id_bit == mirror->id_bit) {
-			continue;
-		}
-		wlr_output_layout_get_box(server.output_layout, mirror->wlr_output, &mirror_box);
-		if (wlr_box_equal(&output_box, &mirror_box)) {
-			return mirror;
-		}
-	}
-	return NULL;
 }
 
 void

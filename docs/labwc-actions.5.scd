@@ -294,9 +294,11 @@ Actions are used in menus and keyboard/mouse bindings.
 	fullscreen.
 
 	If *output* is specified, the window will be sent directly to the
-	specified output and *direction* is ignored. If *output* is omitted,
+	specified output and *direction* is ignored. *output* may also be
+	"next" or "prev" to move to the next or previous output in the
+	server.outputs list, with wraparound. If *output* is omitted,
 	*direction* may be one of "left", "right", "up" or "down" to indicate
-	that the window should be moved to the next output in that direction
+	that the window should be moved to the next output in the direction
 	(if one exists).
 
 	*wrap* [yes|no] When using the direction attribute, wrap around from

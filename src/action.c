@@ -997,16 +997,33 @@ match_queries(struct view *view, struct action *action)
 static struct output *
 get_target_output(struct output *output, struct action *action)
 {
-	const char *output_name = action_get_str(action, "output", NULL);
+	const char *output_arg = action_get_str(action, "output", NULL);
 	struct output *target = NULL;
 
-	if (output_name) {
-		target = output_from_name(output_name);
+	if (output_arg) {
+		if (!strcasecmp(output_arg, "next")) {
+			struct wl_list *list_item = output->link.next;
+			if (list_item == &server.outputs) {
+				list_item = server.outputs.next;
+			}
+			target = wl_container_of(list_item, target, link);
+		} else if (!strcasecmp(output_arg, "prev")) {
+			struct wl_list *list_item = output->link.prev;
+			if (list_item == &server.outputs) {
+				list_item = server.outputs.prev;
+			}
+			target = wl_container_of(list_item, target, link);
+		} else {
+			target = output_from_name(output_arg);
+		}
 	} else {
 		enum lab_edge edge =
 			action_get_int(action, "direction", LAB_EDGE_NONE);
 		bool wrap = action_get_bool(action, "wrap", false);
 		target = output_get_adjacent(output, edge, wrap);
+	}
+	if (!target || !output_is_usable(target)) {
+		target = NULL;
 	}
 
 	if (!target) {

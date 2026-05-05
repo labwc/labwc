@@ -609,6 +609,33 @@ view_resize_relative(struct view *view, int left, int right, int top, int bottom
 	view_set_untiled(view);
 }
 
+/*
+ * Returns the total squared distance of the box's four corners from the
+ * output layout. A return value of 0 means the box is fully inside.
+ */
+static double
+box_layout_overshoot(struct wlr_box *box)
+{
+	struct wlr_output_layout *layout = server.output_layout;
+	double overshoot = 0;
+	double corners[4][2] = {
+		{box->x, box->y},
+		{box->x + box->width - 1, box->y},
+		{box->x, box->y + box->height - 1},
+		{box->x + box->width - 1, box->y + box->height - 1},
+	};
+	for (int i = 0; i < 4; i++) {
+		double closest_x, closest_y;
+		wlr_output_layout_closest_point(layout, NULL,
+			corners[i][0], corners[i][1],
+			&closest_x, &closest_y);
+		double dx = corners[i][0] - closest_x;
+		double dy = corners[i][1] - closest_y;
+		overshoot += dx * dx + dy * dy;
+	}
+	return overshoot;
+}
+
 void
 view_move_relative(struct view *view, int x, int y)
 {
@@ -621,6 +648,40 @@ view_move_relative(struct view *view, int x, int y)
 		view_set_untiled(view);
 		view_move_resize(view, view->natural_geometry);
 	}
+
+	/*
+	 * Only proceed if movement brings the window closer to being fully
+	 * inside the output layout. This allows a partially-outside window
+	 * to be moved back inside, while still preventing a fully-inside
+	 * window from being moved outside.
+	 */
+	struct border border = ssd_thickness(view);
+	struct wlr_box current_box = {
+		.x = view->pending.x - border.left,
+		.y = view->pending.y - border.top,
+		.width = view->pending.width + border.left + border.right,
+		.height = view->pending.height + border.top + border.bottom,
+	};
+	struct wlr_box dest = current_box;
+	dest.x += x;
+	dest.y += y;
+	double current_overshoot = box_layout_overshoot(&current_box);
+	double dest_overshoot = box_layout_overshoot(&dest);
+	if (dest_overshoot > 0 && dest_overshoot >= current_overshoot) {
+		if (abs(x) > 1 || abs(y) > 1) {
+			/*
+			 * It is reasonable to assume that users will specify
+			 * big numbers (like 20) for the MoveRelative x or y
+			 * value. When moving towards a layout outer edge, we
+			 * would not want the window to stop a distance away
+			 * from the edge, so recursively nudge it nearer until
+			 * it is touching.
+			 */
+			view_move_relative(view, x / 2, y / 2);
+		}
+		return;
+	}
+
 	view_move(view, view->pending.x + x, view->pending.y + y);
 }
 

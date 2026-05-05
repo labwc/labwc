@@ -53,15 +53,14 @@ buf_expand_shell_variables(struct buf *s)
 		if (s->data[i] == '$' && isvalid(s->data[i+1])) {
 			/* expand environment variable */
 			buf_clear(&environment_variable);
-			buf_add(&environment_variable, s->data + i + 1);
-			char *p = environment_variable.data;
-			while (isvalid(*p)) {
-				++p;
+			int len = 0;
+			while (isvalid(s->data[i + 1 + len])) {
+				buf_add_char(&environment_variable, s->data[i + 1 + len]);
+				++len;
 			}
-			*p = '\0';
-			i += strlen(environment_variable.data);
+			i += len;
 			strip_curly_braces(environment_variable.data);
-			p = getenv(environment_variable.data);
+			char *p = getenv(environment_variable.data);
 			if (p) {
 				buf_add(&tmp, p);
 			}

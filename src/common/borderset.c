@@ -426,6 +426,10 @@ void renderBufferset(struct bufferset *bufferset, int width, int height, int y)
 
 void renderBuffersetXY(struct bufferset *bufferset, int width, int height, int x, int y)
 {
+	// Bail early if you're being asked to generate buffers with negative size
+	if (width < 2 * bufferset->border_width || height < 2 * bufferset->border_width) {
+		return;
+	}
 	wlr_scene_buffer_set_dest_size(bufferset->top,
 			width - 2 * bufferset->border_width, bufferset->border_width);
 	wlr_scene_node_set_position(&bufferset->top->node,

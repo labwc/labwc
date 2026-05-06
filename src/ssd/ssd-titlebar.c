@@ -371,9 +371,11 @@ ssd_titlebar_update(struct ssd *ssd)
 		int button_count = 0;
 
 		wl_list_for_each(button, &subtree->buttons_left, link) {
-			wlr_scene_node_set_position(button->node, x, y);
-			x += theme->window_button_width + theme->window_button_spacing;
-			button_count++;
+			if (button->node->enabled) {
+				wlr_scene_node_set_position(button->node, x, y);
+				x += theme->window_button_width + theme->window_button_spacing;
+				button_count++;
+			}
 		}
 		int exclusive_x = x;
 
@@ -383,9 +385,11 @@ ssd_titlebar_update(struct ssd *ssd)
 
 		x = width - theme->window_titlebar_padding_width + theme->window_button_spacing;
 		wl_list_for_each(button, &subtree->buttons_right, link) {
-			x -= theme->window_button_width + theme->window_button_spacing;
-			wlr_scene_node_set_position(button->node, x, y);
-			button_count++;
+			if (button->node->enabled) {
+				x -= theme->window_button_width + theme->window_button_spacing;
+				wlr_scene_node_set_position(button->node, x, y);
+				button_count++;
+			}
 		}
 
 		if (theme->window[active].title_bg.border_type) {
@@ -393,17 +397,15 @@ ssd_titlebar_update(struct ssd *ssd)
 			int titlebar_width = MAX(view->current.width, 0);
 			if (theme->window[active].title_bg.exclusive) {
 				titlebar_x = exclusive_x+theme->window_titlebar_padding_width;
-				titlebar_width = MAX(
+				titlebar_width = titlebar_width -
 					(theme->window_button_width + theme->window_button_spacing)
-					* button_count,
-					titlebar_width -
-					(theme->window_button_width + theme->window_button_spacing)
-					* button_count
-				);
+					* button_count;
 			}
 
-			renderBuffersetXY(subtree->textured_borders, titlebar_width,
+			if (titlebar_width > 0) {
+				renderBuffersetXY(subtree->textured_borders, titlebar_width,
 				theme->titlebar_height, titlebar_x, 0);
+			}
 		}
 	}
 

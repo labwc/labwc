@@ -335,6 +335,15 @@ get_view_criteria(struct cycle_filter *filter)
 	return criteria;
 }
 
+static const char *
+get_cycle_app_id(struct cycle_filter *filter)
+{
+	if (filter->app_id == CYCLE_APP_ID_CURRENT && server.active_view) {
+		return server.active_view->app_id;
+	}
+	return NULL;
+}
+
 static struct wl_list *prev(struct wl_list *elm) { return elm->prev; }
 static struct wl_list *next(struct wl_list *elm) { return elm->next; }
 
@@ -347,11 +356,7 @@ cycle_immediate(enum lab_cycle_dir direction, struct cycle_filter filter)
 
 	enum lab_view_criteria criteria = get_view_criteria(&filter);
 	uint64_t cycle_outputs = get_outputs_by_filter(filter.output);
-
-	const char *cycle_app_id = NULL;
-	if (filter.app_id == CYCLE_APP_ID_CURRENT && server.active_view) {
-		cycle_app_id = server.active_view->app_id;
-	}
+	const char *cycle_app_id = get_cycle_app_id(&filter);
 
 	struct wl_list *head = &server.views;
 	struct wl_list *(*iter)(struct wl_list *list);
@@ -393,11 +398,7 @@ init_cycle(struct cycle_filter filter)
 {
 	enum lab_view_criteria criteria = get_view_criteria(&filter);
 	uint64_t cycle_outputs = get_outputs_by_filter(filter.output);
-
-	const char *cycle_app_id = NULL;
-	if (filter.app_id == CYCLE_APP_ID_CURRENT && server.active_view) {
-		cycle_app_id = server.active_view->app_id;
-	}
+	const char *cycle_app_id = get_cycle_app_id(&filter);
 
 	struct view *view;
 	for_each_view(view, &server.views, criteria) {

@@ -156,7 +156,7 @@ get_unicode_char_lowercase(const char *first_byte, size_t *out_bytes)
 	return (uint32_t)g_unichar_tolower(codepoint);
 }
 
-/* Retrieve an accelerator from an item label, remove doubled underscores */
+/* Retrieve the accelerator from an item label, remove doubled underscores */
 static void
 item_parse_accelerator(struct menuitem *item, const char *text)
 {
@@ -178,7 +178,7 @@ item_parse_accelerator(struct menuitem *item, const char *text)
 
 	size_t bytes = 0;
 	if (!accel_ptr) {
-		/* Defaulting to the first char */
+		/* Default to the first char */
 		item->text = xstrdup(text);
 		item->accelerator = get_unicode_char_lowercase(text, &bytes);
 	} else {
@@ -193,10 +193,18 @@ item_parse_accelerator(struct menuitem *item, const char *text)
 			/* Remainder */
 			accel_ptr + bytes);
 	}
+}
 
-	/* Remove undescores used for escaping */
-	char *src = item->text;
-	char *dst = item->text;
+/* Remove underscores used for escaping from a string */
+static void
+unescape_underscores(char *text)
+{
+	if (!text) {
+		return;
+	}
+
+	char *src = text;
+	char *dst = text;
 	while (*src) {
 		if (*src == '_' && *(src + 1) == '_') {
 			*dst++ = '_';
@@ -221,6 +229,7 @@ item_create(struct menu *menu, const char *text, const char *icon_name, bool sho
 	menuitem->type = LAB_MENU_ITEM;
 	menuitem->arrow = show_arrow ? "›" : NULL;
 	item_parse_accelerator(menuitem, text);
+	unescape_underscores(menuitem->text);
 
 #if HAVE_LIBSFDO
 	if (rc.menu_show_icons && !string_null_or_empty(icon_name)) {

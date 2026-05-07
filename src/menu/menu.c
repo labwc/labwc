@@ -133,42 +133,30 @@ validate(void)
 	}
 }
 
+/* Extract a single Unicode codepoint and convert it to lowercase */
 static uint32_t
-get_unicode_char(const char *first_byte, size_t *out_bytes)
+get_unicode_char_lowercase(const char *first_byte, size_t *out_bytes)
 {
-	if (!first_byte || first_byte[0] == '\0') {
-		*out_bytes = 0;
+	if (!first_byte || first_byte[0] == '\0' || !out_bytes) {
+		if (out_bytes) {
+			*out_bytes = 0;
+		}
 		return 0;
 	}
 
-	/* Temporarily set locale to UTF-8 */
-	locale_t utf8_locale = newlocale(LC_CTYPE_MASK, "C.UTF-8", (locale_t)0);
-	locale_t old_locale = (locale_t)0;
-	if (utf8_locale != (locale_t)0) {
-		old_locale = uselocale(utf8_locale);
-	}
+	gunichar codepoint = g_utf8_get_char_validated(first_byte, -1);
 
-	uint32_t result = 0;
-	char32_t codepoint = 0;
-	mbstate_t state = {0};
-	size_t bytes = mbrtoc32(&codepoint, first_byte, 4, &state);
-	if (bytes > 0 && bytes <= 4) {
-		*out_bytes = bytes;
-		result = (uint32_t)towlower((wint_t)codepoint);
-	} else {
+	if (codepoint == (gunichar)-1 || codepoint == (gunichar)-2) {
 		*out_bytes = 1;
-		result = (uint32_t)(unsigned char)first_byte[0];
+		return (uint32_t)(unsigned char)first_byte[0];
 	}
 
-	/* Restore previous locale */
-	if (utf8_locale != (locale_t)0) {
-		uselocale(old_locale);
-		freelocale(utf8_locale);
-	}
+	*out_bytes = (size_t)(g_utf8_next_char(first_byte) - first_byte);
 
-	return result;
+	return (uint32_t)g_unichar_tolower(codepoint);
 }
 
+/* Retrieve an accelerator from an item label, remove doubled underscores */
 static void
 item_parse_accelerator(struct menuitem *item, const char *text)
 {
@@ -190,11 +178,13 @@ item_parse_accelerator(struct menuitem *item, const char *text)
 
 	size_t bytes = 0;
 	if (!accel_ptr) {
+		/* Defaulting to the first char */
 		item->text = xstrdup(text);
-		item->accelerator = get_unicode_char(text, &bytes);
+		item->accelerator = get_unicode_char_lowercase(text, &bytes);
 	} else {
+		/* Set the accelerator and remove the preceding underscore */
 		item->use_markup = true;
-		item->accelerator = get_unicode_char(accel_ptr, &bytes);
+		item->accelerator = get_unicode_char_lowercase(accel_ptr, &bytes);
 		item->text = strdup_printf("%.*s<u>%.*s</u>%s",
 			/* Prefix length + prefix */
 			(int)(accel_ptr - 1 - text), text,
@@ -1595,7 +1585,7 @@ menu_item_select_by_accelerator(uint32_t accelerator)
 
 	menu_process_item_selection(next_selection);
 	if (needs_exec && next_selection->submenu) {
-		/* Since we can't execute a submenu, enter it. */
+		/* Since we can't execute a submenu, enter it */
 		needs_exec = false;
 		menu_submenu_enter();
 	}

@@ -9,7 +9,7 @@ The format is based on [Keep a Changelog]
 
 | Date       | All Changes   | wlroots version | lines-of-code |
 |------------|---------------|-----------------|---------------|
-| 2026-04-29 | [unreleased]  | 0.20.0          | 27849         |
+| 2026-05-07 | [unreleased]  | 0.20.0          | 28236         |
 | 2026-04-17 | [0.9.7]       | 0.19.2          | 29277         |
 | 2026-03-15 | [0.9.6]       | 0.19.2          | 29271         |
 | 2026-03-04 | [0.9.5]       | 0.19.2          | 29251         |
@@ -125,6 +125,11 @@ Note to maintainers:
 
 ### Added
 
+- Add support for HDR10 output @kode54 @Consolatis [#3424]
+- Include wlroots version in --version string @Consolatis [#3567]
+- Implement menu accelerators (one-letter mnemonics to quickly select/exec
+  items from the current menu) @ch3rn1ka [#3505]
+- Add Next/PreviousWindowImmediate actions @elviosak @johanmalm [#3547]
 - Add labnag options `--details-border-color` and `--details-margin`
   @st0rm-shad0w [#3527]
 - Add config option `<focus><raiseOnFocusDelay>` to defer raise-on-focus by a
@@ -147,6 +152,8 @@ Note to maintainers:
 
 ### Fixed
 
+- Position chromium popup correctly when a window is maximized on a multi-
+  output setup @elviosak [#3547]
 - Run session activation environment update synchronously to avoid a race
   condition with the autostart script [#3543] @joske
 - Allow interactive resize on fully maximized windows so that a resize
@@ -3272,6 +3279,7 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
 [#3410]: https://github.com/labwc/labwc/pull/3410
 [#3411]: https://github.com/labwc/labwc/pull/3411
 [#3412]: https://github.com/labwc/labwc/pull/3412
+[#3424]: https://github.com/labwc/labwc/pull/3424
 [#3425]: https://github.com/labwc/labwc/pull/3425
 [#3426]: https://github.com/labwc/labwc/pull/3426
 [#3428]: https://github.com/labwc/labwc/pull/3428
@@ -3292,6 +3300,7 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
 [#3499]: https://github.com/labwc/labwc/pull/3499
 [#3500]: https://github.com/labwc/labwc/pull/3500
 [#3502]: https://github.com/labwc/labwc/pull/3502
+[#3505]: https://github.com/labwc/labwc/pull/3505
 [#3507]: https://github.com/labwc/labwc/pull/3507
 [#3511]: https://github.com/labwc/labwc/pull/3511
 [#3513]: https://github.com/labwc/labwc/pull/3513
@@ -3300,3 +3309,5 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
 [#3534]: https://github.com/labwc/labwc/pull/3534
 [#3540]: https://github.com/labwc/labwc/pull/3540
 [#3543]: https://github.com/labwc/labwc/pull/3543
+[#3547]: https://github.com/labwc/labwc/pull/3547
+[#3567]: https://github.com/labwc/labwc/pull/3567

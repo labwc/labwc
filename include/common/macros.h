@@ -62,7 +62,11 @@
 #define BOUNDED_INT(a) ((a) < INT_MAX && (a) > INT_MIN)
 #endif
 
-#define LAB_WLR_VERSION_AT_LEAST(major, minor, micro) \
-	(WLR_VERSION_NUM >= (((major) << 16) | ((minor) << 8) | (micro)))
+#define _LAB_CALC_WLR_VERSION_NUM(major, minor, micro) (((major) << 16) | ((minor) << 8) | (micro))
+
+#define LAB_WLR_VERSION_AT_LEAST(major, minor, micro) ( \
+	server.wlr_version >= _LAB_CALC_WLR_VERSION_NUM(major, minor, micro))
+
+#define LAB_WLR_VERSION_LOWER(major, minor, micro) (!LAB_WLR_VERSION_AT_LEAST(major, minor, micro))
 
 #endif /* LABWC_MACROS_H */

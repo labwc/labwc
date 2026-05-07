@@ -9,6 +9,7 @@
 #include "common/mem.h"
 #include "common/scene-helpers.h"
 #include "config/rcxml.h"
+#include "config/types.h"
 #include "labwc.h"
 #include "node.h"
 #include "output.h"
@@ -322,6 +323,27 @@ handle_osd_tree_destroy(struct wl_listener *listener, void *data)
 	free(osd_output);
 }
 
+static enum lab_view_criteria
+get_view_criteria(struct cycle_filter *filter)
+{
+	enum lab_view_criteria criteria =
+		LAB_VIEW_CRITERIA_NO_SKIP_WINDOW_SWITCHER
+		| LAB_VIEW_CRITERIA_NO_DIALOG;
+	if (filter->workspace == CYCLE_WORKSPACE_CURRENT) {
+		criteria |= LAB_VIEW_CRITERIA_CURRENT_WORKSPACE;
+	}
+	return criteria;
+}
+
+static const char *
+get_cycle_app_id(struct cycle_filter *filter)
+{
+	if (filter->app_id == CYCLE_APP_ID_CURRENT && server.active_view) {
+		return server.active_view->app_id;
+	}
+	return NULL;
+}
+
 static struct wl_list *prev(struct wl_list *elm) { return elm->prev; }
 static struct wl_list *next(struct wl_list *elm) { return elm->next; }
 
@@ -331,17 +353,10 @@ cycle_immediate(enum lab_cycle_dir direction, struct cycle_filter filter)
 	if (wl_list_empty(&server.views)) {
 		return;
 	}
-	enum lab_view_criteria criteria =
-		LAB_VIEW_CRITERIA_NO_SKIP_WINDOW_SWITCHER
-		| LAB_VIEW_CRITERIA_NO_DIALOG;
-	if (filter.workspace == CYCLE_WORKSPACE_CURRENT) {
-		criteria |= LAB_VIEW_CRITERIA_CURRENT_WORKSPACE;
-	}
+
+	enum lab_view_criteria criteria = get_view_criteria(&filter);
 	uint64_t cycle_outputs = get_outputs_by_filter(filter.output);
-	const char *cycle_app_id = NULL;
-	if (filter.app_id == CYCLE_APP_ID_CURRENT && server.active_view) {
-		cycle_app_id = server.active_view->app_id;
-	}
+	const char *cycle_app_id = get_cycle_app_id(&filter);
 
 	struct wl_list *head = &server.views;
 	struct wl_list *(*iter)(struct wl_list *list);
@@ -381,20 +396,9 @@ cycle_immediate(enum lab_cycle_dir direction, struct cycle_filter filter)
 static bool
 init_cycle(struct cycle_filter filter)
 {
-	enum lab_view_criteria criteria =
-		LAB_VIEW_CRITERIA_NO_SKIP_WINDOW_SWITCHER
-		| LAB_VIEW_CRITERIA_NO_DIALOG;
-	if (filter.workspace == CYCLE_WORKSPACE_CURRENT) {
-		criteria |= LAB_VIEW_CRITERIA_CURRENT_WORKSPACE;
-	}
-
-	uint64_t cycle_outputs =
-		get_outputs_by_filter(filter.output);
-
-	const char *cycle_app_id = NULL;
-	if (filter.app_id == CYCLE_APP_ID_CURRENT && server.active_view) {
-		cycle_app_id = server.active_view->app_id;
-	}
+	enum lab_view_criteria criteria = get_view_criteria(&filter);
+	uint64_t cycle_outputs = get_outputs_by_filter(filter.output);
+	const char *cycle_app_id = get_cycle_app_id(&filter);
 
 	struct view *view;
 	for_each_view(view, &server.views, criteria) {

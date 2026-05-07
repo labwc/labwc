@@ -264,9 +264,9 @@ Note to package maintainers: This release requires wayland version >=1.22.90
 - Add theme option window.button.hover.bg.color [#3365] @johanmalm
 - Implement scrollable window-switcher OSD [#3291] @tokyo4j
 - Support the `NextWindow` options listed below [#3271] @tokyo4j
-  - `<action name="NextWindow" workspace="current|all"/>`
-  - `<action name="NextWindow" output="all|focused|cursor"/>`
-  - `<action name="NextWindow" identifier="all|current"/>`
+  - `<action name="NextWindow" workspace="current|all" />`
+  - `<action name="NextWindow" output="all|focused|cursor" />`
+  - `<action name="NextWindow" identifier="all|current" />`
 - Add config option `*<desktops><initial>` for setting the active workspace on
   startup. [#3265] @5trixs0f
 
@@ -314,7 +314,7 @@ Note to package maintainers: This release requires wayland version >=1.22.90
     and get keyboard focus so that they can be operated with the keyboard.
     An example use-case is the xfce4-panel applications-menu being opened by
     the command xfce4-popup-applicationsmenu. [#3165] @johanmalm
-  - On popup destory, return focus to whoever had it before the popop [#3165]
+  - On popup destroy, return focus to whoever had it before the popop [#3165]
     @johanmalm @tokyo4j
 - Unshade window if selected from client-list-combined-menu [#3345] @Amodio
 - Show non-dialog child windows in window-switcher [#3339] @tokyo4j
@@ -348,7 +348,7 @@ A big thank you to all involved in this release.
 
 ### Added
 
-- Add `<windowSwitcher order="focus|age"/>` to optionally order windows by age
+- Add `<windowSwitcher order="focus|age" />` to optionally order windows by age
   rather than most recent focus. @mbroemme [#3229]
 - Replace `<snapping><range>` with `<snapping><range inner="" outer="">` to
   provide more granular control when configuring the size of snapping areas
@@ -379,7 +379,7 @@ A big thank you to all involved in this release.
   [#3134]
 - labnag: add --keyboard-focus option @tokyo4j [#3120]
 - Allow window switcher to temporarily unshade windows using config option
-  `<windowSwitcher unshade="yes|no"/>` @Amodio @Consolatis [#3124]
+  `<windowSwitcher unshade="yes|no" />` @Amodio @Consolatis [#3124]
 - For the 'classic' style window-switcher, add the following theme options:
     - `osd.window-switcher.style-classic.item.active.border.color`
     - `osd.window-switcher.style-classic.item.active.bg.color`
@@ -409,7 +409,7 @@ A big thank you to all involved in this release.
   client surface. Fixes a regression in 885919f. @tokyo4j [#3211]
 - Set all foreign-toplevel initial states correctly. This is not believed to fix
   any particular user-issue, but just feels safer. @jlindgren90 [#3217]
-- Update layer-shell client top layer visiblity on unmap instead of destroy
+- Update layer-shell client top layer visibility on unmap instead of destroy
   because it is possible for fullscreen xwayland windows to be unmapped without
   being destroyed, and in this case the top layer visibility needs to be updated
   to unhide other layer-shell clients like panels. @jlindgren90 [#3199]
@@ -421,7 +421,7 @@ A big thank you to all involved in this release.
   @elviosak [#3146] [#3168]
 - Work around client-side rounding issues at right/bottom pixel. This fixes an
   issue with some clients (notably Qt ones) where cursor coordinates in the
-  rightmost or bottom fixel are incorrectly rounded up putting them outside the
+  rightmost or bottom pixel are incorrectly rounded up putting them outside the
   surface bounds. The issue has been particularly noticeable with layer-shell
   clients like lxqt-panel. @jlindgren90 [#3157] [#2379] [#3099]
   Note: This also avoids a similar server-side rounding issue with some
@@ -469,7 +469,7 @@ A big thank you to all involved in this release.
   when a window is using fullscreen mode. @johanmalm [#3158]
 - Call labnag with on-demand keyboard interactivity by default @tokyo4j [#3120]
 - Temporarily unshade windows when switching windows. Restore old behaviour with
-  `<windowSwitcher unshade="no"/>` @Amodio @Consolatis [#3124]
+  `<windowSwitcher unshade="no" />` @Amodio @Consolatis [#3124]
 - In the classic style window-switcher, the default color of the selected window
   item has been changed to inherit the border color but with 15% opacity
   @tokyo4j [#3118]
@@ -488,7 +488,7 @@ A big thank you to all involved in this release.
   `<windowSwitcher style="thumbnail">`. @tokyo4j [#2981]
 - Add `toggle` option to `GoToDesktop` action. This has the effect of going back
   to the last desktop if already on the target. @RainerKuemmerle [#3024]
-- Add `<theme maximizedDecoration="titlebar|none"/>` to allow hiding titlebar
+- Add `<theme maximizedDecoration="titlebar|none" />` to allow hiding titlebar
   when window is maximized. @CosmicFusion @tokyo4j [#3015]
 - Use client-send-to-menu as 'Workspace' submenu in built-in client-menu
   @johanmalm [#2995]
@@ -539,7 +539,7 @@ A big thank you to all involved in this release.
 - Change default keybind `W-<arrow>` to combine cardinal directions to support
   resizing of windows to fill a quarter of an output. This only affects users
   who do not use an `rc.xml` (thereby using default keybinds) or use the
-  `<keyboard><default/>` option. Previous behavior can be restored by setting
+  `<keyboard><default />` option. Previous behavior can be restored by setting
   `combine="no"` as shown below. [#3081] @tokyo4j
 
 ```
@@ -638,7 +638,7 @@ window.*.title.bg.colorTo.splitTo:
   window rule to enable this. @Consolatis @tokyo4j [#2840]
 - Add config option `<core><primarySelection>`. This enables autoscroll
   (middle-click to scroll up/down) in Chromium and electron based clients
-  without inadvertantly pasting the primary clipboard. @johanmalm [#2832]
+  without inadvertently pasting the primary clipboard. @johanmalm [#2832]
 - Bump `xdg_shell` version from 3 to 6 @tokyo4j [#2814]
 - Bump `wl_compositor` version from 5 to 6 @tokyo4j [#2812]
 - Support tablet tool mouse buttons @jp7677 [#2778]
@@ -715,7 +715,7 @@ window.*.title.bg.colorTo.splitTo:
     agnostic on choice of launcher.
   - `A-<arrow>` for `MoveToEdge` because `Alt-` keybinds should be for clients
     to use and this one results in frequent user complaints because it prevents
-    some common usage patterns like alt-left/right in web browers.
+    some common usage patterns like alt-left/right in web browsers.
 - Change default titlebar menu button from a dot to an arrow @johanmalm [#2844]
 - When `dragLock` is set to `yes`, the drag no longer expires after a short
   delay (known as `Sticky` mode) as recommended by libinput [#2803]. The timeout
@@ -750,7 +750,7 @@ release.
 - Localize desktop-entry application names used by the window switcher via
   `desktop_entry_name` or the `%n` specifier @tokyo4j [#2653]
 - Add `HideCursor` action @jp7677 [#2633]
-- Support application icons in window-switcher using `<field content="icon"/>`
+- Support application icons in window-switcher using `<field content="icon" />`
   and use this by default. @tokyo4j [#2621]
 - Support application icons in client-list-combined-menu @tokyo4j [#2617]
 - Support the use of the keypad-enter key when using menu. @zeusgoose [#2610]
@@ -887,7 +887,7 @@ Notes to package maintainers:
   closing a popup did not move the pointer focus to the main toplevel until the
   cursor was moved. [#2443]
 - Improve algorithm for menu placement with xdg-positioner [#2408]
-- Do not forward IME key-release without correspinding key-press to avoid stuck
+- Do not forward IME key-release without corresponding key-press to avoid stuck
   keys [#2437]
 
 ### Changed
@@ -949,7 +949,7 @@ Notes to package maintainers:
 
 ```xml
 <windowRules>
-  <windowRule identifier="blender" wantAbsorbedModifierReleaseEvents="yes"/>
+  <windowRule identifier="blender" wantAbsorbedModifierReleaseEvents="yes" />
 </windowRules>
 ```
 
@@ -966,8 +966,8 @@ menu.border.color: #aaaaaa
 ```xml
 <windowSwitcher>
   <fields>
-    <field content="custom" format="%n" width="25%"/>
-    <field content="title" width="75%"/>
+    <field content="custom" format="%n" width="25%" />
+    <field content="title" width="75%" />
   </fields>
 </windowSwitcher>
 ```
@@ -1097,7 +1097,7 @@ Notes to package maintainers:
 - Support the openbox style menus listed below. Written-by: @droc12345
   1. `client-list-combined-menu` shows windows across all workspaces. This can
      be used with a mouse/key bind using:
-     `<action name="ShowMenu" menu="client-list-combined-menu"/>` [#2101]
+     `<action name="ShowMenu" menu="client-list-combined-menu" />` [#2101]
   2. `client-send-to` shows all workspaces that the current window can be sent
      to. This can additional be used within a client menu using:
      `<menu id="client-send-to-menu" label="Send to Workspace..." />` [#2152]
@@ -1256,14 +1256,14 @@ have been attributed with a 'Written-by' against each relevant log entry.
 ```xml
 <placement>
   <policy>cascade</policy>
-  <cascadeOffset x="40" y="30"/>
+  <cascadeOffset x="40" y="30" />
 </placement>
 ```
 
 - Support relative tablet motion. Written-by: @jp7677 [#1962]
 
 ```xml
-<tabletTool motion="absolute|relative" relativeMotionSensitivity="1.0"/>
+<tabletTool motion="absolute|relative" relativeMotionSensitivity="1.0" />
 ```
 
 ### Fixed
@@ -1347,7 +1347,7 @@ joint effort by @spl237 and @Consolatis.
 - Respect `menu.overlap.x` when using pipemenus. [#1940]
 - Do not try to restore windows to very small width/height on unmaximize.
   This fixes a bug with Thonny (Python IDE made with Tk). [#1938]
-- Conditially set squared server-side decoration (SSD) corners when a view is
+- Conditionally set squared server-side decoration (SSD) corners when a view is
   tiled. Written-by: @jp7677 [#1926]
 - Remember initial direction when starting window-cycling with `PreviousView`.
   Also make the toggling of direction when shift is pressed relative to the
@@ -1371,7 +1371,7 @@ joint effort by @spl237 and @Consolatis.
   Chromium and Steam. [#1861]
 - Session-lock: fix flashing & update cursor shape. [#1858]
 - Remove tearing-controller listeners on destroy. [#1853]
-- Handle invalid `ForEach` and `If` action cofigs. [#1838]
+- Handle invalid `ForEach` and `If` action configs. [#1838]
 - Delay startup of applications until event loop is ready. This avoids race
   conditions when using autostart scripts that trigger a labwc SIGHUP. [#1588]
 - With `SendToDesktop` action follow=no option, ensure the topmost window is
@@ -1388,7 +1388,7 @@ joint effort by @spl237 and @Consolatis.
 
 - Remove subprojects/seatd.wrap as no longer needed
 - Action `MoveToCursor` is deprecated in favour of:
-  `<action name="AutoPlace" policy="cursor"/>`.
+  `<action name="AutoPlace" policy="cursor" />`.
 
 ## 0.7.2 - 2024-05-10
 
@@ -1405,7 +1405,7 @@ contributions from others as noted in the log.
 ### Added
 
 - Add `<menu><ignoreButtonReleasePeriod>` to prevent clicks with small movements
-  from inadvertantly closing a menu or selecting a menu item. This is the
+  from inadvertently closing a menu or selecting a menu item. This is the
   equivalent of `<menu><hideDelay>` on Openbox. [#1760]
 - Support drop-shadows (disabled by default) for windows using server-side
   decorations. Written-by: @cillian64
@@ -1433,7 +1433,7 @@ window.inactive.shadow.color: #00000040
 
 ```xml
 <action name="ForEach">
-  <query identifier="foo"/>
+  <query identifier="foo" />
   <then>
     <!-- carry out some action on match -->
   </then>
@@ -1475,7 +1475,7 @@ osd.window-switcher.width: 75%
 <snapping>
   <overlay>
     <enabled>yes|no</enabled>
-    <delay inner="500" outer="500"/>
+    <delay inner="500" outer="500" />
   </overlay>
 </snapping>
 ```
@@ -1638,7 +1638,7 @@ osd.window-switcher.preview.border.color: #ffffff,#00a2ff,#ffffff
 
 ```xml
 <keybind key="A-Space">
-  <action name="ShowMenu" menu="client-menu" atCursor="No"/>
+  <action name="ShowMenu" menu="client-menu" atCursor="No" />
 </keybind>
 ```
 
@@ -1646,7 +1646,7 @@ osd.window-switcher.preview.border.color: #ffffff,#00a2ff,#ffffff
   is already used by the action itself).  [#1589]
 
 ```xml
-<action name="MoveToOutput" output="HDMI-A-1"/>
+<action name="MoveToOutput" output="HDMI-A-1" />
 ```
 
 - Do not deactivate window when giving keyboard focus to a non-view
@@ -1711,8 +1711,8 @@ osd.window-switcher.preview.border.color: #ffffff,#00a2ff,#ffffff
   Written-by: @jp7677
 
 ```xml
-<touch mapToOutput=""/>
-<touch deviceName="" mapToOutput=""/>
+<touch mapToOutput="" />
+<touch deviceName="" mapToOutput="" />
 ```
 
 - Add tablet support including:
@@ -1925,7 +1925,7 @@ relating to surface focus and keyboard issues, amongst others.
 - Allow referencing the current workspace in actions, for example:
 
 ```xml
-<action name="SendToDesktop" to="current"/>
+<action name="SendToDesktop" to="current" />
 ```
 
 ### Fixed
@@ -2081,7 +2081,7 @@ relating to surface focus and keyboard issues, amongst others.
 ```xml
 <windowSwitcher>
   <fields>
-    <field content="identifier" width="25%"/>
+    <field content="identifier" width="25%" />
   </fields>
 </windowSwithcer>
 ```
@@ -2148,9 +2148,9 @@ relating to surface focus and keyboard issues, amongst others.
 ```xml
 <windowRules>
   <windowRule identifier="some-application">
-    <action name="Maximize"/>
+    <action name="Maximize" />
   </windowRule>
-  <windowRule identifier="foo*" serverDecoration="yes|no"/>
+  <windowRule identifier="foo*" serverDecoration="yes|no" />
 </windowRules>
 ```
 
@@ -2235,7 +2235,7 @@ Unless otherwise stated all contributions are by the core-devs
 
 ```xml
 <keyboard>
-  <default/>
+  <default />
   <keybind key="A-Left"><action name="None" /></keybind>
   <keybind key="A-Right"><action name="None" /></keybind>
 </keyboard>
@@ -2499,7 +2499,7 @@ reported, tested and fixed issues. Particular mentions go to @bi4k8,
   actions to be de-coupled from buttons. As a result, "Drag" and
   "DoubleClick" actions previously defined against "TitleBar" should now
   come under the "Title" context, for example:
-  `<mousebind button="Left" action="Drag"><action name="Move"/></mousebind>`
+  `<mousebind button="Left" action="Drag"><action name="Move" /></mousebind>`
 - Remove default alt-escape keybind for Exit because too many people have
   exited the compositor by mistake trying to get out of alt-tab cycling
   or similar.

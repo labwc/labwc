@@ -24,6 +24,7 @@ output_state_init(struct output *output)
 			backup_config, output->wlr_output);
 
 	wlr_output_head_v1_state_apply(&backup_head->state, &output->pending);
+
 	wlr_output_configuration_v1_destroy(backup_config);
 }
 

@@ -4,8 +4,10 @@
 #include <pango/pangocairo.h>
 #include <signal.h>
 #include <unistd.h>
+#include <wlr/version.h>
 #include "common/fd-util.h"
 #include "common/font.h"
+#include "common/macros.h"
 #include "common/spawn.h"
 #include "config/rcxml.h"
 #include "config/session.h"
@@ -65,12 +67,15 @@ static void
 print_version(void)
 {
 	#define FEATURE_ENABLED(feature) (HAVE_##feature ? "+" : "-")
-	printf("labwc %s (%sxwayland %snls %srsvg %slibsfdo)\n",
+	printf("labwc %s (%sxwayland %snls %srsvg %slibsfdo) running on wlroots %d.%d.%d\n",
 		LABWC_VERSION,
 		FEATURE_ENABLED(XWAYLAND),
 		FEATURE_ENABLED(NLS),
 		FEATURE_ENABLED(RSVG),
-		FEATURE_ENABLED(LIBSFDO)
+		FEATURE_ENABLED(LIBSFDO),
+		wlr_version_get_major(),
+		wlr_version_get_minor(),
+		wlr_version_get_micro()
 	);
 	#undef FEATURE_ENABLED
 }
@@ -163,6 +168,12 @@ main(int argc, char *argv[])
 	char *startup_cmd = NULL;
 	char *primary_client = NULL;
 	enum wlr_log_importance verbosity = WLR_ERROR;
+
+	server.wlr_version = _LAB_CALC_WLR_VERSION_NUM(
+		wlr_version_get_major(),
+		wlr_version_get_minor(),
+		wlr_version_get_micro()
+	);
 
 	int c;
 	while (1) {

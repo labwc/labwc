@@ -156,7 +156,7 @@ get_unicode_char_lowercase(const char *first_byte, size_t *out_bytes)
 	return (uint32_t)g_unichar_tolower(codepoint);
 }
 
-/* Retrieve the accelerator from an item label, remove doubled underscores */
+/* Retrieve the accelerator from an item label */
 static void
 item_parse_accelerator(struct menuitem *item, const char *text)
 {
@@ -195,7 +195,7 @@ item_parse_accelerator(struct menuitem *item, const char *text)
 	}
 }
 
-/* Remove underscores used for escaping from a string */
+/* Remove underscores used for escaping other underscores from a string */
 static void
 unescape_underscores(char *text)
 {

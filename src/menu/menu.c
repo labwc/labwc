@@ -4,14 +4,12 @@
 #include <assert.h>
 #include <ctype.h>
 #include <libxml/parser.h>
-#include <locale.h>
 #include <signal.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 #include <strings.h>
-#include <uchar.h>
 #include <unistd.h>
-#include <wctype.h>
 #include <wlr/types/wlr_scene.h>
 #include <wlr/types/wlr_xdg_shell.h>
 #include <wlr/util/log.h>
@@ -133,42 +131,33 @@ validate(void)
 	}
 }
 
+/* Read a single Unicode codepoint and convert it to lowercase */
 static uint32_t
-get_unicode_char(const char *first_byte, size_t *out_bytes)
+read_unicode_char_lowercase(const char *first_byte, size_t *bytes_read)
 {
-	if (!first_byte || first_byte[0] == '\0') {
-		*out_bytes = 0;
+	assert(bytes_read);
+
+	if (string_null_or_empty(first_byte)) {
+		*bytes_read = 0;
 		return 0;
 	}
 
-	/* Temporarily set locale to UTF-8 */
-	locale_t utf8_locale = newlocale(LC_CTYPE_MASK, "C.UTF-8", (locale_t)0);
-	locale_t old_locale = (locale_t)0;
-	if (utf8_locale != (locale_t)0) {
-		old_locale = uselocale(utf8_locale);
+	gunichar codepoint = g_utf8_get_char_validated(first_byte, -1);
+
+	bool partial_read = (codepoint == (gunichar)-2);
+	bool failed_read = (codepoint == (gunichar)-1);
+	if (partial_read || failed_read) {
+		/* Read only the first byte */
+		*bytes_read = 1;
+		return (uint32_t)(unsigned char)first_byte[0];
 	}
 
-	uint32_t result = 0;
-	char32_t codepoint = 0;
-	mbstate_t state = {0};
-	size_t bytes = mbrtoc32(&codepoint, first_byte, 4, &state);
-	if (bytes > 0 && bytes <= 4) {
-		*out_bytes = bytes;
-		result = (uint32_t)towlower((wint_t)codepoint);
-	} else {
-		*out_bytes = 1;
-		result = (uint32_t)(unsigned char)first_byte[0];
-	}
+	*bytes_read = (size_t)(g_utf8_next_char(first_byte) - first_byte);
 
-	/* Restore previous locale */
-	if (utf8_locale != (locale_t)0) {
-		uselocale(old_locale);
-		freelocale(utf8_locale);
-	}
-
-	return result;
+	return (uint32_t)g_unichar_tolower(codepoint);
 }
 
+/* Retrieve the accelerator from an item label */
 static void
 item_parse_accelerator(struct menuitem *item, const char *text)
 {
@@ -188,25 +177,35 @@ item_parse_accelerator(struct menuitem *item, const char *text)
 		}
 	}
 
-	size_t bytes = 0;
+	size_t bytes_read = 0;
 	if (!accel_ptr) {
+		/* Default to the first char */
 		item->text = xstrdup(text);
-		item->accelerator = get_unicode_char(text, &bytes);
+		item->accelerator = read_unicode_char_lowercase(text, &bytes_read);
 	} else {
+		/* Set the accelerator and remove the preceding underscore */
 		item->use_markup = true;
-		item->accelerator = get_unicode_char(accel_ptr, &bytes);
+		item->accelerator = read_unicode_char_lowercase(accel_ptr, &bytes_read);
 		item->text = strdup_printf("%.*s<u>%.*s</u>%s",
 			/* Prefix length + prefix */
 			(int)(accel_ptr - 1 - text), text,
 			/* Accelerator (utf-8 byte) length + accelerator */
-			(int)bytes, accel_ptr,
+			(int)bytes_read, accel_ptr,
 			/* Remainder */
-			accel_ptr + bytes);
+			accel_ptr + bytes_read);
+	}
+}
+
+/* Remove underscores used for escaping other underscores from a string */
+static void
+unescape_underscores(char *text)
+{
+	if (!text) {
+		return;
 	}
 
-	/* Remove undescores used for escaping */
-	char *src = item->text;
-	char *dst = item->text;
+	char *src = text;
+	char *dst = text;
 	while (*src) {
 		if (*src == '_' && *(src + 1) == '_') {
 			*dst++ = '_';
@@ -231,6 +230,7 @@ item_create(struct menu *menu, const char *text, const char *icon_name, bool sho
 	menuitem->type = LAB_MENU_ITEM;
 	menuitem->arrow = show_arrow ? "›" : NULL;
 	item_parse_accelerator(menuitem, text);
+	unescape_underscores(menuitem->text);
 
 #if HAVE_LIBSFDO
 	if (rc.menu_show_icons && !string_null_or_empty(icon_name)) {
@@ -1595,7 +1595,7 @@ menu_item_select_by_accelerator(uint32_t accelerator)
 
 	menu_process_item_selection(next_selection);
 	if (needs_exec && next_selection->submenu) {
-		/* Since we can't execute a submenu, enter it. */
+		/* Since we can't execute a submenu, enter it */
 		needs_exec = false;
 		menu_submenu_enter();
 	}

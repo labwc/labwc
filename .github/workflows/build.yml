@@ -20,6 +20,7 @@ on:
       - 'clients/**'
       - 't/**'
       - 'scripts/**'
+      - 'docs/**'
       - '.github/workflows/**'
 
 jobs:

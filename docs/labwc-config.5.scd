@@ -244,8 +244,8 @@ this is for compatibility with Openbox.
 *<core><hdr>* [yes|no]
 	Automatically enable HDR support on outputs when configuring them,
 	where supported by the particular output device and display. Default
-	is no. Additionally requires the Vulkan backend. Can be set via
-	`WLR_RENDERER=vulkan` in `~/.config/labwc/enviornment`.
+	is no. Additionally requires the Vulkan backend. Can be set
+	via `WLR_RENDERER=vulkan` in `~/.config/labwc/enviornment`.
 
 *<core><reuseOutputMode>* [yes|no]
 	Try to re-use the existing output mode (resolution / refresh rate).

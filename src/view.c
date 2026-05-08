@@ -12,6 +12,7 @@
 #include "buffer.h"
 #include "common/box.h"
 #include "common/list.h"
+#include "common/macros.h"
 #include "common/match.h"
 #include "common/mem.h"
 #include "common/string-helpers.h"
@@ -609,6 +610,10 @@ view_resize_relative(struct view *view, int left, int right, int top, int bottom
 	view_set_untiled(view);
 }
 
+struct point {
+	int x, y;
+};
+
 /*
  * Returns the total squared distance of the box's four corners from the
  * output layout. A return value of 0 means the box is fully inside.
@@ -618,19 +623,35 @@ box_layout_overshoot(struct wlr_box *box)
 {
 	struct wlr_output_layout *layout = server.output_layout;
 	double overshoot = 0;
-	double corners[4][2] = {
-		{box->x, box->y},
-		{box->x + box->width - 1, box->y},
-		{box->x, box->y + box->height - 1},
-		{box->x + box->width - 1, box->y + box->height - 1},
+	struct point corners[] = { {
+			.x = box->x,
+			.y = box->y,
+		}, {
+			.x = box->x + box->width - 1,
+			.y = box->y,
+		}, {
+			.x = box->x,
+			.y = box->y + box->height - 1,
+		}, {
+			.x = box->x + box->width - 1,
+			.y = box->y + box->height - 1,
+		},
 	};
-	for (int i = 0; i < 4; i++) {
+
+	for (size_t i = 0; i < ARRAY_SIZE(corners); i++) {
+		struct point corner = corners[i];
+
+		/* We only care about corners outside the output-layout */
+		if (wlr_output_layout_output_at(layout, corner.x, corner.y)) {
+			continue;
+		}
+
 		double closest_x, closest_y;
-		wlr_output_layout_closest_point(layout, NULL,
-			corners[i][0], corners[i][1],
+		wlr_output_layout_closest_point(layout, NULL, corner.x, corner.y,
 			&closest_x, &closest_y);
-		double dx = corners[i][0] - closest_x;
-		double dy = corners[i][1] - closest_y;
+		wlr_log(WLR_ERROR, "closest-x=%f; closest-y=%f", closest_x, closest_y);
+		double dx = corner.x - closest_x;
+		double dy = corner.y - closest_y;
 		overshoot += dx * dx + dy * dy;
 	}
 	return overshoot;
@@ -667,7 +688,7 @@ view_move_relative(struct view *view, int x, int y)
 	dest.y += y;
 	double current_overshoot = box_layout_overshoot(&current_box);
 	double dest_overshoot = box_layout_overshoot(&dest);
-	if (dest_overshoot > 0 && dest_overshoot >= current_overshoot) {
+	if (dest_overshoot > 0 && dest_overshoot > current_overshoot) {
 		if (abs(x) > 1 || abs(y) > 1) {
 			/*
 			 * It is reasonable to assume that users will specify

@@ -23,6 +23,7 @@
 #include "common/string-helpers.h"
 #include "common/xml.h"
 #include "config/default-bindings.h"
+#include "config/dialog.h"
 #include "config/keybind.h"
 #include "config/libinput.h"
 #include "config/mousebind.h"
@@ -168,7 +169,7 @@ fill_section(const char *content, enum lab_node_type *buttons, int *count,
 #if HAVE_LIBSFDO
 			type = LAB_NODE_BUTTON_WINDOW_ICON;
 #else
-			wlr_log(WLR_ERROR, "libsfdo is not linked. "
+			lab_wlr_log(WLR_ERROR, "libsfdo is not linked. "
 				"Replacing 'icon' in titlebar layout with 'menu'.");
 			type = LAB_NODE_BUTTON_WINDOW_MENU;
 #endif
@@ -185,7 +186,7 @@ fill_section(const char *content, enum lab_node_type *buttons, int *count,
 		} else if (!strcmp(identifier, "desk")) {
 			type = LAB_NODE_BUTTON_OMNIPRESENT;
 		} else {
-			wlr_log(WLR_ERROR, "invalid titleLayout identifier '%s'",
+			lab_wlr_log(WLR_ERROR, "invalid titleLayout identifier '%s'",
 				identifier);
 			continue;
 		}
@@ -194,7 +195,7 @@ fill_section(const char *content, enum lab_node_type *buttons, int *count,
 
 		/* We no longer need this check, but let's keep it just in case */
 		if (*found_buttons & (1 << type)) {
-			wlr_log(WLR_ERROR, "ignoring duplicated button type '%s'",
+			lab_wlr_log(WLR_ERROR, "ignoring duplicated button type '%s'",
 				identifier);
 			continue;
 		}
@@ -223,7 +224,7 @@ fill_title_layout(const char *content)
 	gchar **parts = g_strsplit(content, ":", -1);
 
 	if (g_strv_length(parts) != 2) {
-		wlr_log(WLR_ERROR, "<titlebar><layout> must contain one colon");
+		lab_wlr_log(WLR_ERROR, "<titlebar><layout> must contain one colon");
 		goto err;
 	}
 
@@ -259,7 +260,7 @@ fill_usable_area_override(xmlNode *node)
 		} else if (!strcmp(key, "bottom")) {
 			usable_area_override->margin.bottom = atoi(content);
 		} else {
-			wlr_log(WLR_ERROR, "Unexpected data usable-area-override "
+			lab_wlr_log(WLR_ERROR, "Unexpected data usable-area-override "
 				"parser: %s=\"%s\"", key, content);
 		}
 	}
@@ -324,7 +325,7 @@ fill_window_rule(xmlNode *node)
 			} else if (!strcasecmp(content, "server")) {
 				window_rule->icon_prefer_client = LAB_PROP_FALSE;
 			} else {
-				wlr_log(WLR_ERROR,
+				lab_wlr_log(WLR_ERROR,
 					"Invalid value for window rule property 'iconPriority'");
 			}
 		} else if (!strcasecmp(key, "skipTaskbar")) {
@@ -409,7 +410,7 @@ fill_region(xmlNode *node)
 			xstrdup_replace(region->name, content);
 		} else if (strstr("xywidtheight", key)
 				&& !strchr(content, '%')) {
-			wlr_log(WLR_ERROR, "Removing invalid region "
+			lab_wlr_log(WLR_ERROR, "Removing invalid region "
 				"'%s': %s='%s' misses a trailing %%",
 				region->name, key, content);
 			wl_list_remove(&region->link);
@@ -425,7 +426,7 @@ fill_region(xmlNode *node)
 		} else if (!strcmp(key, "height")) {
 			region->percentage.height = atoi(content);
 		} else {
-			wlr_log(WLR_ERROR, "Unexpected data in region "
+			lab_wlr_log(WLR_ERROR, "Unexpected data in region "
 				"parser: %s=\"%s\"", key, content);
 		}
 	}
@@ -592,7 +593,7 @@ fill_keybind(xmlNode *node)
 	if (lab_xml_get_string(node, "key", keyname, sizeof(keyname))) {
 		keybind = keybind_create(keyname);
 		if (!keybind) {
-			wlr_log(WLR_ERROR, "Invalid keybind: %s", keyname);
+			lab_wlr_log(WLR_ERROR, "Invalid keybind: %s", keyname);
 		}
 	}
 	if (!keybind) {
@@ -672,7 +673,7 @@ fill_touch(xmlNode *node)
 		} else if (!strcasecmp(key, "mouseEmulation")) {
 			set_bool(content, &touch_config->force_mouse_emulation);
 		} else {
-			wlr_log(WLR_ERROR, "Unexpected data in touch parser: %s=\"%s\"",
+			lab_wlr_log(WLR_ERROR, "Unexpected data in touch parser: %s=\"%s\"",
 				key, content);
 		}
 	}
@@ -688,14 +689,14 @@ fill_tablet_button_map(xmlNode *node)
 	if (lab_xml_get_string(node, "button", buf, sizeof(buf))) {
 		map_from = tablet_button_from_str(buf);
 	} else {
-		wlr_log(WLR_ERROR, "Invalid 'button' argument for tablet button mapping");
+		lab_wlr_log(WLR_ERROR, "Invalid 'button' argument for tablet button mapping");
 		return;
 	}
 
 	if (lab_xml_get_string(node, "to", buf, sizeof(buf))) {
 		map_to = mousebind_button_from_str(buf, NULL);
 	} else {
-		wlr_log(WLR_ERROR, "Invalid 'to' argument for tablet button mapping");
+		lab_wlr_log(WLR_ERROR, "Invalid 'to' argument for tablet button mapping");
 		return;
 	}
 
@@ -754,7 +755,7 @@ fill_libinput_category(xmlNode *node)
 	char *key, *content;
 	LAB_XML_FOR_EACH(node, child, key, content) {
 		if (string_null_or_empty(content)) {
-			wlr_log(WLR_ERROR, "Empty string is not allowed for "
+			lab_wlr_log(WLR_ERROR, "Empty string is not allowed for "
 				"<libinput><device><%s>. Ignoring.", key);
 			continue;
 		}
@@ -801,7 +802,7 @@ fill_libinput_category(xmlNode *node)
 				category->tap_button_map =
 					LIBINPUT_CONFIG_TAP_MAP_LMR;
 			} else {
-				wlr_log(WLR_ERROR, "invalid tapButtonMap");
+				lab_wlr_log(WLR_ERROR, "invalid tapButtonMap");
 			}
 		} else if (!strcasecmp(key, "tapAndDrag")) {
 			int ret = parse_bool(content, -1);
@@ -846,7 +847,7 @@ fill_libinput_category(xmlNode *node)
 				: LIBINPUT_CONFIG_3FG_DRAG_DISABLED;
 		}
 #else
-		wlr_log(WLR_ERROR, "<threeFingerDrag> is only"
+		lab_wlr_log(WLR_ERROR, "<threeFingerDrag> is only"
 			" supported in libinput >= 1.28");
 #endif
 		} else if (!strcasecmp(key, "accelProfile")) {
@@ -879,7 +880,7 @@ fill_libinput_category(xmlNode *node)
 				category->click_method =
 					LIBINPUT_CONFIG_CLICK_METHOD_BUTTON_AREAS;
 			} else {
-				wlr_log(WLR_ERROR, "invalid clickMethod");
+				lab_wlr_log(WLR_ERROR, "invalid clickMethod");
 			}
 		} else if (!strcasecmp(key, "scrollMethod")) {
 			if (!strcasecmp(content, "none")) {
@@ -895,14 +896,14 @@ fill_libinput_category(xmlNode *node)
 				category->scroll_method =
 					LIBINPUT_CONFIG_SCROLL_ON_BUTTON_DOWN;
 			} else {
-				wlr_log(WLR_ERROR, "invalid scrollMethod");
+				lab_wlr_log(WLR_ERROR, "invalid scrollMethod");
 			}
 		} else if (!strcasecmp(key, "scrollButton")) {
 			int button = atoi(content);
 			if (button != 0) {
 				category->scroll_button = button;
 			} else {
-				wlr_log(WLR_ERROR, "invalid scrollButton");
+				lab_wlr_log(WLR_ERROR, "invalid scrollButton");
 			}
 		} else if (!strcasecmp(key, "sendEventsMode")) {
 			category->send_events_mode =
@@ -918,7 +919,7 @@ fill_libinput_category(xmlNode *node)
 				mat[i] = strtof(elements[i], &end_str);
 				if (errno == ERANGE || *end_str != '\0' || i == 6
 						|| *elements[i] == '\0') {
-					wlr_log(WLR_ERROR, "invalid calibration "
+					lab_wlr_log(WLR_ERROR, "invalid calibration "
 						"matrix element %s (index %d), "
 						"expect six floats", elements[i], i);
 					category->have_calibration_matrix = false;
@@ -927,7 +928,7 @@ fill_libinput_category(xmlNode *node)
 				}
 			}
 			if (i != 6 && category->have_calibration_matrix) {
-				wlr_log(WLR_ERROR, "wrong number of calibration "
+				lab_wlr_log(WLR_ERROR, "wrong number of calibration "
 					"matrix elements, expected 6, got %d", i);
 				category->have_calibration_matrix = false;
 			}
@@ -1128,7 +1129,7 @@ entry(xmlNode *node, char *nodename, char *content)
 		return true;
 
 	} else if (str_space_only(content)) {
-		wlr_log(WLR_ERROR, "Empty string is not allowed for %s. "
+		lab_wlr_log(WLR_ERROR, "Empty string is not allowed for %s. "
 			"Ignoring.", nodename);
 
 	/* handle non-empty leaf nodes */
@@ -1203,7 +1204,7 @@ entry(xmlNode *node, char *nodename, char *content)
 		if (doubleclick_time_parsed > 0) {
 			rc.doubleclick_time = doubleclick_time_parsed;
 		} else {
-			wlr_log(WLR_ERROR, "invalid doubleClickTime");
+			lab_wlr_log(WLR_ERROR, "invalid doubleClickTime");
 		}
 	} else if (!strcasecmp(nodename, "scrollFactor.mouse")) {
 		/* This is deprecated. Show an error message in post_processing() */
@@ -1235,7 +1236,7 @@ entry(xmlNode *node, char *nodename, char *content)
 	} else if (!strcasecmp(nodename, "range.snapping")) {
 		rc.snap_edge_range_inner = atoi(content);
 		rc.snap_edge_range_outer = atoi(content);
-		wlr_log(WLR_ERROR, "<snapping><range> is deprecated. "
+		lab_wlr_log(WLR_ERROR, "<snapping><range> is deprecated. "
 			"Use <snapping><range inner=\"\" outer=\"\"> instead.");
 	} else if (!strcasecmp(nodename, "inner.range.snapping")) {
 		rc.snap_edge_range_inner = atoi(content);
@@ -1261,7 +1262,7 @@ entry(xmlNode *node, char *nodename, char *content)
 		} else if (!strcasecmp(content, "never")) {
 			rc.snap_tiling_events_mode = LAB_TILING_EVENTS_NEVER;
 		} else {
-			wlr_log(WLR_ERROR, "ignoring invalid value for notifyClient");
+			lab_wlr_log(WLR_ERROR, "ignoring invalid value for notifyClient");
 		}
 
 	/*
@@ -1279,7 +1280,7 @@ entry(xmlNode *node, char *nodename, char *content)
 		} else if (!strcasecmp(content, "thumbnail")) {
 			rc.window_switcher.osd.style = CYCLE_OSD_STYLE_THUMBNAIL;
 		} else {
-			wlr_log(WLR_ERROR, "Invalid windowSwitcher style '%s': "
+			lab_wlr_log(WLR_ERROR, "Invalid windowSwitcher style '%s': "
 				"should be one of classic|thumbnail", content);
 		}
 	} else if (!strcasecmp(nodename, "output.osd.windowSwitcher")) {
@@ -1290,7 +1291,7 @@ entry(xmlNode *node, char *nodename, char *content)
 		} else if (!strcasecmp(content, "focused")) {
 			rc.window_switcher.osd.output_filter = CYCLE_OUTPUT_FOCUSED;
 		} else {
-			wlr_log(WLR_ERROR, "Invalid windowSwitcher output '%s': "
+			lab_wlr_log(WLR_ERROR, "Invalid windowSwitcher output '%s': "
 				"should be one of all|focused|cursor", content);
 		}
 	} else if (!strcasecmp(nodename, "order.windowSwitcher")) {
@@ -1299,14 +1300,14 @@ entry(xmlNode *node, char *nodename, char *content)
 		} else if (!strcasecmp(content, "age")) {
 			rc.window_switcher.order = WINDOW_SWITCHER_ORDER_AGE;
 		} else {
-			wlr_log(WLR_ERROR, "Invalid windowSwitcher order '%s': "
+			lab_wlr_log(WLR_ERROR, "Invalid windowSwitcher order '%s': "
 				"should be one of focus|age", content);
 		}
 
 	/* The following two are for backward compatibility only. */
 	} else if (!strcasecmp(nodename, "show.windowSwitcher")) {
 		set_bool(content, &rc.window_switcher.osd.show);
-		wlr_log(WLR_ERROR, "<windowSwitcher show=\"\" /> is deprecated."
+		lab_wlr_log(WLR_ERROR, "<windowSwitcher show=\"\" /> is deprecated."
 			" Use <windowSwitcher><osd show=\"\" />");
 	} else if (!strcasecmp(nodename, "style.windowSwitcher")) {
 		if (!strcasecmp(content, "classic")) {
@@ -1314,7 +1315,7 @@ entry(xmlNode *node, char *nodename, char *content)
 		} else if (!strcasecmp(content, "thumbnail")) {
 			rc.window_switcher.osd.style = CYCLE_OSD_STYLE_THUMBNAIL;
 		}
-		wlr_log(WLR_ERROR, "<windowSwitcher style=\"\" /> is deprecated."
+		lab_wlr_log(WLR_ERROR, "<windowSwitcher style=\"\" /> is deprecated."
 			" Use <windowSwitcher><osd style=\"\" />");
 
 	} else if (!strcasecmp(nodename, "preview.windowSwitcher")) {
@@ -1324,20 +1325,20 @@ entry(xmlNode *node, char *nodename, char *content)
 	} else if (!strcasecmp(nodename, "allWorkspaces.windowSwitcher")) {
 		int ret = parse_bool(content, -1);
 		if (ret < 0) {
-			wlr_log(WLR_ERROR, "Invalid value for <windowSwitcher"
+			lab_wlr_log(WLR_ERROR, "Invalid value for <windowSwitcher"
 				" allWorkspaces=\"\">: '%s'", content);
 		} else {
 			rc.window_switcher.workspace_filter = ret ?
 				CYCLE_WORKSPACE_ALL : CYCLE_WORKSPACE_CURRENT;
 		}
-		wlr_log(WLR_ERROR, "<windowSwitcher allWorkspaces=\"\" /> is deprecated."
+		lab_wlr_log(WLR_ERROR, "<windowSwitcher allWorkspaces=\"\" /> is deprecated."
 			" Use <action name=\"NextWindow\" workspace=\"\"> instead.");
 	} else if (!strcasecmp(nodename, "unshade.windowSwitcher")) {
 		set_bool(content, &rc.window_switcher.unshade);
 
 	/* Remove this long term - just a friendly warning for now */
 	} else if (strstr(nodename, "windowswitcher.core")) {
-		wlr_log(WLR_ERROR, "<windowSwitcher> should not be child of <core>");
+		lab_wlr_log(WLR_ERROR, "<windowSwitcher> should not be child of <core>");
 
 	/* The following three are for backward compatibility only */
 	} else if (!strcasecmp(nodename, "show.windowSwitcher.core")) {
@@ -1350,15 +1351,15 @@ entry(xmlNode *node, char *nodename, char *content)
 	/* The following three are for backward compatibility only */
 	} else if (!strcasecmp(nodename, "cycleViewOSD.core")) {
 		set_bool(content, &rc.window_switcher.osd.show);
-		wlr_log(WLR_ERROR, "<cycleViewOSD> is deprecated."
+		lab_wlr_log(WLR_ERROR, "<cycleViewOSD> is deprecated."
 			" Use <windowSwitcher show=\"\" />");
 	} else if (!strcasecmp(nodename, "cycleViewPreview.core")) {
 		set_bool(content, &rc.window_switcher.preview);
-		wlr_log(WLR_ERROR, "<cycleViewPreview> is deprecated."
+		lab_wlr_log(WLR_ERROR, "<cycleViewPreview> is deprecated."
 			" Use <windowSwitcher preview=\"\" />");
 	} else if (!strcasecmp(nodename, "cycleViewOutlines.core")) {
 		set_bool(content, &rc.window_switcher.outlines);
-		wlr_log(WLR_ERROR, "<cycleViewOutlines> is deprecated."
+		lab_wlr_log(WLR_ERROR, "<cycleViewOutlines> is deprecated."
 			" Use <windowSwitcher outlines=\"\" />");
 
 	} else if (!strcasecmp(nodename, "name.names.desktops")) {
@@ -1379,7 +1380,7 @@ entry(xmlNode *node, char *nodename, char *content)
 		} else if (!strcasecmp(content, "Nonpixel")) {
 			rc.resize_indicator = LAB_RESIZE_INDICATOR_NON_PIXEL;
 		} else {
-			wlr_log(WLR_ERROR, "Invalid value for <resize popupShow />");
+			lab_wlr_log(WLR_ERROR, "Invalid value for <resize popupShow />");
 		}
 	} else if (!strcasecmp(nodename, "drawContents.resize")) {
 		set_bool(content, &rc.resize_draw_contents);
@@ -1435,7 +1436,7 @@ entry(xmlNode *node, char *nodename, char *content)
 		if (iface_id) {
 			rc.allowed_interfaces |= iface_id;
 		} else {
-			wlr_log(WLR_ERROR, "invalid value for "
+			lab_wlr_log(WLR_ERROR, "invalid value for "
 				"<privilegedInterfaces><allow>");
 		}
 	}
@@ -1464,7 +1465,7 @@ rcxml_parse_xml(struct buf *b)
 	int options = 0;
 	xmlDoc *d = xmlReadMemory(b->data, b->len, NULL, NULL, options);
 	if (!d) {
-		wlr_log(WLR_ERROR, "error parsing config file");
+		lab_wlr_log(WLR_ERROR, "error parsing config file");
 		return;
 	}
 	xmlNode *root = xmlDocGetRootElement(d);
@@ -1495,6 +1496,7 @@ rcxml_init(void)
 		wl_list_init(&rc.mousebinds);
 		wl_list_init(&rc.libinput_categories);
 		wl_list_init(&rc.workspace_config.workspaces);
+		wl_list_init(&rc.error_logs);
 		wl_list_init(&rc.regions);
 		wl_list_init(&rc.window_switcher.osd.fields);
 		wl_list_init(&rc.window_rules);
@@ -1843,7 +1845,7 @@ post_processing(void)
 		assert(l && libinput_category_get_default() == l);
 	}
 	if (mouse_scroll_factor >= 0) {
-		wlr_log(WLR_ERROR, "<mouse><scrollFactor> is deprecated"
+		lab_wlr_log(WLR_ERROR, "<mouse><scrollFactor> is deprecated"
 				" and overwrites <libinput><scrollFactor>."
 				" Use only <libinput><scrollFactor>.");
 		struct libinput_category *l;
@@ -1903,7 +1905,7 @@ validate_actions(void)
 			if (!action_is_valid(action)) {
 				wl_list_remove(&action->link);
 				action_free(action);
-				wlr_log(WLR_ERROR, "Removed invalid keybind action");
+				lab_wlr_log(WLR_ERROR, "Removed invalid keybind action");
 			}
 		}
 	}
@@ -1914,7 +1916,7 @@ validate_actions(void)
 			if (!action_is_valid(action)) {
 				wl_list_remove(&action->link);
 				action_free(action);
-				wlr_log(WLR_ERROR, "Removed invalid mousebind action");
+				lab_wlr_log(WLR_ERROR, "Removed invalid mousebind action");
 			}
 		}
 	}
@@ -1925,7 +1927,7 @@ validate_actions(void)
 			if (!action_is_valid(action)) {
 				wl_list_remove(&action->link);
 				action_free(action);
-				wlr_log(WLR_ERROR, "Removed invalid window rule action");
+				lab_wlr_log(WLR_ERROR, "Removed invalid window rule action");
 			}
 		}
 	}
@@ -1944,7 +1946,7 @@ validate(void)
 			|| box.width <= 0 || box.width > 100
 			|| box.height <= 0 || box.height > 100;
 		if (invalid) {
-			wlr_log(WLR_ERROR,
+			lab_wlr_log(WLR_ERROR,
 				"Removing invalid region '%s': %d%% x %d%% @ %d%%,%d%%",
 				region->name, box.width, box.height, box.x, box.y);
 			wl_list_remove(&region->link);
@@ -1958,7 +1960,7 @@ validate(void)
 	wl_list_for_each_safe(rule, rule_tmp, &rc.window_rules, link) {
 		if (!rule->identifier && !rule->title && rule->window_type < 0
 				&& !rule->sandbox_engine && !rule->sandbox_app_id) {
-			wlr_log(WLR_ERROR, "Deleting rule %p as it has no criteria", rule);
+			lab_wlr_log(WLR_ERROR, "Deleting rule %p as it has no criteria", rule);
 			rule_destroy(rule);
 		}
 	}
@@ -1971,7 +1973,7 @@ validate(void)
 	wl_list_for_each_safe(field, field_tmp, &rc.window_switcher.osd.fields, link) {
 		field_width_sum += field->width;
 		if (!cycle_osd_field_is_valid(field) || field_width_sum > 100) {
-			wlr_log(WLR_ERROR, "Deleting invalid window switcher field %p", field);
+			lab_wlr_log(WLR_ERROR, "Deleting invalid window switcher field %p", field);
 			wl_list_remove(&field->link);
 			cycle_osd_field_free(field);
 		}
@@ -2017,7 +2019,7 @@ rcxml_read(const char *filename)
 			continue;
 		}
 
-		wlr_log(WLR_INFO, "read config file %s", path->string);
+		lab_wlr_log(WLR_INFO, "read config file %s", path->string);
 
 		rcxml_parse_xml(&b);
 		buf_reset(&b);
@@ -2091,6 +2093,15 @@ rcxml_finish(void)
 		zfree(w->name);
 		zfree(w);
 	}
+
+	struct log_item *log_item, *log_tmp;
+	wl_list_for_each_safe(log_item, log_tmp, &rc.error_logs, link) {
+		wl_list_remove(&log_item->link);
+		zfree(log_item->text);
+		zfree(log_item);
+	}
+	rc.has_error = false;
+	dialog_destroy(NULL);
 
 	regions_destroy(NULL, &rc.regions);
 

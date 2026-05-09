@@ -1,4 +1,5 @@
 labwc_sources += files(
+  'dialog.c',
   'rcxml.c',
   'keybind.c',
   'session.c',

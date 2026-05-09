@@ -17,6 +17,28 @@
 /* max of one button of each type (no repeats) */
 #define TITLE_BUTTONS_MAX ((LAB_NODE_BUTTON_LAST + 1) - LAB_NODE_BUTTON_FIRST)
 
+struct log_item {
+	char *text;
+	struct wl_list link; /* struct rcxml.error_logs */
+};
+
+/**
+ * Calls wlr_log(verb, fmt, ...) and also saves it in
+ * rc.error_logs for displaying it in a dialog later.
+ * Only sets rc.has_error when WLR_ERROR is used to log
+ * other relevant info like the config file.
+ */
+#define lab_wlr_log(verb, fmt, ...)	\
+do { \
+	wlr_log(verb, fmt, ##__VA_ARGS__); \
+	if (verb == WLR_ERROR) { \
+		rc.has_error = true; \
+	} \
+	struct log_item *log_item = znew(*log_item); \
+	log_item->text = strdup_printf(fmt, ##__VA_ARGS__);	\
+	wl_list_append(&rc.error_logs, &log_item->link); \
+} while (0)
+
 enum adaptive_sync_mode {
 	LAB_ADAPTIVE_SYNC_DISABLED,
 	LAB_ADAPTIVE_SYNC_ENABLED,
@@ -213,6 +235,10 @@ struct rcxml {
 	float mag_scale;
 	float mag_increment;
 	bool mag_filter;
+
+	/* Error log */
+	bool has_error;
+	struct wl_list error_logs; /* struct log_item.link */
 };
 
 /* defined in main.c */

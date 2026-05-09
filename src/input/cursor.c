@@ -17,6 +17,7 @@
 #include <wlr/types/wlr_xdg_shell.h>
 #include <wlr/util/region.h>
 #include "action.h"
+#include "config/dialog.h"
 #include "common/macros.h"
 #include "common/mem.h"
 #include "config/mousebind.h"
@@ -1236,7 +1237,10 @@ cursor_process_button_release(struct seat *seat, uint32_t button,
 		}
 		return notify;
 	}
-
+	if (ctx.type == LAB_NODE_CONFIG_DIALOG) {
+		dialog_destroy(ctx.node);
+		return notify;
+	}
 	if (server.input_mode != LAB_INPUT_STATE_PASSTHROUGH) {
 		return notify;
 	}

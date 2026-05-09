@@ -427,6 +427,10 @@ get_cursor_context(void)
 				}
 
 				return ret;
+			case LAB_NODE_CONFIG_DIALOG:
+				ret.type = LAB_NODE_CONFIG_DIALOG;
+				ret.node = node;
+				return ret;
 			default:
 				/* Other node types are not attached a scene node */
 				wlr_log(WLR_ERROR, "unexpected node type: %d", desc->type);

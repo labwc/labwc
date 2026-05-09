@@ -7,6 +7,7 @@
 #include "common/fd-util.h"
 #include "common/font.h"
 #include "common/spawn.h"
+#include "config/dialog.h"
 #include "config/rcxml.h"
 #include "config/session.h"
 #include "labwc.h"
@@ -262,6 +263,10 @@ main(int argc, char *argv[])
 	rc.theme = &theme;
 
 	menu_init();
+
+	if (rc.has_error) {
+		wl_event_loop_add_idle(server.wl_event_loop, dialog_create_callback, NULL);
+	}
 
 	/* Delay startup of applications until the event loop is ready */
 	struct idle_ctx idle_ctx = {

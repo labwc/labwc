@@ -54,6 +54,7 @@
 #include "common/macros.h"
 #include "common/mem.h"
 #include "common/scene-helpers.h"
+#include "config/dialog.h"
 #include "config/rcxml.h"
 #include "config/session.h"
 #include "decorations.h"
@@ -118,6 +119,9 @@ reload_config_and_theme(void)
 	resize_indicator_reconfigure();
 	kde_server_decoration_update_default();
 	workspaces_reconfigure();
+	if (rc.has_error) {
+		wl_event_loop_add_idle(server.wl_event_loop, dialog_create_callback, NULL);
+	}
 }
 
 static int
@@ -616,6 +620,7 @@ server_init(void)
 		server.wl_display, 1, server.renderer);
 
 	server.workspace_tree = lab_wlr_scene_tree_create(&server.scene->tree);
+	server.dialog_tree = lab_wlr_scene_tree_create(&server.scene->tree);
 	server.xdg_popup_tree = lab_wlr_scene_tree_create(&server.scene->tree);
 #if HAVE_XWAYLAND
 	// Creating/setting this is harmless when xwayland support is built-in

@@ -318,7 +318,7 @@ action_arg_from_xml_node(struct action *action, const char *nodename, const char
 					|| action->type == ACTION_TYPE_SNAP_TO_EDGE);
 			enum lab_edge edge = lab_edge_parse(content, tiled, /*any*/ false);
 			if (edge == LAB_EDGE_NONE) {
-				wlr_log(WLR_ERROR, "Invalid argument for action %s: '%s' (%s)",
+				lab_wlr_log(WLR_ERROR, "Invalid argument for action %s: '%s' (%s)",
 					action_names[action->type], argument, content);
 			} else {
 				action_arg_add_int(action, argument, edge);
@@ -347,7 +347,7 @@ action_arg_from_xml_node(struct action *action, const char *nodename, const char
 			} else if (!strcasecmp(content, "current")) {
 				action_arg_add_int(action, argument, CYCLE_WORKSPACE_CURRENT);
 			} else {
-				wlr_log(WLR_ERROR, "Invalid argument for action %s: '%s' (%s)",
+				lab_wlr_log(WLR_ERROR, "Invalid argument for action %s: '%s' (%s)",
 					action_names[action->type], argument, content);
 			}
 			goto cleanup;
@@ -360,7 +360,7 @@ action_arg_from_xml_node(struct action *action, const char *nodename, const char
 			} else if (!strcasecmp(content, "focused")) {
 				action_arg_add_int(action, argument, CYCLE_OUTPUT_FOCUSED);
 			} else {
-				wlr_log(WLR_ERROR, "Invalid argument for action %s: '%s' (%s)",
+				lab_wlr_log(WLR_ERROR, "Invalid argument for action %s: '%s' (%s)",
 					action_names[action->type], argument, content);
 			}
 			goto cleanup;
@@ -371,7 +371,7 @@ action_arg_from_xml_node(struct action *action, const char *nodename, const char
 			} else if (!strcasecmp(content, "current")) {
 				action_arg_add_int(action, argument, CYCLE_APP_ID_CURRENT);
 			} else {
-				wlr_log(WLR_ERROR, "Invalid argument for action %s: '%s' (%s)",
+				lab_wlr_log(WLR_ERROR, "Invalid argument for action %s: '%s' (%s)",
 					action_names[action->type], argument, content);
 			}
 			goto cleanup;
@@ -401,7 +401,7 @@ action_arg_from_xml_node(struct action *action, const char *nodename, const char
 		if (!strcmp(argument, "direction")) {
 			enum view_axis axis = view_axis_parse(content);
 			if (axis == VIEW_AXIS_NONE || axis == VIEW_AXIS_INVALID) {
-				wlr_log(WLR_ERROR, "Invalid argument for action %s: '%s' (%s)",
+				lab_wlr_log(WLR_ERROR, "Invalid argument for action %s: '%s' (%s)",
 					action_names[action->type], argument, content);
 			} else {
 				action_arg_add_int(action, argument, axis);
@@ -415,7 +415,7 @@ action_arg_from_xml_node(struct action *action, const char *nodename, const char
 			if (mode != LAB_SSD_MODE_INVALID) {
 				action_arg_add_int(action, argument, mode);
 			} else {
-				wlr_log(WLR_ERROR, "Invalid argument for action %s: '%s' (%s)",
+				lab_wlr_log(WLR_ERROR, "Invalid argument for action %s: '%s' (%s)",
 					action_names[action->type], argument, content);
 			}
 			goto cleanup;
@@ -430,7 +430,7 @@ action_arg_from_xml_node(struct action *action, const char *nodename, const char
 			enum lab_edge edge = lab_edge_parse(content,
 				/*tiled*/ true, /*any*/ false);
 			if (edge == LAB_EDGE_NONE || edge == LAB_EDGE_CENTER) {
-				wlr_log(WLR_ERROR,
+				lab_wlr_log(WLR_ERROR,
 					"Invalid argument for action %s: '%s' (%s)",
 					action_names[action->type], argument, content);
 			} else {
@@ -497,7 +497,7 @@ action_arg_from_xml_node(struct action *action, const char *nodename, const char
 			enum lab_edge edge = lab_edge_parse(content,
 				/*tiled*/ false, /*any*/ false);
 			if (edge == LAB_EDGE_NONE) {
-				wlr_log(WLR_ERROR, "Invalid argument for action %s: '%s' (%s)",
+				lab_wlr_log(WLR_ERROR, "Invalid argument for action %s: '%s' (%s)",
 					action_names[action->type], argument, content);
 			} else {
 				action_arg_add_int(action, argument, edge);
@@ -521,7 +521,7 @@ action_arg_from_xml_node(struct action *action, const char *nodename, const char
 			enum lab_placement_policy policy =
 				view_placement_parse(content);
 			if (policy == LAB_PLACE_INVALID) {
-				wlr_log(WLR_ERROR, "Invalid argument for action %s: '%s' (%s)",
+				lab_wlr_log(WLR_ERROR, "Invalid argument for action %s: '%s' (%s)",
 						action_names[action->type], argument, content);
 			} else {
 				action_arg_add_int(action, argument, policy);
@@ -542,7 +542,7 @@ action_arg_from_xml_node(struct action *action, const char *nodename, const char
 		goto cleanup;
 	}
 
-	wlr_log(WLR_ERROR, "Invalid argument for action %s: '%s'",
+	lab_wlr_log(WLR_ERROR, "Invalid argument for action %s: '%s'",
 		action_names[action->type], argument);
 
 cleanup:
@@ -557,7 +557,7 @@ action_type_from_str(const char *action_name)
 			return i;
 		}
 	}
-	wlr_log(WLR_ERROR, "Invalid action: %s", action_name);
+	lab_wlr_log(WLR_ERROR, "Invalid action: %s", action_name);
 	return ACTION_TYPE_INVALID;
 }
 
@@ -664,7 +664,7 @@ action_is_valid(struct action *action)
 		return true;
 	}
 
-	wlr_log(WLR_ERROR, "Missing required argument for %s: %s",
+	lab_wlr_log(WLR_ERROR, "Missing required argument for %s: %s",
 		action_names[action->type], arg_name);
 	return false;
 }

@@ -230,6 +230,9 @@ struct server {
 	/* Tree for all non-layer xdg/xwayland-shell surfaces */
 	struct wlr_scene_tree *workspace_tree;
 
+	/* Tree for error dialog */
+	struct wlr_scene_tree *dialog_tree;
+
 	/*
 	 * Popups need to be rendered above always-on-top views, so we reparent
 	 * them to this dedicated tree

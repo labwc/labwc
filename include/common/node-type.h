@@ -50,6 +50,7 @@ enum lab_node_type {
 	LAB_NODE_CYCLE_OSD_ITEM,
 	LAB_NODE_LAYER_SURFACE,
 	LAB_NODE_UNMANAGED,
+	LAB_NODE_CONFIG_DIALOG,
 	LAB_NODE_ALL,
 
 	/* translated to LAB_NODE_CLIENT by get_cursor_context() */

@@ -1592,6 +1592,7 @@ nag_parse_options(int argc, char **argv, struct nag *nag,
 		{"message", required_argument, NULL, 'm'},
 		{"output", required_argument, NULL, 'o'},
 		{"timeout", required_argument, NULL, 't'},
+		{"exclusive-zone", no_argument, NULL, 'x'},
 		{"version", no_argument, NULL, 'v'},
 
 		{"background-color", required_argument, NULL, TO_COLOR_BACKGROUND},

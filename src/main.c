@@ -46,17 +46,18 @@ static const struct option long_options[] = {
 
 static const char labwc_usage[] =
 "Usage: labwc [options...]\n"
-"  -c, --config <file>      Specify config file (with path)\n"
-"  -C, --config-dir <dir>   Specify config directory\n"
-"  -d, --debug              Enable full logging, including debug information\n"
-"  -e, --exit               Exit the compositor\n"
-"  -h, --help               Show help message and quit\n"
-"  -m, --merge-config       Merge user config files/theme in all XDG Base Dirs\n"
-"  -r, --reconfigure        Reload the compositor configuration\n"
-"  -s, --startup <command>  Run command on startup\n"
-"  -S, --session <command>  Run command on startup and terminate on exit\n"
-"  -v, --version            Show version number and quit\n"
-"  -V, --verbose            Enable more verbose logging\n";
+"  -c, --config <file>         Specify config file (with path)\n"
+"  -C, --config-dir <dir>      Specify config directory\n"
+"  -d, --debug                 Enable full logging, including debug information\n"
+"  -e, --exit                  Exit the compositor\n"
+"  -h, --help                  Show help message and quit\n"
+"  -m, --merge-config          Merge user config files/theme in all XDG Base Dirs\n"
+"  -r, --reconfigure           Reload the compositor configuration\n"
+"  -s, --startup <command>     Run command on startup\n"
+"  -S, --session <command>     Run command on startup and terminate on exit\n"
+"  -t, --window-title <fmtstr> Specify title to use when the compositor is nested\n"
+"  -v, --version               Show version number and quit\n"
+"  -V, --verbose               Enable more verbose logging\n";
 
 static void
 usage(void)

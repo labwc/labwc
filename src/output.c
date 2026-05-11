@@ -10,6 +10,7 @@
 #include "output.h"
 #include <assert.h>
 #include <drm_fourcc.h>
+#include <glib.h>
 #include <strings.h>
 #include <wlr/backend/wayland.h>
 #include <wlr/config.h>
@@ -26,6 +27,7 @@
 #include "common/macros.h"
 #include "common/mem.h"
 #include "common/scene-helpers.h"
+#include "common/string-helpers.h"
 #include "config/rcxml.h"
 #include "labwc.h"
 #include "layers.h"
@@ -605,13 +607,11 @@ handle_new_output(struct wl_listener *listener, void *data)
 	}
 
 	if (wlr_output_is_wl(wlr_output)) {
-		char title[64];
-		if (getenv("LABWC_TITLE")) {
-			snprintf(title, sizeof(title), "%s", getenv("LABWC_TITLE"));
-		} else {
-			snprintf(title, sizeof(title), "%s - %s", "labwc", wlr_output->name);
-		}
-		wlr_wl_output_set_title(wlr_output, title);
+		gchar** parts = g_strsplit(server.window_title_fmt, "%o", -1);
+		gchar* formatted_title = g_strjoinv(wlr_output->name, parts);
+		g_strfreev(parts);
+		wlr_wl_output_set_title(wlr_output, formatted_title);
+		g_free(formatted_title);
 		wlr_wl_output_set_app_id(wlr_output, "labwc");
 	}
 

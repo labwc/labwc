@@ -9,6 +9,7 @@
 #include "common/font.h"
 #include "common/macros.h"
 #include "common/spawn.h"
+#include "common/string-helpers.h"
 #include "config/rcxml.h"
 #include "config/session.h"
 #include "labwc.h"
@@ -37,6 +38,7 @@ static const struct option long_options[] = {
 	{"reconfigure", no_argument, NULL, 'r'},
 	{"startup", required_argument, NULL, 's'},
 	{"session", required_argument, NULL, 'S'},
+	{"window-title", required_argument, NULL, 't'},
 	{"version", no_argument, NULL, 'v'},
 	{"verbose", no_argument, NULL, 'V'},
 	{0, 0, 0, 0}
@@ -178,7 +180,7 @@ main(int argc, char *argv[])
 	int c;
 	while (1) {
 		int index = 0;
-		c = getopt_long(argc, argv, "c:C:dehmrs:S:vV", long_options, &index);
+		c = getopt_long(argc, argv, "c:C:dehmrs:S:t:vV", long_options, &index);
 		if (c == -1) {
 			break;
 		}
@@ -206,6 +208,9 @@ main(int argc, char *argv[])
 			break;
 		case 'S':
 			primary_client = optarg;
+			break;
+		case 't':
+			server.window_title_fmt = optarg;
 			break;
 		case 'v':
 			print_version();
@@ -264,6 +269,10 @@ main(int argc, char *argv[])
 	}
 
 	increase_nofile_limit();
+
+	if (string_null_or_empty(server.window_title_fmt)) {
+		server.window_title_fmt = "labwc - %o";
+	}
 
 	server_init();
 	server_start();

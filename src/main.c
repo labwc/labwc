@@ -67,7 +67,7 @@ static void
 print_version(void)
 {
 	#define FEATURE_ENABLED(feature) (HAVE_##feature ? "+" : "-")
-	printf("labwc %s (%sxwayland %snls %srsvg %slibsfdo) running on wlroots %d.%d.%d\n",
+	printf("labwc %s (%sxwayland %snls %srsvg %slibsfdo) wlroots-%d.%d.%d\n",
 		LABWC_VERSION,
 		FEATURE_ENABLED(XWAYLAND),
 		FEATURE_ENABLED(NLS),

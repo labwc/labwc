@@ -38,7 +38,7 @@ static const struct option long_options[] = {
 	{"reconfigure", no_argument, NULL, 'r'},
 	{"startup", required_argument, NULL, 's'},
 	{"session", required_argument, NULL, 'S'},
-	{"window-title", required_argument, NULL, 't'},
+	{"title", required_argument, NULL, 't'},
 	{"version", no_argument, NULL, 'v'},
 	{"verbose", no_argument, NULL, 'V'},
 	{0, 0, 0, 0}
@@ -46,18 +46,18 @@ static const struct option long_options[] = {
 
 static const char labwc_usage[] =
 "Usage: labwc [options...]\n"
-"  -c, --config <file>         Specify config file (with path)\n"
-"  -C, --config-dir <dir>      Specify config directory\n"
-"  -d, --debug                 Enable full logging, including debug information\n"
-"  -e, --exit                  Exit the compositor\n"
-"  -h, --help                  Show help message and quit\n"
-"  -m, --merge-config          Merge user config files/theme in all XDG Base Dirs\n"
-"  -r, --reconfigure           Reload the compositor configuration\n"
-"  -s, --startup <command>     Run command on startup\n"
-"  -S, --session <command>     Run command on startup and terminate on exit\n"
-"  -t, --window-title <fmtstr> Specify title to use when the compositor is nested\n"
-"  -v, --version               Show version number and quit\n"
-"  -V, --verbose               Enable more verbose logging\n";
+"  -c, --config <file>      Specify config file (with path)\n"
+"  -C, --config-dir <dir>   Specify config directory\n"
+"  -d, --debug              Enable full logging, including debug information\n"
+"  -e, --exit               Exit the compositor\n"
+"  -h, --help               Show help message and quit\n"
+"  -m, --merge-config       Merge user config files/theme in all XDG Base Dirs\n"
+"  -r, --reconfigure        Reload the compositor configuration\n"
+"  -s, --startup <command>  Run command on startup\n"
+"  -S, --session <command>  Run command on startup and terminate on exit\n"
+"  -t, --title <fmtstr>     Specify title to use when running in a window\n"
+"  -v, --version            Show version number and quit\n"
+"  -V, --verbose            Enable more verbose logging\n";
 
 static void
 usage(void)
@@ -211,7 +211,7 @@ main(int argc, char *argv[])
 			primary_client = optarg;
 			break;
 		case 't':
-			server.window_title_fmt = optarg;
+			server.title_fmt = optarg;
 			break;
 		case 'v':
 			print_version();
@@ -271,8 +271,8 @@ main(int argc, char *argv[])
 
 	increase_nofile_limit();
 
-	if (string_null_or_empty(server.window_title_fmt)) {
-		server.window_title_fmt = "labwc - %o";
+	if (string_null_or_empty(server.title_fmt)) {
+		server.title_fmt = "labwc - %o";
 	}
 
 	server_init();

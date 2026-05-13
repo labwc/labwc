@@ -316,7 +316,7 @@ struct server {
 
 	pid_t primary_client_pid;
 
-	char *window_title_fmt;
+	char *title_fmt;
 };
 
 /* defined in main.c */

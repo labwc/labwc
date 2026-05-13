@@ -607,8 +607,8 @@ handle_new_output(struct wl_listener *listener, void *data)
 	}
 
 	if (wlr_output_is_wl(wlr_output)) {
-		gchar** parts = g_strsplit(server.window_title_fmt, "%o", -1);
-		gchar* formatted_title = g_strjoinv(wlr_output->name, parts);
+		gchar **parts = g_strsplit(server.title_fmt, "%o", -1);
+		gchar *formatted_title = g_strjoinv(wlr_output->name, parts);
 		g_strfreev(parts);
 		wlr_wl_output_set_title(wlr_output, formatted_title);
 		g_free(formatted_title);

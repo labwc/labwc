@@ -15,6 +15,7 @@
 #include "common/buf.h"
 #include "common/dir.h"
 #include "common/list.h"
+#include "common/log.h"
 #include "common/macros.h"
 #include "common/mem.h"
 #include "common/nodename.h"
@@ -1167,6 +1168,8 @@ entry(xmlNode *node, char *nodename, char *content)
 
 	} else if (!strcasecmp(nodename, "promptCommand.core")) {
 		xstrdup_replace(rc.prompt_command, content);
+	} else if (!strcasecmp(nodename, "errorCommand.core")) {
+		xstrdup_replace(rc.error_command, content);
 
 	} else if (!strcmp(nodename, "policy.placement")) {
 		enum lab_placement_policy policy = view_placement_parse(content);
@@ -1476,7 +1479,7 @@ rcxml_parse_xml(struct buf *b)
 	int options = 0;
 	xmlDoc *d = xmlReadMemory(b->data, b->len, NULL, NULL, options);
 	if (!d) {
-		wlr_log(WLR_ERROR, "error parsing config file");
+		nag_log(WLR_ERROR, "error parsing config file");
 		return;
 	}
 	xmlNode *root = xmlDocGetRootElement(d);
@@ -1802,6 +1805,15 @@ post_processing(void)
 				"--layer overlay "
 				"--timeout 0");
 	}
+	if (!rc.error_command) {
+		rc.error_command =
+			xstrdup("labnag "
+				"--message 'Config Error' "
+				"--button-dismiss 'Close' "
+				"--layer overlay "
+				"--timeout 0 "
+				"--detailed-message");
+	}
 	if (!rc.fallback_app_icon_name) {
 		rc.fallback_app_icon_name = xstrdup("labwc");
 	}
@@ -2030,7 +2042,7 @@ rcxml_read(const char *filename)
 			continue;
 		}
 
-		wlr_log(WLR_INFO, "read config file %s", path->string);
+		nag_log(WLR_INFO, "read config file %s", path->string);
 
 		rcxml_parse_xml(&b);
 		buf_reset(&b);
@@ -2052,6 +2064,7 @@ rcxml_finish(void)
 	zfree(rc.font_menuitem.name);
 	zfree(rc.font_osd.name);
 	zfree(rc.prompt_command);
+	zfree(rc.error_command);
 	zfree(rc.theme_name);
 	zfree(rc.icon_theme_name);
 	zfree(rc.fallback_app_icon_name);

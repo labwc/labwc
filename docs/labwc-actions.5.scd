@@ -217,13 +217,14 @@ Actions are used in menus and keyboard/mouse bindings.
 *<action name="ToggleDecorations" />*
 	Toggle decorations of focused window.
 
-	This is a 3-state action which can be executed multiple times:
-	- Only the titlebar will be hidden, borders and resize area are kept
+	This is a 4-state action which can be executed multiple times:
+	- Titlebar is hidden; borders and handle/grip remain visible
+	- Handle/grip is also hidden; only borders remain
 	- Remaining decorations will be disabled
 	- Decorations will be shown normally
 
-	By disabling the theme configuration 'keepBorder' the first step
-	will be removed and the action only toggles between on and off.
+	By disabling the theme configuration 'keepBorder' the cycle reduces
+	to toggling between full decorations and no decorations.
 
 *<action name="ToggleFullscreen" />*
 	Toggle fullscreen state of focused window.
@@ -526,9 +527,10 @@ Actions that execute other actions. Used in keyboard/mouse bindings.
 			Whether the client is tiled (snapped) to the indicated
 			region. The indicated region may be a glob.
 
-		*decoration* [full|border|none]
+		*decoration* [full|border-handle|border|none]
 			Whether the client has full server-side decorations,
-			borders only, or no server-side decorations.
+			borders with handle/grip, borders only, or no
+			server-side decorations.
 
 		*monitor* [current|left|right|<monitor_name>]
 			Whether the client is on a monitor relative to the to

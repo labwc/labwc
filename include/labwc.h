@@ -229,6 +229,10 @@ struct server {
 
 	struct ssd_button *hovered_button;
 
+	/* Track which handle/grip element is hovered (for cross-view cleanup) */
+	struct ssd *hovered_handle_ssd;
+	int hovered_handle_element; /* -1 = none */
+
 	/* Tree for all non-layer xdg/xwayland-shell surfaces */
 	struct wlr_scene_tree *workspace_tree;
 

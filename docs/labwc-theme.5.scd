@@ -113,6 +113,33 @@ window.*.title.bg.colorTo.splitTo: #557485
 	Line width (integer) of border drawn around window frames.
 	Default is 1.
 
+*window.handle.width*
+	Height (integer) of the bottom handle bar in pixels. Despite the name,
+	this controls the vertical size of the handle (Openbox naming
+	convention). When set to 0, the handle/grip assembly is disabled and
+	the standard bottom border is used instead. Default is 6.
+
+*window.grip.width*
+	Width (integer) of each corner grip in the bottom handle bar, in
+	pixels. Default is 20.
+
+*window.active.handle.bg* / *window.inactive.handle.bg*
+	Texture for the handle background. Supports Solid, Gradient Vertical,
+	and Gradient SplitVertical. Default is *Solid* with color #a0a0a0
+	(active) / #c0c0c0 (inactive).
+
+*window.active.handle.bg.color* (and .colorTo, .color.splitTo, .colorTo.splitTo)
+	Colors for the handle background gradient stops. See the texture
+	documentation above for details.
+
+*window.active.grip.bg* / *window.inactive.grip.bg*
+	Texture for the left and right grip backgrounds. If not set, the grip
+	inherits from the handle background.
+
+*window.active.grip.bg.color* (and .colorTo, .color.splitTo, .colorTo.splitTo)
+	Colors for the grip background gradient stops. If not set, the grip
+	inherits from the handle background colors.
+
 *window.titlebar.padding.width*
 	Horizontal titlebar padding size, in pixels, between border and first
 	button on the left/right.
@@ -561,7 +588,19 @@ following icons should be added:
 
 # DEFINITIONS
 
-The handle is the window edge decoration at the bottom of the window.
+The handle is the window edge decoration at the bottom of the window. It
+consists of a center handle bar (for vertical resizing) and two grips at the
+left and right corners (for diagonal resizing). The handle/grip assembly
+replaces the standard bottom border when enabled (window.handle.width > 0)
+and the current decoration state includes the handle. Vertical separator
+lines of border.width thickness are drawn between the grips and the center
+handle using the window border color.
+
+When hovering over a grip element, it dims by 20%. When clicked (pressed
+but not yet moved), it dims by 40% with an inset shadow effect giving a
+"pushed in" appearance. During drag-resize, the dimming reduces to 20%
+while maintaining the inset shadow. The center handle does not receive
+these visual effects.
 
 # SEE ALSO
 

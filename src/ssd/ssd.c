@@ -59,6 +59,18 @@ ssd_thickness(struct view *view)
 	if (!view_titlebar_visible(view)) {
 		thickness.top -= theme->titlebar_height;
 	}
+
+	/*
+	 * When the handle is visible, the bottom thickness is the
+	 * full handle assembly: top separator (bw) + content (hw)
+	 * + bottom border (bw).  Per Openbox spec, handle_width is
+	 * the content-only height with borders drawn around it.
+	 */
+	if (view_handle_visible(view)) {
+		thickness.bottom = 2 * theme->border_width
+			+ theme->handle_width;
+	}
+
 	return thickness;
 }
 
@@ -122,14 +134,34 @@ ssd_get_resizing_type(const struct ssd *ssd, struct wlr_cursor *cursor)
 		return LAB_NODE_CORNER_TOP_LEFT;
 	} else if (top && right) {
 		return LAB_NODE_CORNER_TOP_RIGHT;
-	} else if (bottom && left) {
-		return LAB_NODE_CORNER_BOTTOM_LEFT;
-	} else if (bottom && right) {
-		return LAB_NODE_CORNER_BOTTOM_RIGHT;
+	} else if (bottom) {
+		/*
+		 * When the handle is visible, the grip columns define
+		 * the effective corner zones for the bottom edge.
+		 * Expand the corner width so that the extents below
+		 * the grips produce diagonal resize types matching the
+		 * grip layout above them.
+		 */
+		if (view_handle_visible(view)) {
+			struct theme *theme = rc.theme;
+			int grip_col = theme->grip_width + theme->border_width;
+			int wide = MAX(corner_width, grip_col);
+			if (cursor->x < view_box.x + wide) {
+				return LAB_NODE_CORNER_BOTTOM_LEFT;
+			} else if (cursor->x > view_box.x
+					+ view_box.width - wide) {
+				return LAB_NODE_CORNER_BOTTOM_RIGHT;
+			}
+		} else {
+			if (left) {
+				return LAB_NODE_CORNER_BOTTOM_LEFT;
+			} else if (right) {
+				return LAB_NODE_CORNER_BOTTOM_RIGHT;
+			}
+		}
+		return LAB_NODE_BORDER_BOTTOM;
 	} else if (top) {
 		return LAB_NODE_BORDER_TOP;
-	} else if (bottom) {
-		return LAB_NODE_BORDER_BOTTOM;
 	} else if (left) {
 		return LAB_NODE_BORDER_LEFT;
 	} else if (right) {
@@ -167,9 +199,13 @@ ssd_create(struct view *view, bool active)
 	 */
 	ssd_titlebar_create(ssd);
 	ssd_border_create(ssd);
+	ssd_handle_create(ssd);
 	if (!view_titlebar_visible(view)) {
 		/* Ensure we keep the old state on Reconfigure or when exiting fullscreen */
 		ssd_set_titlebar(ssd, false);
+	}
+	if (!view_handle_visible(view)) {
+		ssd_set_handle(ssd, false);
 	}
 	ssd->margin = ssd_thickness(view);
 	ssd_set_active(ssd, active);
@@ -234,6 +270,7 @@ ssd_update_geometry(struct ssd *ssd)
 	 * maximizedDecoration=none
 	 */
 	ssd_set_titlebar(ssd, view_titlebar_visible(view));
+	ssd_set_handle(ssd, view_handle_visible(view));
 
 	if (update_extents) {
 		ssd_extents_update(ssd);
@@ -242,6 +279,7 @@ ssd_update_geometry(struct ssd *ssd)
 	if (update_area || state_changed) {
 		ssd_titlebar_update(ssd);
 		ssd_border_update(ssd);
+		ssd_handle_update(ssd);
 		ssd_shadow_update(ssd);
 	}
 
@@ -265,6 +303,22 @@ ssd_set_titlebar(struct ssd *ssd, bool enabled)
 }
 
 void
+ssd_set_handle(struct ssd *ssd, bool enabled)
+{
+	if (!ssd || !ssd->handle.tree) {
+		return;
+	}
+	if (ssd->handle.tree->node.enabled == enabled) {
+		return;
+	}
+	wlr_scene_node_set_enabled(&ssd->handle.tree->node, enabled);
+	ssd_border_update(ssd);
+	ssd_extents_update(ssd);
+	ssd_shadow_update(ssd);
+	ssd->margin = ssd_thickness(ssd->view);
+}
+
+void
 ssd_destroy(struct ssd *ssd)
 {
 	if (!ssd) {
@@ -277,10 +331,15 @@ ssd_destroy(struct ssd *ssd)
 			server.hovered_button->node) == view) {
 		server.hovered_button = NULL;
 	}
+	if (server.hovered_handle_ssd == ssd) {
+		server.hovered_handle_ssd = NULL;
+		server.hovered_handle_element = -1;
+	}
 
 	/* Destroy subcomponents */
 	ssd_titlebar_destroy(ssd);
 	ssd_border_destroy(ssd);
+	ssd_handle_destroy(ssd);
 	ssd_extents_destroy(ssd);
 	ssd_shadow_destroy(ssd);
 	wlr_scene_node_destroy(&ssd->tree->node);
@@ -298,6 +357,8 @@ ssd_mode_parse(const char *mode)
 		return LAB_SSD_MODE_NONE;
 	} else if (!strcasecmp(mode, "border")) {
 		return LAB_SSD_MODE_BORDER;
+	} else if (!strcasecmp(mode, "border-handle")) {
+		return LAB_SSD_MODE_BORDER_HANDLE;
 	} else if (!strcasecmp(mode, "full")) {
 		return LAB_SSD_MODE_FULL;
 	} else {
@@ -324,6 +385,11 @@ ssd_set_active(struct ssd *ssd, bool active)
 				&ssd->shadow.subtrees[active_state].tree->node,
 				active == active_state);
 		}
+		if (ssd->handle.tree) {
+			wlr_scene_node_set_enabled(
+				&ssd->handle.subtrees[active_state].tree->node,
+				active == active_state);
+		}
 	}
 }
 
@@ -335,6 +401,7 @@ ssd_enable_shade(struct ssd *ssd, bool enable)
 	}
 	ssd_titlebar_update(ssd);
 	ssd_border_update(ssd);
+	ssd_handle_update(ssd);
 	wlr_scene_node_set_enabled(&ssd->extents.tree->node, !enable);
 	ssd_shadow_update(ssd);
 }
@@ -384,6 +451,14 @@ ssd_debug_get_node_name(const struct ssd *ssd, struct wlr_scene_node *node)
 	}
 	if (node == &ssd->extents.tree->node) {
 		return "extents";
+	}
+	if (ssd->handle.tree) {
+		if (node == &ssd->handle.subtrees[SSD_ACTIVE].tree->node) {
+			return "handle.active";
+		}
+		if (node == &ssd->handle.subtrees[SSD_INACTIVE].tree->node) {
+			return "handle.inactive";
+		}
 	}
 	return NULL;
 }

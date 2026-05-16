@@ -607,11 +607,10 @@ handle_new_output(struct wl_listener *listener, void *data)
 	}
 
 	if (wlr_output_is_wl(wlr_output)) {
-		gchar **parts = g_strsplit(server.title_fmt, "%o", -1);
-		gchar *formatted_title = g_strjoinv(wlr_output->name, parts);
-		g_strfreev(parts);
-		wlr_wl_output_set_title(wlr_output, formatted_title);
-		g_free(formatted_title);
+		GString *title = g_string_new(server.title_fmt);
+		g_string_replace(title, "%o", wlr_output->name, 0);
+		wlr_wl_output_set_title(wlr_output, title->str);
+		g_string_free(title, TRUE);
 		wlr_wl_output_set_app_id(wlr_output, "labwc");
 	}
 

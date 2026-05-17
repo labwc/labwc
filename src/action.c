@@ -145,7 +145,7 @@ struct action_arg_list {
  * Will expand to:
  *
  * enum action_type {
- *	ACTION_TYPE_INVALID,
+ *	ACTION_TYPE_INVALID = 0,
  *	ACTION_TYPE_NONE,
  *	ACTION_TYPE_CLOSE,
  *	ACTION_TYPE_KILL,
@@ -1312,7 +1312,7 @@ run_action(struct view *view, struct action *action,
 
 			/*
 			 * To support only setting one of width/height
-			 * in <action name="ResizeTo" width="" height=""/>
+			 * in <action name="ResizeTo" width="" height="" />
 			 * we fall back to current dimension when unset.
 			 */
 			struct wlr_box box = {

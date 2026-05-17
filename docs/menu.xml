@@ -23,7 +23,7 @@
     Any menu with the id "workspaces" will be hidden
     if there is only a single workspace available.
   -->
-  <menu id="client-send-to-menu"/>
+  <menu id="client-send-to-menu" />
   <!--
     openbox default workspace selector
     to use replace above workspace menu with the example below
@@ -56,9 +56,9 @@
   # A prompt can be used as follows:
   <item label="Exit">
     <action name="If">
-      <prompt message="Do you really want to exit the compositor?"/>
+      <prompt message="Do you really want to exit the compositor?" />
       <then>
-        <action name="Exit"/>
+        <action name="Exit" />
       </then>
     </action>
   </item>

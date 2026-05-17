@@ -141,14 +141,14 @@ static struct key_combos {
  * <mouse>
  *   <context name="Maximize">
  *     <mousebind button="Left" action="Click">
- *       <action name="Focus"/>
- *       <action name="Raise"/>
- *       <action name="ToggleMaximize"/>
+ *       <action name="Focus" />
+ *       <action name="Raise" />
+ *       <action name="ToggleMaximize" />
  *     </mousebind>
  *   </context>
  *   <context name="Root">
  *     <mousebind direction="Up" action="Scroll">
- *       <action name="GoToDesktop" to="left" wrap="yes"/>
+ *       <action name="GoToDesktop" to="left" wrap="yes" />
  *     </mousebind>
  *   </context>
  * </mouse>

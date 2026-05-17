@@ -642,10 +642,10 @@
     #     string and '?' matches any single character.
 
     <windowRules>
-      <windowRule identifier="*"><action name="Maximize"/></windowRule>
-      <windowRule identifier="foo" serverDecoration="yes"/>
-      <windowRule title="bar" serverDecoration="yes"/>
-      <windowRule identifier="baz" title="quax" serverDecoration="yes"/>
+      <windowRule identifier="*"><action name="Maximize" /></windowRule>
+      <windowRule identifier="foo" serverDecoration="yes" />
+      <windowRule title="bar" serverDecoration="yes" />
+      <windowRule identifier="baz" title="quax" serverDecoration="yes" />
     </windowRules>
 
     # Example below for `lxqt-panel` and `pcmanfm-qt \-\-desktop`
@@ -656,18 +656,18 @@
       <windowRule identifier="lxqt-panel" matchOnce="true">
         <skipTaskbar>yes</skipTaskbar>
         <action name="MoveTo" x="0" y="0" />
-        <action name="ToggleAlwaysOnTop"/>
+        <action name="ToggleAlwaysOnTop" />
       </windowRule>
       <windowRule title="pcmanfm-desktop*">
         <skipTaskbar>yes</skipTaskbar>
         <skipWindowSwitcher>yes</skipWindowSwitcher>
         <fixedPosition>yes</fixedPosition>
         <action name="MoveTo" x="0" y="0" />
-        <action name="ToggleAlwaysOnBottom"/>
+        <action name="ToggleAlwaysOnBottom" />
       </windowRule>
       <windowRule identifier="org.qutebrowser.qutebrowser">
         <action name="ResizeTo" width="1024" height="800" />
-        <action name="AutoPlace"/>
+        <action name="AutoPlace" />
       </windowRule>
     </windowRules>
   -->

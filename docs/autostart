@@ -12,7 +12,7 @@
 swaybg -c '#113344' >/dev/null 2>&1 &
 
 # Configure output directives such as mode, position, scale and transform.
-# Use wlr-randr to get your output names
+# Use wlr-randr to get your output names.
 # Example ~/.config/kanshi/config below:
 #   profile {
 #     output HDMI-A-1 position 1366,0

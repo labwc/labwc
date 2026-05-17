@@ -25,7 +25,7 @@ The XDG Base Directory Specification does not specify whether or not programs
 should (a) allow the first-identified configuration file to supersede any
 others, or (b) define rules for merging the information from more than one file.
 
-By default, labwc uses option (a), reading only the first file identified.  With
+By default, labwc uses option (a), reading only the first file identified. With
 the --merge-config option, the search order is reversed, but every configuration
 file encountered is processed in turn. Thus, user-specific files will augment
 system-wide configurations, with conflicts favoring the user-specific
@@ -526,7 +526,8 @@ extending outward from the snapped edge.
 	*<range><inner>* and *<range><outer>*, and 50 for *<cornerRange>*.
 
 *<snapping><overlay><enabled>* [yes|no]
-	Show an overlay when snapping a window to an output edge. Default is yes.
+	Show an overlay when snapping a window to an output edge.
+	Default is yes.
 
 *<snapping><overlay><delay><inner>*++
 *<snapping><overlay><delay><outer>*
@@ -595,7 +596,7 @@ extending outward from the snapped edge.
 	A setting of 0 disables the OSD. Default is 1000 ms.
 
 *<desktops><prefix>*
-	Set the prefix to use when using "number" above. Default is "Workspace"
+	Set the prefix to use when using "number" above. Default is "Workspace".
 
 ## THEME
 
@@ -749,7 +750,7 @@ generate gesture events, like swipe and pinch. There are some related settings
 (e.g. *threeFingerDrag* and *twoFingerScroll*) in the *<libinput>* section.
 
 In the Wayland Compositor domain, events associated with touchscreens are
-sometimes simply referred to as *touch* events.  Touchscreens can be configured
+sometimes simply referred to as *touch* events. Touchscreens can be configured
 in both the *<touch>* and *<libinput>* sections. Note that touchscreen gestures
 are not interpreted by libinput, nor labwc. Any touch point is passed to the
 client (application) for any interpretation of gestures.
@@ -824,9 +825,10 @@ overrideInhibition="">*
 	Make this keybind work even if the screen is locked. Default is no.
 
 	*overrideInhibition* [yes|no]
-	Make this keybind work even if the view inhibits keybinds. Default is no.
+	Make this keybind work even if the view inhibits keybinds.
 	This can be used to prevent W-Tab and similar keybinds from being
 	delivered to Virtual Machines, VNC clients or nested compositors.
+	Default is no.
 
 	*onRelease* [yes|no]
 	When yes, fires the keybind action when the key or key
@@ -840,7 +842,7 @@ overrideInhibition="">*
 
 	```
 	<keybind key="Super_L" onRelease="yes">
-	  <action name="Execute" command="rofi -show drun"/>
+	  <action name="Execute" command="rofi -show drun" />
 	</keybind>
 	```
 
@@ -900,7 +902,7 @@ input-devices by the Wayland protocol.
 	- Shade: A button that, by default, toggles window shading.
 	- AllDesktops: A button that, by default, toggles omnipresence of a
 	  window.
-	- Close: A button that, by default, closses a window.
+	- Close: A button that, by default, closes a window.
 	- Border: The window's border including Top...BRCorner below.
 	- Top: The top edge of the window's border.
 	- Bottom: The bottom edge of the window's border.
@@ -974,10 +976,10 @@ input-devices by the Wayland protocol.
 
 ```
 <mouse>
-  <default/>
+  <default />
   <context name="Frame">
-    <mousebind button="W-Left" action="Press"/>
-    <mousebind button="W-Left" action="Drag"/>
+    <mousebind button="W-Left" action="Press" />
+    <mousebind button="W-Left" action="Drag" />
   </context>
 </mouse>
 ```
@@ -985,7 +987,7 @@ input-devices by the Wayland protocol.
 *<mouse><default />*
 	Load default mousebinds. This is an addition to the openbox
 	specification and provides a way to keep config files simpler whilst
-	allowing user specific binds.  Note that if no rc.xml is found, or if no
+	allowing user specific binds. Note that if no rc.xml is found, or if no
 	<mouse><mousebind> entries exist, the same default mousebinds will be
 	loaded even if the <default /> element is not provided.
 
@@ -997,7 +999,7 @@ Note: To rotate touch events with output rotation, use the libinput
 *calibrationMatrix* setting.
 
 ```
-<touch deviceName="" mapToOutput="" mouseEmulation="no"/>
+<touch deviceName="" mapToOutput="" mouseEmulation="no" />
 ```
 
 *<touch deviceName="" />*
@@ -1260,7 +1262,8 @@ Note: To rotate touch events with output rotation, use the libinput
 	The default method depends on the touchpad hardware.
 
 *<libinput><device><scrollMethod>* [none|twofinger|edge|onbutton]
-	Configure the method by which physical movements are mapped to scroll events.
+	Configure the method by which physical movements are mapped to scroll
+	events.
 
 	The scroll methods available are:
 	- *twofinger* - Scroll by two fingers being placed on the surface of the
@@ -1275,7 +1278,8 @@ Note: To rotate touch events with output rotation, use the libinput
 *<libinput><device><scrollButton>* [button]
 	Set the button used for the *onbutton* scroll method.
 
-	*button* is the decimal form of a value from `linux/input-event-codes.h`.
+	*button* is the decimal form of a value
+	from `linux/input-event-codes.h`.
 
 *<libinput><device><sendEventsMode>* [yes|no|disabledOnExternalMouse]
 	Optionally enable or disable sending any device events.
@@ -1324,7 +1328,7 @@ defined as shown below.
 
   <!-- Action -->
   <windowRule identifier="" title="" type="">
-    <action name=""/>
+    <action name="" />
   </windowRule>
 
   <!-- Property -->
@@ -1521,7 +1525,7 @@ This is the full list of interfaces that can be controlled with this mechanism:
 
 *XCURSOR_PATH*
 	Specify a colon-separated list of paths to look for mouse cursors in.
-	Default
+	Default is
 	~/.local/share/icons:
 	~/.icons:
 	/usr/share/icons:
@@ -1532,7 +1536,7 @@ This is the full list of interfaces that can be controlled with this mechanism:
 
 *XCURSOR_SIZE*
 	Specify an alternative mouse cursor size in pixels. Requires
-	XCURSOR_THEME to be set also. Default 24.
+	XCURSOR_THEME to be set also. Default is 24.
 
 *XCURSOR_THEME*
 	Specify a mouse cursor theme within XCURSOR_PATH.

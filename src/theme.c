@@ -788,7 +788,7 @@ entry(struct theme *theme, const char *key, const char *value)
 			value, "window.button.spacing");
 	}
 
-	/* botton hover overlay */
+	/* button hover overlay */
 	if (match_glob(key, "window.button.hover.bg.color")) {
 		parse_color(value, theme->window_button_hover_bg_color);
 	}

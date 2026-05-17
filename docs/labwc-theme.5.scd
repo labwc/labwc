@@ -494,6 +494,8 @@ file within a particular theme. The following xbm buttons are supported:
 - max_toggled.xbm
 - desk.xbm
 - desk_toggled.xbm
+- ontop.xbm
+- ontop_toggled.xbm
 - shade.xbm
 - shade_toggled.xbm
 
@@ -506,9 +508,11 @@ over the button in question:
 - menu_hover.xbm
 - max_toggled_hover.xbm
 - desk_hover.xbm
-- desk_toggle_hover.xbm
+- desk_toggled_hover.xbm
+- ontop_hover.xbm
+- ontop_toggled_hover.xbm
 - shade_hover.xbm
-- shade_toggle_hover.xbm
+- shade_toggled_hover.xbm
 
 One advantage of xbm buttons over other formats is that they change color based
 on the theme. Other formats use the suffices "-active" and "-inactive" to align
@@ -558,7 +562,14 @@ following icons should be added:
 - desk_toggled-inactive.[png|svg]
 - desk_toggled_hover-active.[png|svg]
 - desk_toggled_hover-inactive.[png|svg]
-
+- ontop-active.[png|svg]
+- ontop_hover-active.[png|svg]
+- ontop_hover-inactive.[png|svg]
+- ontop-inactive.[png|svg]
+- ontop_toggled-active.[png|svg]
+- ontop_toggled-inactive.[png|svg]
+- ontop_toggled_hover-active.[png|svg]
+- ontop_toggled_hover-inactive.[png|svg]
 # DEFINITIONS
 
 The handle is the window edge decoration at the bottom of the window.

@@ -1562,6 +1562,8 @@ view_toggle_always_on_top(struct view *view)
 	} else {
 		view_set_layer(view, VIEW_LAYER_ALWAYS_ON_TOP);
 	}
+	// Hack to update always-on-top ssd button state. May be wasteful, idk.
+	ssd_update_geometry(view->ssd);
 }
 
 void

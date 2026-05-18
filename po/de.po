@@ -8,8 +8,8 @@ msgstr ""
 "Project-Id-Version: labwc\n"
 "Report-Msgid-Bugs-To: https://github.com/labwc/labwc/issues\n"
 "POT-Creation-Date: 2024-09-19 21:09+1000\n"
-"PO-Revision-Date: 2025-08-15 20:01+0000\n"
-"Last-Translator: Ettore Atalan <atalanttore@googlemail.com>\n"
+"PO-Revision-Date: 2026-05-18 18:28+0000\n"
+"Last-Translator: Demian <Demian@gmx.co.uk>\n"
 "Language-Team: German <https://translate.lxqt-project.org/projects/labwc/"
 "labwc/de/>\n"
 "Language: de\n"
@@ -21,7 +21,7 @@ msgstr ""
 
 #: src/menu/menu.c:1016
 msgid "Go there..."
-msgstr "Dorthin gehen..."
+msgstr "Dorthin wechseln ..."
 
 #: src/menu/menu.c:1034
 msgid "Terminal"
@@ -61,11 +61,11 @@ msgstr "Immer im Vordergrund"
 
 #: src/menu/menu.c:1071
 msgid "Move Left"
-msgstr "nach links"
+msgstr "Nach links"
 
 #: src/menu/menu.c:1078
 msgid "Move Right"
-msgstr "nach rechts"
+msgstr "Nach rechts"
 
 #: src/menu/menu.c:1083
 msgid "Always on Visible Workspace"

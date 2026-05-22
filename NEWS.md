@@ -9,7 +9,7 @@ The format is based on [Keep a Changelog]
 
 | Date       | All Changes   | wlroots version | lines-of-code |
 |------------|---------------|-----------------|---------------|
-| 2026-05-07 | [unreleased]  | 0.20.0          | 28236         |
+| 2026-05-25 | [0.20.0]      | 0.20.1          | 28313         |
 | 2026-04-17 | [0.9.7]       | 0.19.2          | 29277         |
 | 2026-03-15 | [0.9.6]       | 0.19.2          | 29271         |
 | 2026-03-04 | [0.9.5]       | 0.19.2          | 29251         |
@@ -45,6 +45,7 @@ The format is based on [Keep a Changelog]
 | 2021-03-05 | [0.1.0]       | 0.12.0          | 4627          |
 
 [unreleased]: NEWS.md#unreleased
+[0.20.0]: NEWS.md#0200---2026-05-25
 [0.9.7]: NEWS.md#097---2026-04-17
 [0.9.6]: NEWS.md#096---2026-03-15
 [0.9.5]: NEWS.md#095---2026-03-04
@@ -83,16 +84,44 @@ The format is based on [Keep a Changelog]
 
 [unreleased-commits]
 
-The codebase has been ported to wlroots 0.20 [#2956] @Consolatis
+## 0.20.0 - 2026-05-25
+
+[0.20.0-commits]
+
+This is the first release using wlroots-0.20 and therefore has an increased risk
+of teething issues. Many thanks to @Consolatis for leading the effort to port
+across [#2956].
+
+In terms of new features, the most noteworthy ones include: (i) the frequently
+requested show-desktop action; (ii) initial toplevel capture support to
+screenshot specific windows; (iii) menu accelerators/shortcuts; and (iv) HDR10
+support when running with the Vulkan renderer option.
+
+The eagle-eyed amongst you will have noticed the sudden jump from labwc `0.9.7`
+to `0.20.0`. The reason for this is to align the minor number to that of the
+wlroots version against which the compositor is linked.
+
+The 0.9.x series has turned into a maintenance branch named v0.9 with bug fixes
+only, for anyone preferring to build with wlroots-0.19.
 
 Note to maintainers:
+
 - libinput >=1.26 is required in support of tablet tool pressure range
   configuration.
+- labwc >=0.20.1 is required to avoid some bugs that we do not want labwc to
+  ship with. For details, see:
+  https://gitlab.freedesktop.org/wlroots/wlroots/-/merge_requests/5325
 
 ### Added
 
+- Partially support toplevel-capture. Note that the following are not yet
+  implemented: (i) XWayland child windows; (ii) XWayland unmanaged windows
+  (e.g. popups); (iii) xdg child window positioning; (iv) xdg subsurfaces;
+  and (v) xdg popup positioning. [#2968] @Consolatis
+- Add command line option -t|--title to set the labwc window title when running
+  nested [#3577] @mdsib
 - Add support for HDR10 output @kode54 @Consolatis [#3424]
-- Include wlroots version in --version string @Consolatis [#3567]
+- Include wlroots version in --version string @Consolatis [#3567] [#3581]
 - Implement menu accelerators (one-letter mnemonics to quickly select/exec
   items from the current menu) @ch3rn1ka [#3505]
 - Add Next/PreviousWindowImmediate actions @elviosak @johanmalm [#3547]
@@ -105,7 +134,8 @@ Note to maintainers:
 - Add `onbutton` to config option `<libinput><device><scrollMethod>`. Also add
   associated option `<libinput><device><scrollButton>`. @diniamo [#3540]
 - Add `overrideInhibition` option to `<keybind>` [#3507] @drougas
-- Add action `ToggleShowDesktop` to hide/unhide windows [#3500] @johanmalm
+- Add action `ToggleShowDesktop` to hide/unhide windows, and default keybind
+  `Super-d` to trigger this action [#3500] [#3595] @johanmalm
 - Add `<privilegedInterfaces>` config option so that privileged protocols can be
   restricted [#3493] @xi
 - Add action `DebugToggleKeyStateIndicator` to show a key-state on-screen
@@ -118,6 +148,7 @@ Note to maintainers:
 
 ### Fixed
 
+- Enable labnag long option --exclusive-zone [#3576] @st0rm-shad0w
 - Position chromium popup correctly when a window is maximized on a multi-
   output setup @elviosak [#3547]
 - Run session activation environment update synchronously to avoid a race
@@ -2739,7 +2770,8 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
   ShowMenu
 
 [Keep a Changelog]: https://keepachangelog.com/en/1.0.0/
-[unreleased-commits]: https://github.com/labwc/labwc/compare/0.9.5...HEAD
+[unreleased-commits]: https://github.com/labwc/labwc/compare/0.20.0...HEAD
+[0.20.0-commits]: https://github.com/labwc/labwc/compare/0.9.5..0.20.0
 [0.9.7-commits]: https://github.com/labwc/labwc/compare/0.9.6...0.9.7
 [0.9.6-commits]: https://github.com/labwc/labwc/compare/0.9.5...0.9.6
 [0.9.5-commits]: https://github.com/labwc/labwc/compare/0.9.4...0.9.5
@@ -3311,3 +3343,4 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
 [#3543]: https://github.com/labwc/labwc/pull/3543
 [#3547]: https://github.com/labwc/labwc/pull/3547
 [#3567]: https://github.com/labwc/labwc/pull/3567
+[#3595]: https://github.com/labwc/labwc/pull/3595

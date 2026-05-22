@@ -79,40 +79,6 @@ The format is based on [Keep a Changelog]
 [0.2.0]: NEWS.md#020---2021-04-15
 [0.1.0]: NEWS.md#010---2021-03-05
 
-## Notes on wlroots-0.19
-
-There are some regression warnings worth noting for the switch to wlroots 0.19:
-
-- The DRM backend now destroys/recreates outputs on VT switch and in some cases
-  on suspend/resume too. The reason for this change was that (i) the KMS state
-  is undefined when a VT is switched away; and (ii) the previous outputs had
-  issues with restoration, particularly when the output configuration had
-  changed whilst switched away. This change causes two issues for users:
-  - Some layer-shell clients do not re-appear on output re-connection, or may
-    appear on a different output. Whilst this has always been the case, it will
-    now also happen in said situations. We recommend layer-shell clients to
-    handle the new-output and surface-destroy signals to achieve desired
-    behaviours.
-  - Some Gtk clients issue critical warnings as they assume that at least one
-    output is always available. This will be fixed in `Gtk-3.24.50`. It is
-    believed to be a harmless warning, but it can be avoided by running labwc
-    with the environment variable `LABWC_FALLBACK_OUTPUT=NOOP-fallback` to
-    temporarily create a fallback-output when the last physical display
-    disconnects. [#2914] [#2939] [wlroots-4878] [gtk-8792]
-- Menu item can no longer be activated in any Gtk applications with a single
-  press-drag-release mouse action. For context: This is due to ambiguity in the
-  specifications and contrary implementations. For example, Gtk applications are
-  broken under KWin in this regard, while vice versa Qt clients are broken under
-  other compositors like Weston, Mutter and labwc. It has been decided not to
-  block the release due to this regression as it is an eco-system wide issue
-  that has existed for a long time. [#2787]
-- It is strongly recommended to use at least wlroots 0.19.1 [#2943]
-  [wlroots-5098] [#2887]
-
-[wlroots-4878]: https://gitlab.freedesktop.org/wlroots/wlroots/-/merge_requests/4878
-[wlroots-5098]:https://gitlab.freedesktop.org/wlroots/wlroots/-/merge_requests/5098
-[gtk-8792]: https://gitlab.gnome.org/GNOME/gtk/-/merge_requests/8792
-
 ## unreleased
 
 [unreleased-commits]
@@ -185,6 +151,40 @@ Note to maintainers:
 - Change the default keybinds for XF86Audio{LowerVolume,RaiseVolume,Mute} to use
   pactl instead of amixer [#3484] @danielrrrr
 - Drop cosmic-workspace protocol [#3031] @tokyo4j
+
+## Notes on wlroots-0.19
+
+There are some regression warnings worth noting for the switch to wlroots 0.19:
+
+- The DRM backend now destroys/recreates outputs on VT switch and in some cases
+  on suspend/resume too. The reason for this change was that (i) the KMS state
+  is undefined when a VT is switched away; and (ii) the previous outputs had
+  issues with restoration, particularly when the output configuration had
+  changed whilst switched away. This change causes two issues for users:
+  - Some layer-shell clients do not re-appear on output re-connection, or may
+    appear on a different output. Whilst this has always been the case, it will
+    now also happen in said situations. We recommend layer-shell clients to
+    handle the new-output and surface-destroy signals to achieve desired
+    behaviours.
+  - Some Gtk clients issue critical warnings as they assume that at least one
+    output is always available. This will be fixed in `Gtk-3.24.50`. It is
+    believed to be a harmless warning, but it can be avoided by running labwc
+    with the environment variable `LABWC_FALLBACK_OUTPUT=NOOP-fallback` to
+    temporarily create a fallback-output when the last physical display
+    disconnects. [#2914] [#2939] [wlroots-4878] [gtk-8792]
+- Menu item can no longer be activated in any Gtk applications with a single
+  press-drag-release mouse action. For context: This is due to ambiguity in the
+  specifications and contrary implementations. For example, Gtk applications are
+  broken under KWin in this regard, while vice versa Qt clients are broken under
+  other compositors like Weston, Mutter and labwc. It has been decided not to
+  block the release due to this regression as it is an eco-system wide issue
+  that has existed for a long time. [#2787]
+- It is strongly recommended to use at least wlroots 0.19.1 [#2943]
+  [wlroots-5098] [#2887]
+
+[wlroots-4878]: https://gitlab.freedesktop.org/wlroots/wlroots/-/merge_requests/4878
+[wlroots-5098]:https://gitlab.freedesktop.org/wlroots/wlroots/-/merge_requests/5098
+[gtk-8792]: https://gitlab.gnome.org/GNOME/gtk/-/merge_requests/8792
 
 ## 0.9.7 - 2026-04-17
 

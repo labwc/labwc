@@ -108,7 +108,7 @@ Note to maintainers:
 
 - libinput >=1.26 is required in support of tablet tool pressure range
   configuration.
-- labwc >=0.20.1 is required to avoid some bugs that we do not want labwc to
+- wlroots >=0.20.1 is required to avoid some bugs that we do not want labwc to
   ship with. For details, see:
   https://gitlab.freedesktop.org/wlroots/wlroots/-/merge_requests/5325
 

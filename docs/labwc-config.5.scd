@@ -863,6 +863,7 @@ overrideInhibition="">*
   W-Return - lab-sensible-terminal
   A-F4 - close window
   W-a - toggle maximize
+  W-d - toggle show-desktop
   W-<arrow> - resize window to fill half or quarter of the output
   A-Space - show window menu
 ```

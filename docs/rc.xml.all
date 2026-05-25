@@ -279,6 +279,9 @@
     <keybind key="W-a">
       <action name="ToggleMaximize" />
     </keybind>
+    <keybind key="W-d">
+      <action name="ToggleShowDesktop" />
+    </keybind>
     <keybind key="W-Left">
       <action name="SnapToEdge" direction="left" combine="yes" />
     </keybind>

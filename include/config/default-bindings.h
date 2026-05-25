@@ -29,6 +29,9 @@ static struct key_combos {
 		.binding = "W-a",
 		.action = "ToggleMaximize",
 	}, {
+		.binding = "W-d",
+		.action = "ToggleShowDesktop",
+	}, {
 		.binding = "W-Left",
 		.action = "SnapToEdge",
 		.attributes[0] = {

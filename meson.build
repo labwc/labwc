@@ -1,7 +1,7 @@
 project(
   'labwc',
   'c',
-  version: '0.9.5',
+  version: '0.20.0',
   license: 'GPL-2.0-only',
   meson_version: '>=0.59.0',
   default_options: [
@@ -53,7 +53,7 @@ add_project_arguments('-DLABWC_VERSION=@0@'.format(version), language: 'c')
 wlroots = dependency(
   'wlroots-0.20',
   default_options: ['default_library=static', 'examples=false'],
-  version: ['>=0.20.0', '<0.21.0'],
+  version: ['>=0.20.1', '<0.21.0'],
 )
 
 wlroots_has_xwayland = wlroots.get_variable('have_xwayland') == 'true'

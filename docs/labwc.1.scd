@@ -66,9 +66,17 @@ the `--exit` and `--reconfigure` options use.
 	Manager, or the Window Manager can be launched independently first. On
 	Wayland, the Compositor is both Display Server and Window Manager, so
 	the described session management mechanisms do not work because the
-	Compositor needs to be running before the session can function.  As some
+	Compositor needs to be running before the session can function. As some
 	session clients support both X11 and Wayland, this command line option
 	avoids re-writes and fragmentation.
+
+*-t, --title* <fmtstr>
+	Set the window title for labwc to use when it is running in a window
+	(i.e. nested in a compositor). <fmtstr> is a format string to be used as
+	the window title, replacing `%o` with the name of the output
+	region. This is useful when simulating multiple screens, such as with
+	running labwc with the environment variable `WLR_WL_OUTPUTS=2`. In this
+	case, `%o` will be unique per simulated screen.
 
 *-v, --version*
 	Show the version number and quit

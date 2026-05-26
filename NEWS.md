@@ -9,7 +9,7 @@ The format is based on [Keep a Changelog]
 
 | Date       | All Changes   | wlroots version | lines-of-code |
 |------------|---------------|-----------------|---------------|
-| 2026-04-29 | [unreleased]  | 0.20.0          | 27849         |
+| 2026-05-25 | [0.20.0]      | 0.20.1          | 28313         |
 | 2026-04-17 | [0.9.7]       | 0.19.2          | 29277         |
 | 2026-03-15 | [0.9.6]       | 0.19.2          | 29271         |
 | 2026-03-04 | [0.9.5]       | 0.19.2          | 29251         |
@@ -45,6 +45,7 @@ The format is based on [Keep a Changelog]
 | 2021-03-05 | [0.1.0]       | 0.12.0          | 4627          |
 
 [unreleased]: NEWS.md#unreleased
+[0.20.0]: NEWS.md#0200---2026-05-25
 [0.9.7]: NEWS.md#097---2026-04-17
 [0.9.6]: NEWS.md#096---2026-03-15
 [0.9.5]: NEWS.md#095---2026-03-04
@@ -79,6 +80,109 @@ The format is based on [Keep a Changelog]
 [0.2.0]: NEWS.md#020---2021-04-15
 [0.1.0]: NEWS.md#010---2021-03-05
 
+## unreleased
+
+[unreleased-commits]
+
+## 0.20.0 - 2026-05-25
+
+[0.20.0-commits]
+
+This is the first release using wlroots-0.20 and therefore has an increased risk
+of teething issues. Many thanks to @Consolatis for leading the effort to port
+across [#2956].
+
+In terms of new features, the most noteworthy ones include: (i) the frequently
+requested show-desktop action; (ii) initial toplevel capture support to
+screenshot specific windows; (iii) menu accelerators/shortcuts; and (iv) HDR10
+support when running with the Vulkan renderer option.
+
+The eagle-eyed amongst you will have noticed the sudden jump from labwc `0.9.7`
+to `0.20.0`. The reason for this is to align the minor number to that of the
+wlroots version against which the compositor is linked.
+
+The 0.9.x series has turned into a maintenance branch named v0.9 with bug fixes
+only, for anyone preferring to build with wlroots-0.19.
+
+Note to maintainers:
+
+- libinput >=1.26 is required in support of tablet tool pressure range
+  configuration.
+- wlroots >=0.20.1 is required to avoid some bugs that we do not want labwc to
+  ship with. For details, see:
+  https://gitlab.freedesktop.org/wlroots/wlroots/-/merge_requests/5325
+
+### Added
+
+- Partially support toplevel-capture. Note that the following are not yet
+  implemented: (i) XWayland child windows; (ii) XWayland unmanaged windows
+  (e.g. popups); (iii) xdg child window positioning; (iv) xdg subsurfaces;
+  and (v) xdg popup positioning. [#2968] @Consolatis
+- Add command line option -t|--title to set the labwc window title when running
+  nested [#3577] @mdsib
+- Add support for HDR10 output @kode54 @Consolatis [#3424]
+- Include wlroots version in --version string @Consolatis [#3567] [#3581]
+- Implement menu accelerators (one-letter mnemonics to quickly select/exec
+  items from the current menu) @ch3rn1ka [#3505]
+- Add Next/PreviousWindowImmediate actions @elviosak @johanmalm [#3547]
+- Add labnag options `--details-border-color` and `--details-margin`
+  @st0rm-shad0w [#3527]
+- Add config option `<focus><raiseOnFocusDelay>` to defer raise-on-focus by a
+  small amount when `raiseOnFocus` is enabled  @joske [#3513]
+- Install `labwc-session.target` systemd user unit when the systemd dependency
+  is available  @joske [#3534]
+- Add `onbutton` to config option `<libinput><device><scrollMethod>`. Also add
+  associated option `<libinput><device><scrollButton>`. @diniamo [#3540]
+- Add `overrideInhibition` option to `<keybind>` [#3507] @drougas
+- Add action `ToggleShowDesktop` to hide/unhide windows, and default keybind
+  `Super-d` to trigger this action [#3500] [#3595] @johanmalm
+- Add `<privilegedInterfaces>` config option so that privileged protocols can be
+  restricted [#3493] @xi
+- Add action `DebugToggleKeyStateIndicator` to show a key-state on-screen
+  display (OSD) for debugging. [#3499] @johanmalm @tokyo4j
+- Add support for `color-management-v1` and `color-representation-manager-v1`
+  protocols [#3469] @ManuLinares
+- Add configuration option `<tabletTool minPressure="0.0" maxPressure="1.0" />`
+  to enable tablet tool pressure range libinput settings [#2916] @jp7677
+- Add `wl_fixes` interface [#2956] @kode54
+
+### Fixed
+
+- Enable labnag long option --exclusive-zone [#3576] @st0rm-shad0w
+- Position chromium popup correctly when a window is maximized on a multi-
+  output setup @elviosak [#3547]
+- Run session activation environment update synchronously to avoid a race
+  condition with the autostart script [#3543] @joske
+- Allow interactive resize on fully maximized windows so that a resize
+  initiated by modifier plus right-mouse-button-drag is not ignored [#3525]
+  @bjorn
+- Gracefully handle missing XWayland packages, so that a labwc compositor which
+  has been built with XWayland support (which is optional) can be run even if
+  XWayland is not installed. [#3401] @quite
+- Rework how XWayland window initial geometry is set to ensure that the natural
+  geometry does not exceed the usable output area when handling initial
+  maximize/fullscreen requests. [#3439] @jlindgren90.
+- For XWayland windows, sync always-on-top state back to X.Org Server. This
+  makes `wmctrl -b toggle,above` work. [#3446] @jlindgren90
+- Fix missing title and icon with XWayland client override-redirect toggle.
+  There are no known issues with clients, so this is purely for preventative
+  purposes. [#3450] @jlindgren90
+- Update titlebar title when set to empty and fix an associated issue causing
+  the title to be misplaced outside of the titlebar when the window is resized.
+  [#3443] @tokyo4j
+- When running nested, exit compositor when last output is destroyed because
+  in this situation, each output corresponds to a window in the parent
+  compositor and, unlike DRM outputs, these cannot be reconnected after being
+  destroyed. [#3440] @marler8997
+- Allow policy-based placement to apply when an initially-maximized/fullscreen
+  view is restored to floating geometry. [#3387] [#3502] @jlindgren90
+
+### Changed
+
+- Change the default keybinds for XF86Audio{LowerVolume,RaiseVolume,Mute} to use
+  pactl instead of amixer [#3484] @danielrrrr
+- Drop cosmic-workspace protocol [#3031] @tokyo4j
+
 ## Notes on wlroots-0.19
 
 There are some regression warnings worth noting for the switch to wlroots 0.19:
@@ -112,72 +216,6 @@ There are some regression warnings worth noting for the switch to wlroots 0.19:
 [wlroots-4878]: https://gitlab.freedesktop.org/wlroots/wlroots/-/merge_requests/4878
 [wlroots-5098]:https://gitlab.freedesktop.org/wlroots/wlroots/-/merge_requests/5098
 [gtk-8792]: https://gitlab.gnome.org/GNOME/gtk/-/merge_requests/8792
-
-## unreleased
-
-[unreleased-commits]
-
-The codebase has been ported to wlroots 0.20 [#2956] @Consolatis
-
-Note to maintainers:
-- libinput >=1.26 is required in support of tablet tool pressure range
-  configuration.
-
-### Added
-
-- Add labnag options `--details-border-color` and `--details-margin`
-  @st0rm-shad0w [#3527]
-- Add config option `<focus><raiseOnFocusDelay>` to defer raise-on-focus by a
-  small amount when `raiseOnFocus` is enabled  @joske [#3513]
-- Install `labwc-session.target` systemd user unit when the systemd dependency
-  is available  @joske [#3534]
-- Add `onbutton` to config option `<libinput><device><scrollMethod>`. Also add
-  associated option `<libinput><device><scrollButton>`. @diniamo [#3540]
-- Add `overrideInhibition` option to `<keybind>` [#3507] @drougas
-- Add action `ToggleShowDesktop` to hide/unhide windows [#3500] @johanmalm
-- Add `<privilegedInterfaces>` config option so that privileged protocols can be
-  restricted [#3493] @xi
-- Add action `DebugToggleKeyStateIndicator` to show a key-state on-screen
-  display (OSD) for debugging. [#3499] @johanmalm @tokyo4j
-- Add support for `color-management-v1` and `color-representation-manager-v1`
-  protocols [#3469] @ManuLinares
-- Add configuration option `<tabletTool minPressure="0.0" maxPressure="1.0" />`
-  to enable tablet tool pressure range libinput settings [#2916] @jp7677
-- Add `wl_fixes` interface [#2956] @kode54
-
-### Fixed
-
-- Run session activation environment update synchronously to avoid a race
-  condition with the autostart script [#3543] @joske
-- Allow interactive resize on fully maximized windows so that a resize
-  initiated by modifier plus right-mouse-button-drag is not ignored [#3525]
-  @bjorn
-- Gracefully handle missing XWayland packages, so that a labwc compositor which
-  has been built with XWayland support (which is optional) can be run even if
-  XWayland is not installed. [#3401] @quite
-- Rework how XWayland window initial geometry is set to ensure that the natural
-  geometry does not exceed the usable output area when handling initial
-  maximize/fullscreen requests. [#3439] @jlindgren90.
-- For XWayland windows, sync always-on-top state back to X.Org Server. This
-  makes `wmctrl -b toggle,above` work. [#3446] @jlindgren90
-- Fix missing title and icon with XWayland client override-redirect toggle.
-  There are no known issues with clients, so this is purely for preventative
-  purposes. [#3450] @jlindgren90
-- Update titlebar title when set to empty and fix an associated issue causing
-  the title to be misplaced outside of the titlebar when the window is resized.
-  [#3443] @tokyo4j
-- When running nested, exit compositor when last output is destroyed because
-  in this situation, each output corresponds to a window in the parent
-  compositor and, unlike DRM outputs, these cannot be reconnected after being
-  destroyed. [#3440] @marler8997
-- Allow policy-based placement to apply when an initially-maximized/fullscreen
-  view is restored to floating geometry. [#3387] [#3502] @jlindgren90
-
-### Changed
-
-- Change the default keybinds for XF86Audio{LowerVolume,RaiseVolume,Mute} to use
-  pactl instead of amixer [#3484] @danielrrrr
-- Drop cosmic-workspace protocol [#3031] @tokyo4j
 
 ## 0.9.7 - 2026-04-17
 
@@ -2732,7 +2770,8 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
   ShowMenu
 
 [Keep a Changelog]: https://keepachangelog.com/en/1.0.0/
-[unreleased-commits]: https://github.com/labwc/labwc/compare/0.9.5...HEAD
+[unreleased-commits]: https://github.com/labwc/labwc/compare/0.20.0...HEAD
+[0.20.0-commits]: https://github.com/labwc/labwc/compare/0.9.5..0.20.0
 [0.9.7-commits]: https://github.com/labwc/labwc/compare/0.9.6...0.9.7
 [0.9.6-commits]: https://github.com/labwc/labwc/compare/0.9.5...0.9.6
 [0.9.5-commits]: https://github.com/labwc/labwc/compare/0.9.4...0.9.5
@@ -3272,6 +3311,7 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
 [#3410]: https://github.com/labwc/labwc/pull/3410
 [#3411]: https://github.com/labwc/labwc/pull/3411
 [#3412]: https://github.com/labwc/labwc/pull/3412
+[#3424]: https://github.com/labwc/labwc/pull/3424
 [#3425]: https://github.com/labwc/labwc/pull/3425
 [#3426]: https://github.com/labwc/labwc/pull/3426
 [#3428]: https://github.com/labwc/labwc/pull/3428
@@ -3292,6 +3332,7 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
 [#3499]: https://github.com/labwc/labwc/pull/3499
 [#3500]: https://github.com/labwc/labwc/pull/3500
 [#3502]: https://github.com/labwc/labwc/pull/3502
+[#3505]: https://github.com/labwc/labwc/pull/3505
 [#3507]: https://github.com/labwc/labwc/pull/3507
 [#3511]: https://github.com/labwc/labwc/pull/3511
 [#3513]: https://github.com/labwc/labwc/pull/3513
@@ -3300,3 +3341,6 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
 [#3534]: https://github.com/labwc/labwc/pull/3534
 [#3540]: https://github.com/labwc/labwc/pull/3540
 [#3543]: https://github.com/labwc/labwc/pull/3543
+[#3547]: https://github.com/labwc/labwc/pull/3547
+[#3567]: https://github.com/labwc/labwc/pull/3567
+[#3595]: https://github.com/labwc/labwc/pull/3595

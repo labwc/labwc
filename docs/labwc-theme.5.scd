@@ -135,7 +135,7 @@ window.*.title.bg.colorTo.splitTo: #557485
 
 *window.active.title.bg*
 	Texture for the focused window's titlebar. See texture section above.
-	Default is *Solid*
+	Default is *Solid*.
 
 *window.active.title.bg.color*
 	Background color for the focused window's titlebar. See texture section
@@ -144,7 +144,7 @@ window.*.title.bg.colorTo.splitTo: #557485
 
 *window.inactive.title.bg*
 	Texture for non-focused windows' titlebars. See texture section above.
-	Default is *Solid*
+	Default is *Solid*.
 
 *window.inactive.title.bg.color*
 	Background color for non-focused windows' titlebars. See texture section
@@ -470,7 +470,7 @@ all are supported.
 	Width of magnifier window border in pixels. Default is 1.
 
 *magnifier.border.color*
-	Color of the magnfier window border. Default is #ff0000 (red).
+	Color of the magnifier window border. Default is #ff0000 (red).
 
 # BUTTONS
 

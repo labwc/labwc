@@ -172,7 +172,7 @@ item_parse_accelerator(struct menuitem *item, const char *text)
 			accel_ptr = underscore + 1;
 			break;
 		} else {
-			/* Ignore empty accelertor */
+			/* Ignore empty accelerator */
 			break;
 		}
 	}
@@ -627,7 +627,7 @@ fill_menu(struct menu *parent, xmlNode *n)
 			 *
 			 * <?xml version="1.0" encoding="UTF-8"?>
 			 * <openbox_menu>
-			 *   <menu id="root-menu" label="foo" execute="bar"/>
+			 *   <menu id="root-menu" label="foo" execute="bar" />
 			 * </openbox_menu>
 			 */
 		} else {

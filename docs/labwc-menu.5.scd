@@ -12,7 +12,7 @@ Static menus are built based on the menu.xml file located at
 # SYNTAX
 
 The menu file must be entirely enclosed within <openbox_menu> and
-</openbox_menu> tags.  Inside these tags, menus are specified as follows:
+</openbox_menu> tags. Inside these tags, menus are specified as follows:
 
 ```
 <!-- A toplevel menu -->
@@ -111,7 +111,7 @@ Pipe menus are menus generated dynamically based on output of scripts or
 binaries. They are so-called because the output of the executable is piped to
 the labwc menu.
 
-For any *<menu id="" label="" execute="COMMAND"/>* entry in menu.xml, the
+For any *<menu id="" label="" execute="COMMAND" />* entry in menu.xml, the
 COMMAND will be executed the first time the item is selected (for example by
 cursor or keyboard input). The XML output of the command will be parsed and
 shown as a submenu. The content of pipemenus is cached until the whole menu
@@ -124,7 +124,7 @@ menus, for example:
 ```
 <openbox_pipe_menu>
   <item label="Terminal">
-    <action name="Execute" command="xterm"/>
+    <action name="Execute" command="xterm" />
   </item>
 </openbox_pipe_menu>
 ```
@@ -144,7 +144,7 @@ obmenu-generator with the menu generator of your choice):
 ```
 <?xml version="1.0"?>
 <openbox_menu>
-  <menu id="root-menu" label="" execute="obmenu-generator"/>
+  <menu id="root-menu" label="" execute="obmenu-generator" />
 </openbox_menu>
 ```
 

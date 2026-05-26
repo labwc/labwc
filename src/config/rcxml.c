@@ -614,9 +614,9 @@ fill_mousebind(xmlNode *node, const char *context)
 	/*
 	 * Example of what we are parsing:
 	 * <mousebind button="Left" action="DoubleClick">
-	 *   <action name="Focus"/>
-	 *   <action name="Raise"/>
-	 *   <action name="ToggleMaximize"/>
+	 *   <action name="Focus" />
+	 *   <action name="Raise" />
+	 *   <action name="ToggleMaximize" />
 	 * </mousebind>
 	 */
 

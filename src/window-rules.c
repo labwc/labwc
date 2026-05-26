@@ -69,8 +69,8 @@ window_rules_get_property(struct view *view, const char *property)
 	 * for foot's "serverDecoration" property to be "default".
 	 *
 	 *     <windowRules>
-	 *       <windowRule identifier="*" serverDecoration="no"/>
-	 *       <windowRule identifier="foot" serverDecoration="default"/>
+	 *       <windowRule identifier="*" serverDecoration="no" />
+	 *       <windowRule identifier="foot" serverDecoration="default" />
 	 *     </windowRules>
 	 */
 	struct window_rule *rule;

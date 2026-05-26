@@ -130,7 +130,7 @@ void scaled_buffer_request_update(struct scaled_buffer *self,
 
 /**
  * scaled_buffer_invalidate_sharing - clear the list of entire cached
- * scaled_buffers used to share visually dupliated buffers. This should
+ * scaled_buffers used to share visually duplicated buffers. This should
  * be called on Reconfigure to force updates of newly created
  * scaled_buffers rather than reusing ones created before Reconfigure.
  */

@@ -22,6 +22,7 @@
 #include "common/borderset.h"
 #include "labwc.h"
 #include "output.h"
+#include "show-desktop.h"
 #include "theme.h"
 #include "view.h"
 
@@ -552,6 +553,8 @@ workspaces_switch_to(struct workspace *target, bool update_focus)
 	desktop_update_top_layer_visibility();
 
 	wlr_ext_workspace_handle_v1_set_active(target->ext_workspace, true);
+
+	show_desktop_reset();
 }
 
 void

@@ -4,6 +4,7 @@ option('svg', type: 'feature', value: 'enabled', description: 'Enable svg window
 option('icon', type: 'feature', value: 'enabled', description: 'Enable window icons')
 option('labnag', type: 'feature', value: 'auto', description: 'Build labnag notification daemon')
 option('nls', type: 'feature', value: 'auto', description: 'Enable native language support')
+option('systemd-session', type: 'feature', value: 'auto', description: 'Install labwc-session.target systemd user unit')
 option('static_analyzer', type: 'feature', value: 'disabled', description: 'Run gcc static analyzer')
 option('test', type: 'feature', value: 'disabled', description: 'Run tests')
 option('sections', type: 'feature', value: 'disabled', description: 'Show unused functions')

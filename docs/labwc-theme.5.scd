@@ -246,7 +246,7 @@ osd.bg.bevel-width:2
 
 *window.active.title.bg*
 	Texture for the focused window's titlebar. See texture section above.
-	Default is *Solid*
+	Default is *Solid*.
 
 *window.active.title.bg.width*
 	Used with beveled textures.
@@ -265,7 +265,7 @@ osd.bg.bevel-width:2
 
 *window.inactive.title.bg*
 	Texture for non-focused windows' titlebars. See texture section above.
-	Default is *Solid*
+	Default is *Solid*.
 
 *window.inactive.title.bg.width*
 	Used with beveled textures.
@@ -685,7 +685,7 @@ all are supported.
 	Width of magnifier window border in pixels. Default is 1.
 
 *magnifier.border.color*
-	Color of the magnfier window border. Default is #ff0000 (red).
+	Color of the magnifier window border. Default is #ff0000 (red).
 
 # BUTTONS
 

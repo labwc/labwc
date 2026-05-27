@@ -29,6 +29,9 @@ static struct key_combos {
 		.binding = "W-a",
 		.action = "ToggleMaximize",
 	}, {
+		.binding = "W-d",
+		.action = "ToggleShowDesktop",
+	}, {
 		.binding = "W-Left",
 		.action = "SnapToEdge",
 		.attributes[0] = {
@@ -84,35 +87,35 @@ static struct key_combos {
 			.value = "no",
 		},
 	}, {
-		.binding = "XF86_AudioLowerVolume",
+		.binding = "XF86AudioLowerVolume",
 		.action = "Execute",
 		.attributes[0] = {
 			.name = "command",
-			.value = "amixer sset Master 5%-",
+			.value = "pactl set-sink-volume @DEFAULT_SINK@ -5%",
 		},
 	}, {
-		.binding = "XF86_AudioRaiseVolume",
+		.binding = "XF86AudioRaiseVolume",
 		.action = "Execute",
 		.attributes[0] = {
 			.name = "command",
-			.value = "amixer sset Master 5%+",
+			.value = "pactl set-sink-volume @DEFAULT_SINK@ +5%",
 		},
 	}, {
-		.binding = "XF86_AudioMute",
+		.binding = "XF86AudioMute",
 		.action = "Execute",
 		.attributes[0] = {
 			.name = "command",
-			.value = "amixer sset Master toggle",
+			.value = "pactl set-sink-mute @DEFAULT_SINK@ toggle",
 		},
 	}, {
-		.binding = "XF86_MonBrightnessUp",
+		.binding = "XF86MonBrightnessUp",
 		.action = "Execute",
 		.attributes[0] = {
 			.name = "command",
 			.value = "brightnessctl set +10%",
 		},
 	}, {
-		.binding = "XF86_MonBrightnessDown",
+		.binding = "XF86MonBrightnessDown",
 		.action = "Execute",
 		.attributes[0] = {
 			.name = "command",
@@ -141,14 +144,14 @@ static struct key_combos {
  * <mouse>
  *   <context name="Maximize">
  *     <mousebind button="Left" action="Click">
- *       <action name="Focus"/>
- *       <action name="Raise"/>
- *       <action name="ToggleMaximize"/>
+ *       <action name="Focus" />
+ *       <action name="Raise" />
+ *       <action name="ToggleMaximize" />
  *     </mousebind>
  *   </context>
  *   <context name="Root">
  *     <mousebind direction="Up" action="Scroll">
- *       <action name="GoToDesktop" to="left" wrap="yes"/>
+ *       <action name="GoToDesktop" to="left" wrap="yes" />
  *     </mousebind>
  *   </context>
  * </mouse>

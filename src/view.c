@@ -80,7 +80,7 @@ struct view_query *
 view_query_create(void)
 {
 	struct view_query *query = znew(*query);
-	/* Must be synced with view_matches_criteria() in window-rules.c */
+	/* Must be synced with view_matches_rule() in window-rules.c */
 	query->window_type = LAB_WINDOW_TYPE_INVALID;
 	query->maximized = VIEW_AXIS_INVALID;
 	query->decoration = LAB_SSD_MODE_INVALID;
@@ -263,8 +263,8 @@ view_get_root(struct view *view)
 	return view;
 }
 
-static bool
-matches_criteria(struct view *view, enum lab_view_criteria criteria)
+bool
+view_matches_criteria(struct view *view, enum lab_view_criteria criteria)
 {
 	if (!view_is_focusable(view)) {
 		return false;
@@ -316,7 +316,7 @@ view_next(struct wl_list *head, struct view *view, enum lab_view_criteria criter
 
 	for (elm = elm->next; elm != head; elm = elm->next) {
 		view = wl_container_of(elm, view, link);
-		if (matches_criteria(view, criteria)) {
+		if (view_matches_criteria(view, criteria)) {
 			return view;
 		}
 	}
@@ -332,7 +332,7 @@ view_prev(struct wl_list *head, struct view *view, enum lab_view_criteria criter
 
 	for (elm = elm->prev; elm != head; elm = elm->prev) {
 		view = wl_container_of(elm, view, link);
-		if (matches_criteria(view, criteria)) {
+		if (view_matches_criteria(view, criteria)) {
 			return view;
 		}
 	}
@@ -2482,6 +2482,10 @@ view_init(struct view *view)
 
 	view->title = xstrdup("");
 	view->app_id = xstrdup("");
+
+	view->capture.scene = wlr_scene_create();
+	view->capture.scene->restack_xwayland_surfaces = false;
+	wl_list_init(&view->capture.on_capture_source_destroy.link);
 }
 
 void
@@ -2503,6 +2507,9 @@ view_destroy(struct view *view)
 	wl_list_remove(&view->request_fullscreen.link);
 	wl_list_remove(&view->set_title.link);
 	wl_list_remove(&view->destroy.link);
+	wl_list_remove(&view->capture.on_capture_source_destroy.link);
+
+	wlr_scene_node_destroy(&view->capture.scene->tree.node);
 
 	if (view->foreign_toplevel) {
 		foreign_toplevel_destroy(view->foreign_toplevel);
@@ -2519,6 +2526,10 @@ view_destroy(struct view *view)
 
 	if (server.active_view == view) {
 		server.active_view = NULL;
+	}
+
+	if (server.pending_auto_raise_view == view) {
+		desktop_cancel_pending_auto_raise();
 	}
 
 	if (server.session_lock_manager->last_active_view == view) {

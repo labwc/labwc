@@ -94,6 +94,43 @@ parse_window_type(const char *type)
 	}
 }
 
+uint32_t
+parse_privileged_interface(const char *name)
+{
+	static const char * const ifaces[] = {
+		"wp_drm_lease_device_v1",
+		"zwlr_gamma_control_manager_v1",
+		"zwlr_output_manager_v1",
+		"zwlr_output_power_manager_v1",
+		"zwp_input_method_manager_v2",
+		"zwlr_virtual_pointer_manager_v1",
+		"zwp_virtual_keyboard_manager_v1",
+		"zwlr_export_dmabuf_manager_v1",
+		"zwlr_screencopy_manager_v1",
+		"ext_data_control_manager_v1",
+		"zwlr_data_control_manager_v1",
+		"wp_security_context_manager_v1",
+		"ext_idle_notifier_v1",
+		"zwlr_foreign_toplevel_manager_v1",
+		"ext_foreign_toplevel_list_v1",
+		"ext_session_lock_manager_v1",
+		"zwlr_layer_shell_v1",
+		"ext_workspace_manager_v1",
+		"ext_image_copy_capture_manager_v1",
+		"ext_output_image_capture_source_manager_v1",
+	};
+
+	static_assert(ARRAY_SIZE(ifaces) <= 32,
+		"return type too small for amount of privileged protocols");
+
+	for (size_t i = 0; i < ARRAY_SIZE(ifaces); i++) {
+		if (!strcmp(name, ifaces[i])) {
+			return 1 << i;
+		}
+	}
+	return 0;
+}
+
 /*
  * Openbox/labwc comparison
  *
@@ -565,6 +602,7 @@ fill_keybind(xmlNode *node)
 	lab_xml_get_bool(node, "onRelease", &keybind->on_release);
 	lab_xml_get_bool(node, "layoutDependent", &keybind->use_syms_only);
 	lab_xml_get_bool(node, "allowWhenLocked", &keybind->allow_when_locked);
+	lab_xml_get_bool(node, "overrideInhibition", &keybind->override_inhibition);
 
 	append_parsed_actions(node, &keybind->actions);
 }
@@ -575,9 +613,9 @@ fill_mousebind(xmlNode *node, const char *context)
 	/*
 	 * Example of what we are parsing:
 	 * <mousebind button="Left" action="DoubleClick">
-	 *   <action name="Focus"/>
-	 *   <action name="Raise"/>
-	 *   <action name="ToggleMaximize"/>
+	 *   <action name="Focus" />
+	 *   <action name="Raise" />
+	 *   <action name="ToggleMaximize" />
 	 * </mousebind>
 	 */
 
@@ -853,8 +891,18 @@ fill_libinput_category(xmlNode *node)
 			} else if (!strcasecmp(content, "twofinger")) {
 				category->scroll_method =
 					LIBINPUT_CONFIG_SCROLL_2FG;
+			} else if (!strcasecmp(content, "onbutton")) {
+				category->scroll_method =
+					LIBINPUT_CONFIG_SCROLL_ON_BUTTON_DOWN;
 			} else {
 				wlr_log(WLR_ERROR, "invalid scrollMethod");
+			}
+		} else if (!strcasecmp(key, "scrollButton")) {
+			int button = atoi(content);
+			if (button != 0) {
+				category->scroll_button = button;
+			} else {
+				wlr_log(WLR_ERROR, "invalid scrollButton");
 			}
 		} else if (!strcasecmp(key, "sendEventsMode")) {
 			category->send_events_mode =
@@ -1032,6 +1080,16 @@ set_tearing_mode(const char *str, enum tearing_mode *variable)
 	}
 }
 
+static void
+set_hdr_mode(const char *str, enum render_bit_depth *variable)
+{
+	if (parse_bool(str, -1) == 1) {
+		*variable = LAB_RENDER_BIT_DEPTH_10;
+	} else {
+		*variable = LAB_RENDER_BIT_DEPTH_8;
+	}
+}
+
 /* Returns true if the node's children should also be traversed */
 static bool
 entry(xmlNode *node, char *nodename, char *content)
@@ -1096,6 +1154,8 @@ entry(xmlNode *node, char *nodename, char *content)
 		set_adaptive_sync_mode(content, &rc.adaptive_sync);
 	} else if (!strcasecmp(nodename, "allowTearing.core")) {
 		set_tearing_mode(content, &rc.allow_tearing);
+	} else if (!strcasecmp(nodename, "Hdr.core")) {
+		set_hdr_mode(content, &rc.target_render_depth);
 	} else if (!strcasecmp(nodename, "autoEnableOutputs.core")) {
 		set_bool(content, &rc.auto_enable_outputs);
 	} else if (!strcasecmp(nodename, "reuseOutputMode.core")) {
@@ -1147,6 +1207,9 @@ entry(xmlNode *node, char *nodename, char *content)
 		set_bool(content, &rc.focus_follow_mouse_requires_movement);
 	} else if (!strcasecmp(nodename, "raiseOnFocus.focus")) {
 		set_bool(content, &rc.raise_on_focus);
+	} else if (!strcasecmp(nodename, "raiseOnFocusDelay.focus")) {
+		long val = strtol(content, NULL, 10);
+		rc.raise_on_focus_delay_ms = val > 0 ? (uint32_t)val : 0;
 	} else if (!strcasecmp(nodename, "doubleClickTime.mouse")) {
 		long doubleclick_time_parsed = strtol(content, NULL, 10);
 		if (doubleclick_time_parsed > 0) {
@@ -1377,6 +1440,16 @@ entry(xmlNode *node, char *nodename, char *content)
 		rc.mag_increment = MAX(0, rc.mag_increment);
 	} else if (!strcasecmp(nodename, "useFilter.magnifier")) {
 		set_bool(content, &rc.mag_filter);
+	} else if (!strcasecmp(nodename, "privilegedInterfaces")) {
+		rc.allowed_interfaces = 0;
+	} else if (!strcasecmp(nodename, "allow.privilegedInterfaces")) {
+		uint32_t iface_id = parse_privileged_interface(content);
+		if (iface_id) {
+			rc.allowed_interfaces |= iface_id;
+		} else {
+			wlr_log(WLR_ERROR, "invalid value for "
+				"<privilegedInterfaces><allow>");
+		}
 	}
 
 	return false;
@@ -1457,8 +1530,10 @@ rcxml_init(void)
 	rc.gap = 0;
 	rc.adaptive_sync = LAB_ADAPTIVE_SYNC_DISABLED;
 	rc.allow_tearing = LAB_TEARING_DISABLED;
+	rc.target_render_depth = LAB_RENDER_BIT_DEPTH_DEFAULT;
 	rc.auto_enable_outputs = true;
 	rc.reuse_output_mode = false;
+	rc.allowed_interfaces = UINT32_MAX;
 	rc.xwayland_persistence = false;
 	rc.primary_selection = true;
 
@@ -1471,6 +1546,7 @@ rcxml_init(void)
 	rc.focus_follow_mouse = false;
 	rc.focus_follow_mouse_requires_movement = true;
 	rc.raise_on_focus = false;
+	rc.raise_on_focus_delay_ms = 0;
 
 	rc.doubleclick_time = 500;
 
@@ -1658,6 +1734,8 @@ deduplicate_key_bindings(void)
 			wl_list_remove(&current->link);
 			keybind_destroy(current);
 			cleared++;
+		} else if (actions_contain_toggle_keybinds(&current->actions)) {
+			current->override_inhibition = true;
 		}
 	}
 	if (replaced) {

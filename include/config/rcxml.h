@@ -36,6 +36,12 @@ enum tearing_mode {
 	LAB_TEARING_FULLSCREEN_FORCED,
 };
 
+enum render_bit_depth {
+	LAB_RENDER_BIT_DEPTH_DEFAULT = 0,
+	LAB_RENDER_BIT_DEPTH_8,
+	LAB_RENDER_BIT_DEPTH_10,
+};
+
 enum tiling_events_mode {
 	LAB_TILING_EVENTS_NEVER = 0,
 	LAB_TILING_EVENTS_REGION = 1 << 0,
@@ -74,8 +80,10 @@ struct rcxml {
 	int gap;
 	enum adaptive_sync_mode adaptive_sync;
 	enum tearing_mode allow_tearing;
+	enum render_bit_depth target_render_depth;
 	bool auto_enable_outputs;
 	bool reuse_output_mode;
+	uint32_t allowed_interfaces;
 	bool xwayland_persistence;
 	bool primary_selection;
 	char *prompt_command;
@@ -89,6 +97,7 @@ struct rcxml {
 	bool focus_follow_mouse;
 	bool focus_follow_mouse_requires_movement;
 	bool raise_on_focus;
+	uint32_t raise_on_focus_delay_ms;
 
 	/* theme */
 	char *theme_name;
@@ -224,5 +233,7 @@ void rcxml_finish(void);
  * FIXME: move this function to somewhere else.
  */
 void append_parsed_actions(xmlNode *node, struct wl_list *list);
+
+uint32_t parse_privileged_interface(const char *name);
 
 #endif /* LABWC_RCXML_H */

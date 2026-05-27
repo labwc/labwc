@@ -1,10 +1,18 @@
 # Example autostart file
 
+# When running under systemd, uncomment the systemctl line below to pull in
+# graphical-session.target via labwc-session.target. This lets systemd user
+# services declaring WantedBy=graphical-session.target (panels, portals,
+# notification daemons, etc.) start in sync with the labwc session. Enable
+# individual services with: systemctl --user enable <unit>
+#
+# systemctl --user --no-block start labwc-session.target
+
 # Set background color.
 swaybg -c '#113344' >/dev/null 2>&1 &
 
 # Configure output directives such as mode, position, scale and transform.
-# Use wlr-randr to get your output names
+# Use wlr-randr to get your output names.
 # Example ~/.config/kanshi/config below:
 #   profile {
 #     output HDMI-A-1 position 1366,0

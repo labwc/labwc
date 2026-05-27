@@ -1,7 +1,7 @@
 project(
   'labwc',
   'c',
-  version: '0.9.5',
+  version: '0.20.0',
   license: 'GPL-2.0-only',
   meson_version: '>=0.59.0',
   default_options: [
@@ -53,7 +53,7 @@ add_project_arguments('-DLABWC_VERSION=@0@'.format(version), language: 'c')
 wlroots = dependency(
   'wlroots-0.20',
   default_options: ['default_library=static', 'examples=false'],
-  version: ['>=0.20.0', '<0.21.0'],
+  version: ['>=0.20.1', '<0.21.0'],
 )
 
 wlroots_has_xwayland = wlroots.get_variable('have_xwayland') == 'true'
@@ -210,6 +210,17 @@ executable(
 install_data('data/labwc.desktop', install_dir: get_option('datadir') / 'wayland-sessions')
 
 install_data('data/labwc-portals.conf', install_dir: get_option('datadir') / 'xdg-desktop-portal')
+
+# Install labwc-session.target so that systemd user services with
+# WantedBy=graphical-session.target can be started and stopped in sync
+# with a labwc session (see labwc(1) SESSION MANAGEMENT for the opt-in
+# autostart/shutdown snippet).
+systemd_feat = get_option('systemd-session')
+systemd = dependency('systemd', required: systemd_feat)
+if systemd.found()
+  install_data('data/labwc-session.target',
+    install_dir: systemd.get_variable('systemduserunitdir'))
+endif
 
 icons = ['labwc-symbolic.svg', 'labwc.svg']
 foreach icon : icons

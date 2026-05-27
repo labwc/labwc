@@ -66,9 +66,17 @@ the `--exit` and `--reconfigure` options use.
 	Manager, or the Window Manager can be launched independently first. On
 	Wayland, the Compositor is both Display Server and Window Manager, so
 	the described session management mechanisms do not work because the
-	Compositor needs to be running before the session can function.  As some
+	Compositor needs to be running before the session can function. As some
 	session clients support both X11 and Wayland, this command line option
 	avoids re-writes and fragmentation.
+
+*-t, --title* <fmtstr>
+	Set the window title for labwc to use when it is running in a window
+	(i.e. nested in a compositor). <fmtstr> is a format string to be used as
+	the window title, replacing `%o` with the name of the output
+	region. This is useful when simulating multiple screens, such as with
+	running labwc with the environment variable `WLR_WL_OUTPUTS=2`. In this
+	case, `%o` will be unique per simulated screen.
 
 *-v, --version*
 	Show the version number and quit
@@ -117,6 +125,25 @@ provide a means for properly un-setting variables in the activation environment,
 this is accomplished by setting the session variables to empty strings. For
 systemd, the command `systemctl --user unset-environment` will be invoked to
 actually remove the variables from the activation environment.
+
+A systemd user unit named `labwc-session.target` is also shipped alongside
+the compositor for users who want to integrate labwc with systemd. It binds
+to the standard `graphical-session.target`, so systemd user services can
+start and stop in sync with the labwc session when they declare a WantedBy
+or PartOf relationship to that target. Labwc does not activate the target
+itself; users opt in by adding lines like the following to their
+*autostart* and *shutdown* files:
+
+```
+systemctl --user --no-block start labwc-session.target
+systemctl --user stop graphical-session.target
+```
+
+The example *autostart* and *shutdown* files shipped with labwc include
+these commented out. To have a user service automatically started with
+the session, enable it so the corresponding symlink under the
+graphical-session.target.wants directory exists, for example by running
+"systemctl --user enable dms.service".
 
 # ENVIRONMENT VARIABLES
 

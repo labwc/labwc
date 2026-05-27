@@ -139,6 +139,8 @@ handle_modifiers(struct wl_listener *listener, void *data)
 	struct seat *seat = keyboard->base.seat;
 	struct wlr_keyboard *wlr_keyboard = keyboard->wlr_keyboard;
 
+	key_state_indicator_update(seat);
+
 	if (server.input_mode == LAB_INPUT_STATE_MOVE) {
 		/* Any change to the modifier state re-enable region snap */
 		seat->region_prevent_snap = false;
@@ -201,8 +203,10 @@ match_keybinding_for_sym(uint32_t modifiers,
 		if (modifiers ^ keybind->modifiers) {
 			continue;
 		}
-		if (view_inhibits_actions(server.active_view, &keybind->actions)) {
-			continue;
+		if (!(keybind->override_inhibition)) {
+			if (view_inhibits_actions(server.active_view, &keybind->actions)) {
+				continue;
+			}
 		}
 		if (sym == XKB_KEY_NoSymbol) {
 			/* Use keycodes */
@@ -440,15 +444,24 @@ handle_menu_keys(struct keysyms *syms)
 			break;
 		case XKB_KEY_Return:
 		case XKB_KEY_KP_Enter:
-			menu_call_selected_actions();
+			if (!menu_call_selected_actions()) {
+				menu_submenu_enter();
+			};
 			break;
 		case XKB_KEY_Escape:
 			menu_close_root();
 			cursor_update_focus();
 			break;
-		default:
-			continue;
-		}
+		default: {
+			uint32_t accelerator = xkb_keysym_to_utf32(syms->syms[i]);
+			if (accelerator == 0) {
+				continue;
+			}
+			if (menu_item_select_by_accelerator(accelerator)) {
+				menu_call_selected_actions();
+			}
+			break;
+		}}
 		break;
 	}
 }
@@ -622,6 +635,9 @@ handle_key(struct wl_listener *listener, void *data)
 	struct seat *seat = keyboard->base.seat;
 	struct wlr_keyboard_key_event *event = data;
 	struct wlr_seat *wlr_seat = seat->wlr_seat;
+
+	key_state_indicator_update(seat);
+
 	idle_manager_notify_activity(seat->wlr_seat);
 
 	/* any new press/release cancels current keybind repeat */

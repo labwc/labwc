@@ -43,10 +43,13 @@ popup_unconstrain(struct xdg_popup *popup)
 	 * than zero, typically with Qt apps. We therefore clamp it to avoid for
 	 * example the 'File' menu of a maximized window to end up on an another
 	 * output.
+	 * Also some apps open the menu exactly at the right border when maximized,
+	 * causing popup_box->x (or y?) to be in the next output. We subtract one
+	 * inside MAX to avoid the problem mentioned above.
 	 */
 	struct wlr_box *popup_box = &popup->wlr_popup->scheduled.geometry;
-	struct output *output = output_nearest_to(parent_lx + MAX(popup_box->x, 0),
-		parent_ly + MAX(popup_box->y, 0));
+	struct output *output = output_nearest_to(parent_lx + MAX(popup_box->x - 1, 0),
+		parent_ly + MAX(popup_box->y - 1, 0));
 	struct wlr_box usable = output_usable_area_in_layout_coords(output);
 
 	/* Get offset of toplevel window from its surface */
@@ -166,4 +169,6 @@ xdg_popup_create(struct view *view, struct wlr_xdg_popup *wlr_popup)
 
 	node_descriptor_create(wlr_popup->base->surface->data,
 		LAB_NODE_XDG_POPUP, view, /*data*/ NULL);
+
+	wlr_scene_xdg_surface_create(&view->capture.scene->tree, wlr_popup->base);
 }

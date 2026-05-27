@@ -219,12 +219,12 @@ execute_update(const char *env_keys, const char *env_unset_keys, bool initialize
 	char *cmd =
 		strdup_printf("dbus-update-activation-environment %s",
 			initialize ? env_keys : env_unset_keys);
-	spawn_async_no_shell(cmd);
+	spawn_sync_no_shell(cmd);
 	free(cmd);
 
 	cmd = strdup_printf("systemctl --user %s %s",
 		initialize ? "import-environment" : "unset-environment", env_keys);
-	spawn_async_no_shell(cmd);
+	spawn_sync_no_shell(cmd);
 	free(cmd);
 }
 

@@ -25,7 +25,7 @@ The XDG Base Directory Specification does not specify whether or not programs
 should (a) allow the first-identified configuration file to supersede any
 others, or (b) define rules for merging the information from more than one file.
 
-By default, labwc uses option (a), reading only the first file identified.  With
+By default, labwc uses option (a), reading only the first file identified. With
 the --merge-config option, the search order is reversed, but every configuration
 file encountered is processed in turn. Thus, user-specific files will augment
 system-wide configurations, with conflicts favoring the user-specific
@@ -175,6 +175,7 @@ this is for compatibility with Openbox.
   <adaptiveSync>no</adaptiveSync>
   <allowTearing>no</allowTearing>
   <autoEnableOutputs>yes</autoEnableOutputs>
+  <hdr>no</hdr>
   <reuseOutputMode>no</reuseOutputMode>
   <xwaylandPersistence>no</xwaylandPersistence>
   <primarySelection>yes</primarySelection>
@@ -239,6 +240,12 @@ this is for compatibility with Openbox.
 	swayidle -w timeout 600 \\
 	    'pkill kanshi ; wlopm --off \*' resume 'kanshi & wlopm --on \*'
 	```
+
+*<core><hdr>* [yes|no]
+	Automatically enable HDR support on outputs when configuring them,
+	where supported by the particular output device and display. Default
+	is no. Additionally requires the Vulkan backend. Can be set
+	via `WLR_RENDERER=vulkan` in `~/.config/labwc/environment`.
 
 *<core><reuseOutputMode>* [yes|no]
 	Try to re-use the existing output mode (resolution / refresh rate).
@@ -493,6 +500,13 @@ this is for compatibility with Openbox.
 *<focus><raiseOnFocus>* [yes|no]
 	Raise window to top when focused. Default is no.
 
+*<focus><raiseOnFocusDelay>* [milliseconds]
+	When raiseOnFocus is enabled, delay the actual raise by this many
+	milliseconds. Default is 0 (raise immediately). A subsequent focus
+	change before the timer elapses restarts or cancels the pending raise.
+	Useful together with followMouse to avoid brief passes of the cursor
+	stacking up z-order changes.
+
 ## WINDOW SNAPPING
 
 Windows may be "snapped" to an edge or user-defined region of an output when
@@ -512,7 +526,8 @@ extending outward from the snapped edge.
 	*<range><inner>* and *<range><outer>*, and 50 for *<cornerRange>*.
 
 *<snapping><overlay><enabled>* [yes|no]
-	Show an overlay when snapping a window to an output edge. Default is yes.
+	Show an overlay when snapping a window to an output edge.
+	Default is yes.
 
 *<snapping><overlay><delay><inner>*++
 *<snapping><overlay><delay><outer>*
@@ -581,7 +596,7 @@ extending outward from the snapped edge.
 	A setting of 0 disables the OSD. Default is 1000 ms.
 
 *<desktops><prefix>*
-	Set the prefix to use when using "number" above. Default is "Workspace"
+	Set the prefix to use when using "number" above. Default is "Workspace".
 
 ## THEME
 
@@ -735,7 +750,7 @@ generate gesture events, like swipe and pinch. There are some related settings
 (e.g. *threeFingerDrag* and *twoFingerScroll*) in the *<libinput>* section.
 
 In the Wayland Compositor domain, events associated with touchscreens are
-sometimes simply referred to as *touch* events.  Touchscreens can be configured
+sometimes simply referred to as *touch* events. Touchscreens can be configured
 in both the *<touch>* and *<libinput>* sections. Note that touchscreen gestures
 are not interpreted by libinput, nor labwc. Any touch point is passed to the
 client (application) for any interpretation of gestures.
@@ -760,7 +775,8 @@ References:
 	Stores the keyboard layout either globally or per window and restores
 	it when switching back to the window. Default is global.
 
-*<keyboard><keybind key="" layoutDependent="" onRelease="" allowWhenLocked="">*
+*<keyboard><keybind key="" layoutDependent="" onRelease="" allowWhenLocked=""
+overrideInhibition="">*
 	Define a *key* binding in the format *modifier-key*, where supported
 	modifiers are:
 	- S (shift)
@@ -808,6 +824,12 @@ References:
 	*allowWhenLocked* [yes|no]
 	Make this keybind work even if the screen is locked. Default is no.
 
+	*overrideInhibition* [yes|no]
+	Make this keybind work even if the view inhibits keybinds.
+	This can be used to prevent W-Tab and similar keybinds from being
+	delivered to Virtual Machines, VNC clients or nested compositors.
+	Default is no.
+
 	*onRelease* [yes|no]
 	When yes, fires the keybind action when the key or key
 	combination is released, rather than first pressed. This is useful to
@@ -820,7 +842,7 @@ References:
 
 	```
 	<keybind key="Super_L" onRelease="yes">
-	  <action name="Execute" command="rofi -show drun"/>
+	  <action name="Execute" command="rofi -show drun" />
 	</keybind>
 	```
 
@@ -841,11 +863,12 @@ References:
   W-Return - lab-sensible-terminal
   A-F4 - close window
   W-a - toggle maximize
+  W-d - toggle show-desktop
   W-<arrow> - resize window to fill half or quarter of the output
   A-Space - show window menu
 ```
 
-	Audio and MonBrightness keys are also bound to amixer and
+	Audio and MonBrightness keys are also bound to pactl and
 	brightnessctl, respectively.
 
 *<keyboard><repeatRate>*
@@ -880,7 +903,7 @@ input-devices by the Wayland protocol.
 	- Shade: A button that, by default, toggles window shading.
 	- AllDesktops: A button that, by default, toggles omnipresence of a
 	  window.
-	- Close: A button that, by default, closses a window.
+	- Close: A button that, by default, closes a window.
 	- Border: The window's border including Top...BRCorner below.
 	- Top: The top edge of the window's border.
 	- Bottom: The bottom edge of the window's border.
@@ -954,10 +977,10 @@ input-devices by the Wayland protocol.
 
 ```
 <mouse>
-  <default/>
+  <default />
   <context name="Frame">
-    <mousebind button="W-Left" action="Press"/>
-    <mousebind button="W-Left" action="Drag"/>
+    <mousebind button="W-Left" action="Press" />
+    <mousebind button="W-Left" action="Drag" />
   </context>
 </mouse>
 ```
@@ -965,7 +988,7 @@ input-devices by the Wayland protocol.
 *<mouse><default />*
 	Load default mousebinds. This is an addition to the openbox
 	specification and provides a way to keep config files simpler whilst
-	allowing user specific binds.  Note that if no rc.xml is found, or if no
+	allowing user specific binds. Note that if no rc.xml is found, or if no
 	<mouse><mousebind> entries exist, the same default mousebinds will be
 	loaded even if the <default /> element is not provided.
 
@@ -977,7 +1000,7 @@ Note: To rotate touch events with output rotation, use the libinput
 *calibrationMatrix* setting.
 
 ```
-<touch deviceName="" mapToOutput="" mouseEmulation="no"/>
+<touch deviceName="" mapToOutput="" mouseEmulation="no" />
 ```
 
 *<touch deviceName="" />*
@@ -1134,6 +1157,7 @@ Note: To rotate touch events with output rotation, use the libinput
     <disableWhileTyping></disableWhileTyping>
     <clickMethod></clickMethod>
     <scrollMethod></scrollMethod>
+    <scrollButton></scrollButton>
     <sendEventsMode></sendEventsMode>
     <calibrationMatrix></calibrationMatrix>
     <scrollFactor>1.0</scrollFactor>
@@ -1238,18 +1262,25 @@ Note: To rotate touch events with output rotation, use the libinput
 
 	The default method depends on the touchpad hardware.
 
-*<libinput><device><scrollMethod>* [none|twofinger|edge]
-	Configure the method by which physical movements on a touchpad are
-	mapped to scroll events.
+*<libinput><device><scrollMethod>* [none|twofinger|edge|onbutton]
+	Configure the method by which physical movements are mapped to scroll
+	events.
 
 	The scroll methods available are:
 	- *twofinger* - Scroll by two fingers being placed on the surface of the
 	  touchpad, then moving those fingers vertically or horizontally.
 	- *edge* - Scroll by moving a single finger along the right edge
 	  (vertical scroll) or bottom edge (horizontal scroll).
+	- *onbutton* - Scroll by pressing a button.
 	- *none* - No scroll events will be produced.
 
 	The default method depends on the touchpad hardware.
+
+*<libinput><device><scrollButton>* [button]
+	Set the button used for the *onbutton* scroll method.
+
+	*button* is the decimal form of a value
+	from `linux/input-event-codes.h`.
 
 *<libinput><device><sendEventsMode>* [yes|no|disabledOnExternalMouse]
 	Optionally enable or disable sending any device events.
@@ -1298,7 +1329,7 @@ defined as shown below.
 
   <!-- Action -->
   <windowRule identifier="" title="" type="">
-    <action name=""/>
+    <action name="" />
   </windowRule>
 
   <!-- Property -->
@@ -1445,11 +1476,57 @@ situation.
 	Whether to apply a bilinear filter to the magnified image, or
 	just to use nearest-neighbour. Default is true - bilinear filtered.
 
+## PRIVILEGED INTERFACES
+
+Labwc supports a small set of privileged wayland interfaces. All of these
+interfaces are enabled by default for applications unless they are running
+via a sandbox environment supporting the security-context-v1 protocol.
+
+Security conscious users are suggested to use a sandbox framework to run
+potentially untrusted applications as it additionally limits access to the
+filesystem (including labwc configuration) and other services like dbus.
+
+In addition to that, privileged protocols can be restricted for non-sandboxed
+clients by defining a `<privilegedInterfaces>` block:
+
+```
+<privilegedInterfaces>
+  <allow>zwlr_layer_shell_v1</allow>
+  <allow>zwlr_virtual_pointer_manager_v1</allow>
+</privilegedInterfaces>
+```
+
+*<privilegedInterfaces><allow>*
+	Name of the interface that should be allowed.
+
+This is the full list of interfaces that can be controlled with this mechanism:
+
+- `wp_drm_lease_device_v1`
+- `zwlr_gamma_control_manager_v1`
+- `zwlr_output_manager_v1`
+- `zwlr_output_power_manager_v1`
+- `zwp_input_method_manager_v2`
+- `zwlr_virtual_pointer_manager_v1`
+- `zwp_virtual_keyboard_manager_v1`
+- `zwlr_export_dmabuf_manager_v1`
+- `zwlr_screencopy_manager_v1`
+- `ext_data_control_manager_v1`
+- `zwlr_data_control_manager_v1`
+- `wp_security_context_manager_v1`
+- `ext_idle_notifier_v1`
+- `zwlr_foreign_toplevel_manager_v1`
+- `ext_foreign_toplevel_list_v1`
+- `ext_session_lock_manager_v1`
+- `zwlr_layer_shell_v1`
+- `ext_workspace_manager_v1`
+- `ext_image_copy_capture_manager_v1`
+- `ext_output_image_capture_source_manager_v1`
+
 ## ENVIRONMENT VARIABLES
 
 *XCURSOR_PATH*
 	Specify a colon-separated list of paths to look for mouse cursors in.
-	Default
+	Default is
 	~/.local/share/icons:
 	~/.icons:
 	/usr/share/icons:
@@ -1460,7 +1537,7 @@ situation.
 
 *XCURSOR_SIZE*
 	Specify an alternative mouse cursor size in pixels. Requires
-	XCURSOR_THEME to be set also. Default 24.
+	XCURSOR_THEME to be set also. Default is 24.
 
 *XCURSOR_THEME*
 	Specify a mouse cursor theme within XCURSOR_PATH.

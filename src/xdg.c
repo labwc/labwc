@@ -30,6 +30,8 @@
 #define LAB_XDG_SHELL_VERSION 6
 #define CONFIGURE_TIMEOUT_MS 100
 
+static struct view *xdg_toplevel_view_get_root(struct view *view);
+
 static struct xdg_toplevel_view *
 xdg_toplevel_view_from_view(struct view *view)
 {
@@ -121,7 +123,7 @@ set_fullscreen_from_request(struct view *view,
 	view_set_fullscreen(view, requested->fullscreen);
 }
 
-/* Called from commit handler and updates view->pending.x/y directly */
+/* Called from map/commit handler and updates view->pending.x/y directly */
 static void
 set_initial_position(struct view *view)
 {
@@ -263,11 +265,10 @@ handle_commit(struct wl_listener *listener, void *data)
 	bool update_required = false;
 
 	/*
-	 * The pending size will be empty in two cases:
-	 *   (1) when the view is first mapped
-	 *   (2) when leaving fullscreen or un-maximizing, if the view
-	 *       was initially fullscreen/maximized and the natural
-	 *       geometry isn't known yet
+	 * If we didn't know the natural size when leaving fullscreen or
+	 * unmaximizing, then the pending size will be 0x0. In this case,
+	 * the pending x/y is also unset and we still need to position
+	 * the window.
 	 */
 	if (wlr_box_empty(&view->pending) && !wlr_box_empty(&size)) {
 		view->pending.width = size.width;
@@ -463,6 +464,7 @@ handle_destroy(struct wl_listener *listener, void *data)
 	/* Remove xdg-shell view specific listeners */
 	wl_list_remove(&xdg_toplevel_view->set_app_id.link);
 	wl_list_remove(&xdg_toplevel_view->request_show_window_menu.link);
+	wl_list_remove(&xdg_toplevel_view->set_parent.link);
 	wl_list_remove(&xdg_toplevel_view->new_popup.link);
 	wl_list_remove(&view->commit.link);
 
@@ -564,6 +566,23 @@ handle_request_show_window_menu(struct wl_listener *listener, void *data)
 
 	struct wlr_cursor *cursor = server.seat.cursor;
 	menu_open_root(menu, cursor->x, cursor->y);
+}
+
+static void
+handle_set_parent(struct wl_listener *listener, void *data)
+{
+	struct xdg_toplevel_view *xdg_toplevel_view = wl_container_of(
+		listener, xdg_toplevel_view, set_parent);
+	struct view *view = &xdg_toplevel_view->base;
+	struct view *view_root = xdg_toplevel_view_get_root(view);
+	if (view_root == view) {
+		return;
+	}
+	struct wlr_scene_node *node, *tmp;
+	wl_list_for_each_safe(node, tmp, &view->capture.scene->tree.children, link) {
+		wlr_log(WLR_DEBUG, "moving capture scene node to view_root");
+		wlr_scene_node_reparent(node, &view_root->capture.scene->tree);
+	}
 }
 
 static void
@@ -821,6 +840,29 @@ handle_map(struct wl_listener *listener, void *data)
 		} else {
 			view_set_ssd_mode(view, LAB_SSD_MODE_NONE);
 		}
+
+		/*
+		 * Set initial "pending" dimensions. "Current"
+		 * dimensions remain zero until handle_commit().
+		 * Note: this must be done before view_impl_map()
+		 * for window rules to work correctly.
+		 */
+		if (wlr_box_empty(&view->pending)) {
+			struct wlr_xdg_surface *xdg_surface =
+				xdg_surface_from_view(view);
+			view->pending.width = xdg_surface->geometry.width;
+			view->pending.height = xdg_surface->geometry.height;
+			set_initial_position(view);
+		}
+
+		/*
+		 * Set initial "current" position directly before
+		 * calling view_moved() to reduce flicker
+		 */
+		view->current.x = view->pending.x;
+		view->current.y = view->pending.y;
+
+		view_moved(view);
 	}
 
 	view_impl_map(view);
@@ -1024,6 +1066,9 @@ handle_new_xdg_toplevel(struct wl_listener *listener, void *data)
 	mappable_connect(&view->mappable, xdg_surface->surface,
 		handle_map, handle_unmap);
 
+	struct view *root_view = xdg_toplevel_view_get_root(view);
+	wlr_scene_xdg_surface_create(&root_view->capture.scene->tree, xdg_surface);
+
 	struct wlr_xdg_toplevel *toplevel = xdg_surface->toplevel;
 	CONNECT_SIGNAL(toplevel, view, destroy);
 	CONNECT_SIGNAL(toplevel, view, request_move);
@@ -1037,6 +1082,7 @@ handle_new_xdg_toplevel(struct wl_listener *listener, void *data)
 	/* Events specific to XDG toplevel views */
 	CONNECT_SIGNAL(toplevel, xdg_toplevel_view, set_app_id);
 	CONNECT_SIGNAL(toplevel, xdg_toplevel_view, request_show_window_menu);
+	CONNECT_SIGNAL(toplevel, xdg_toplevel_view, set_parent);
 	CONNECT_SIGNAL(xdg_surface, xdg_toplevel_view, new_popup);
 
 	wl_list_insert(&server.views, &view->link);

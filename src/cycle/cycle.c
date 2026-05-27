@@ -9,6 +9,7 @@
 #include "common/mem.h"
 #include "common/scene-helpers.h"
 #include "config/rcxml.h"
+#include "config/types.h"
 #include "labwc.h"
 #include "node.h"
 #include "output.h"
@@ -171,7 +172,7 @@ cycle_begin(enum lab_cycle_dir direction,
 
 	struct view *active_view = server.active_view;
 	if (active_view && active_view->cycle_link.next) {
-		/* Select the active view it's in the cycle list */
+		/* Select the active view if it's in the cycle list */
 		server.cycle.selected_view = active_view;
 	} else {
 		/* Otherwise, select the first view in the cycle list */
@@ -326,24 +327,82 @@ handle_osd_tree_destroy(struct wl_listener *listener, void *data)
 	free(osd_output);
 }
 
-/* Return false on failure */
-static bool
-init_cycle(struct cycle_filter filter)
+static enum lab_view_criteria
+get_view_criteria(struct cycle_filter *filter)
 {
 	enum lab_view_criteria criteria =
 		LAB_VIEW_CRITERIA_NO_SKIP_WINDOW_SWITCHER
 		| LAB_VIEW_CRITERIA_NO_DIALOG;
-	if (filter.workspace == CYCLE_WORKSPACE_CURRENT) {
+	if (filter->workspace == CYCLE_WORKSPACE_CURRENT) {
 		criteria |= LAB_VIEW_CRITERIA_CURRENT_WORKSPACE;
 	}
+	return criteria;
+}
 
-	uint64_t cycle_outputs =
-		get_outputs_by_filter(filter.output);
-
-	const char *cycle_app_id = NULL;
-	if (filter.app_id == CYCLE_APP_ID_CURRENT && server.active_view) {
-		cycle_app_id = server.active_view->app_id;
+static const char *
+get_cycle_app_id(struct cycle_filter *filter)
+{
+	if (filter->app_id == CYCLE_APP_ID_CURRENT && server.active_view) {
+		return server.active_view->app_id;
 	}
+	return NULL;
+}
+
+static struct wl_list *prev(struct wl_list *elm) { return elm->prev; }
+static struct wl_list *next(struct wl_list *elm) { return elm->next; }
+
+void
+cycle_immediate(enum lab_cycle_dir direction, struct cycle_filter filter)
+{
+	if (wl_list_empty(&server.views)) {
+		return;
+	}
+
+	enum lab_view_criteria criteria = get_view_criteria(&filter);
+	uint64_t cycle_outputs = get_outputs_by_filter(filter.output);
+	const char *cycle_app_id = get_cycle_app_id(&filter);
+
+	struct wl_list *head = &server.views;
+	struct wl_list *(*iter)(struct wl_list *list);
+	iter = direction == LAB_CYCLE_DIR_FORWARD ? next : prev;
+
+	struct wl_list *from = (direction == LAB_CYCLE_DIR_FORWARD) && server.active_view
+		? &server.active_view->link : head;
+
+	for (struct wl_list *elm = iter(from); elm != head; elm = iter(elm)) {
+		struct view *view = wl_container_of(elm, view, link);
+		if (!view_matches_criteria(view, criteria)) {
+			continue;
+		}
+		if (filter.output != CYCLE_OUTPUT_ALL) {
+			if (!view->output || !(cycle_outputs & view->output->id_bit)) {
+				continue;
+			}
+		}
+		if (cycle_app_id && strcmp(view->app_id, cycle_app_id) != 0) {
+			continue;
+		}
+		if (server.active_view && direction == LAB_CYCLE_DIR_FORWARD) {
+			/*
+			 * When cycling forward, the current active view needs to be
+			 * sent to back to keep the same sequence and avoid getting
+			 * stuck in the 2 topmost views.
+			 */
+			view_move_to_back(server.active_view);
+		}
+		desktop_focus_view(view, true);
+		break;
+	}
+	cursor_update_focus();
+}
+
+/* Return false on failure */
+static bool
+init_cycle(struct cycle_filter filter)
+{
+	enum lab_view_criteria criteria = get_view_criteria(&filter);
+	uint64_t cycle_outputs = get_outputs_by_filter(filter.output);
+	const char *cycle_app_id = get_cycle_app_id(&filter);
 
 	struct view *view;
 	for_each_view(view, &server.views, criteria) {

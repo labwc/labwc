@@ -12,7 +12,7 @@ Static menus are built based on the menu.xml file located at
 # SYNTAX
 
 The menu file must be entirely enclosed within <openbox_menu> and
-</openbox_menu> tags.  Inside these tags, menus are specified as follows:
+</openbox_menu> tags. Inside these tags, menus are specified as follows:
 
 ```
 <!-- A toplevel menu -->
@@ -111,7 +111,7 @@ Pipe menus are menus generated dynamically based on output of scripts or
 binaries. They are so-called because the output of the executable is piped to
 the labwc menu.
 
-For any *<menu id="" label="" execute="COMMAND"/>* entry in menu.xml, the
+For any *<menu id="" label="" execute="COMMAND" />* entry in menu.xml, the
 COMMAND will be executed the first time the item is selected (for example by
 cursor or keyboard input). The XML output of the command will be parsed and
 shown as a submenu. The content of pipemenus is cached until the whole menu
@@ -124,7 +124,7 @@ menus, for example:
 ```
 <openbox_pipe_menu>
   <item label="Terminal">
-    <action name="Execute" command="xterm"/>
+    <action name="Execute" command="xterm" />
   </item>
 </openbox_pipe_menu>
 ```
@@ -144,9 +144,24 @@ obmenu-generator with the menu generator of your choice):
 ```
 <?xml version="1.0"?>
 <openbox_menu>
-  <menu id="root-menu" label="" execute="obmenu-generator"/>
+  <menu id="root-menu" label="" execute="obmenu-generator" />
 </openbox_menu>
 ```
+
+# ACCELERATORS / MNEMONICS
+
+Menu accelerators are one-letter mnemonics to quickly select/exec items from
+the current menu. For each menu item, the accelerator is defined as the first
+character of the item label, converted to lowercase. A different accelerator
+can be explicitly defined in menu.xml with the special '\_' character before the
+target letter. Accelerators can be any unicode character and are not limited to
+ASCII. A usual underscore can be shown by duplicating it.
+
+If the menu only contains a single instance of the pressed accelerator the item
+will be executed directly. Otherwise, all matching items are cycled through.
+
+Example:
+The accelerator for an item with the label "e_Macs" is 'm'.
 
 # LOCALISATION
 

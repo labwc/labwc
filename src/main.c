@@ -4,9 +4,12 @@
 #include <pango/pangocairo.h>
 #include <signal.h>
 #include <unistd.h>
+#include <wlr/version.h>
 #include "common/fd-util.h"
 #include "common/font.h"
+#include "common/macros.h"
 #include "common/spawn.h"
+#include "common/string-helpers.h"
 #include "config/rcxml.h"
 #include "config/session.h"
 #include "labwc.h"
@@ -36,6 +39,7 @@ static const struct option long_options[] = {
 	{"reconfigure", no_argument, NULL, 'r'},
 	{"startup", required_argument, NULL, 's'},
 	{"session", required_argument, NULL, 'S'},
+	{"title", required_argument, NULL, 't'},
 	{"version", no_argument, NULL, 'v'},
 	{"verbose", no_argument, NULL, 'V'},
 	{0, 0, 0, 0}
@@ -54,6 +58,7 @@ static const char labwc_usage[] =
 "  -r, --reconfigure        Reload the compositor configuration\n"
 "  -s, --startup <command>  Run command on startup\n"
 "  -S, --session <command>  Run command on startup and terminate on exit\n"
+"  -t, --title <fmtstr>     Specify title to use when running in a window\n"
 "  -v, --version            Show version number and quit\n"
 "  -V, --verbose            Enable more verbose logging\n";
 
@@ -68,12 +73,15 @@ static void
 print_version(void)
 {
 	#define FEATURE_ENABLED(feature) (HAVE_##feature ? "+" : "-")
-	printf("labwc %s (%sxwayland %snls %srsvg %slibsfdo)\n",
+	printf("labwc %s (%sxwayland %snls %srsvg %slibsfdo) wlroots-%d.%d.%d\n",
 		LABWC_VERSION,
 		FEATURE_ENABLED(XWAYLAND),
 		FEATURE_ENABLED(NLS),
 		FEATURE_ENABLED(RSVG),
-		FEATURE_ENABLED(LIBSFDO)
+		FEATURE_ENABLED(LIBSFDO),
+		wlr_version_get_major(),
+		wlr_version_get_minor(),
+		wlr_version_get_micro()
 	);
 	#undef FEATURE_ENABLED
 }
@@ -167,10 +175,16 @@ main(int argc, char *argv[])
 	char *primary_client = NULL;
 	enum wlr_log_importance verbosity = WLR_ERROR;
 
+	server.wlr_version = _LAB_CALC_WLR_VERSION_NUM(
+		wlr_version_get_major(),
+		wlr_version_get_minor(),
+		wlr_version_get_micro()
+	);
+
 	int c;
 	while (1) {
 		int index = 0;
-		c = getopt_long(argc, argv, "c:C:dehmrs:S:vV", long_options, &index);
+		c = getopt_long(argc, argv, "c:C:dehmrs:S:t:vV", long_options, &index);
 		if (c == -1) {
 			break;
 		}
@@ -198,6 +212,9 @@ main(int argc, char *argv[])
 			break;
 		case 'S':
 			primary_client = optarg;
+			break;
+		case 't':
+			server.title_fmt = optarg;
 			break;
 		case 'v':
 			print_version();
@@ -256,6 +273,10 @@ main(int argc, char *argv[])
 	}
 
 	increase_nofile_limit();
+
+	if (string_null_or_empty(server.title_fmt)) {
+		server.title_fmt = "labwc - %o";
+	}
 
 	server_init();
 	server_start();

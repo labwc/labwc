@@ -31,6 +31,7 @@ struct libinput_category {
 	int dwt;                        /* -1 or libinput_config_dwt_state */
 	int click_method;               /* -1 or libinput_config_click_method */
 	int scroll_method;              /* -1 or libinput_config_scroll_method */
+	int scroll_button;              /* -1 or a button from linux/input_event_codes.h */
 	int send_events_mode;           /* -1 or libinput_config_send_events_mode */
 	bool have_calibration_matrix;
 	double scroll_factor;

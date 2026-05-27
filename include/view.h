@@ -177,6 +177,12 @@ struct view {
 	char *title;
 	char *app_id; /* WM_CLASS for xwayland windows */
 
+	struct {
+		struct wlr_scene *scene;
+		struct wlr_ext_image_capture_source_v1 *source;
+		struct wl_listener on_capture_source_destroy;
+	} capture;
+
 	bool mapped;
 	bool been_mapped;
 	uint64_t creation_id;
@@ -184,6 +190,7 @@ struct view {
 	enum ssd_preference ssd_preference;
 	bool shaded;
 	bool minimized;
+	bool was_minimized_by_show_desktop_action;
 	enum view_axis maximized;
 	bool fullscreen;
 	bool tearing_hint;
@@ -319,6 +326,7 @@ struct xdg_toplevel_view {
 	/* Events unique to xdg-toplevel views */
 	struct wl_listener set_app_id;
 	struct wl_listener request_show_window_menu;
+	struct wl_listener set_parent;
 	struct wl_listener new_popup;
 };
 
@@ -629,5 +637,7 @@ enum lab_placement_policy view_placement_parse(const char *policy);
 
 /* xdg.c */
 struct wlr_xdg_surface *xdg_surface_from_view(struct view *view);
+
+bool view_matches_criteria(struct view *view, enum lab_view_criteria criteria);
 
 #endif /* LABWC_VIEW_H */

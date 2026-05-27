@@ -9,7 +9,8 @@ The format is based on [Keep a Changelog]
 
 | Date       | All Changes   | wlroots version | lines-of-code |
 |------------|---------------|-----------------|---------------|
-| 2026-03-31 | [unreleased]  | 0.20.0          | 27402         |
+| 2026-05-25 | [0.20.0]      | 0.20.1          | 28313         |
+| 2026-04-17 | [0.9.7]       | 0.19.2          | 29277         |
 | 2026-03-15 | [0.9.6]       | 0.19.2          | 29271         |
 | 2026-03-04 | [0.9.5]       | 0.19.2          | 29251         |
 | 2026-02-27 | [0.9.4]       | 0.19.2          | 29225         |
@@ -44,6 +45,8 @@ The format is based on [Keep a Changelog]
 | 2021-03-05 | [0.1.0]       | 0.12.0          | 4627          |
 
 [unreleased]: NEWS.md#unreleased
+[0.20.0]: NEWS.md#0200---2026-05-25
+[0.9.7]: NEWS.md#097---2026-04-17
 [0.9.6]: NEWS.md#096---2026-03-15
 [0.9.5]: NEWS.md#095---2026-03-04
 [0.9.4]: NEWS.md#094---2026-02-27
@@ -76,6 +79,109 @@ The format is based on [Keep a Changelog]
 [0.3.0]: NEWS.md#030---2021-06-28
 [0.2.0]: NEWS.md#020---2021-04-15
 [0.1.0]: NEWS.md#010---2021-03-05
+
+## unreleased
+
+[unreleased-commits]
+
+## 0.20.0 - 2026-05-25
+
+[0.20.0-commits]
+
+This is the first release using wlroots-0.20 and therefore has an increased risk
+of teething issues. Many thanks to @Consolatis for leading the effort to port
+across [#2956].
+
+In terms of new features, the most noteworthy ones include: (i) the frequently
+requested show-desktop action; (ii) initial toplevel capture support to
+screenshot specific windows; (iii) menu accelerators/shortcuts; and (iv) HDR10
+support when running with the Vulkan renderer option.
+
+The eagle-eyed amongst you will have noticed the sudden jump from labwc `0.9.7`
+to `0.20.0`. The reason for this is to align the minor number to that of the
+wlroots version against which the compositor is linked.
+
+The 0.9.x series has turned into a maintenance branch named v0.9 with bug fixes
+only, for anyone preferring to build with wlroots-0.19.
+
+Note to maintainers:
+
+- libinput >=1.26 is required in support of tablet tool pressure range
+  configuration.
+- wlroots >=0.20.1 is required to avoid some bugs that we do not want labwc to
+  ship with. For details, see:
+  https://gitlab.freedesktop.org/wlroots/wlroots/-/merge_requests/5325
+
+### Added
+
+- Partially support toplevel-capture. Note that the following are not yet
+  implemented: (i) XWayland child windows; (ii) XWayland unmanaged windows
+  (e.g. popups); (iii) xdg child window positioning; (iv) xdg subsurfaces;
+  and (v) xdg popup positioning. [#2968] @Consolatis
+- Add command line option -t|--title to set the labwc window title when running
+  nested [#3577] @mdsib
+- Add support for HDR10 output @kode54 @Consolatis [#3424]
+- Include wlroots version in --version string @Consolatis [#3567] [#3581]
+- Implement menu accelerators (one-letter mnemonics to quickly select/exec
+  items from the current menu) @ch3rn1ka [#3505]
+- Add Next/PreviousWindowImmediate actions @elviosak @johanmalm [#3547]
+- Add labnag options `--details-border-color` and `--details-margin`
+  @st0rm-shad0w [#3527]
+- Add config option `<focus><raiseOnFocusDelay>` to defer raise-on-focus by a
+  small amount when `raiseOnFocus` is enabled  @joske [#3513]
+- Install `labwc-session.target` systemd user unit when the systemd dependency
+  is available  @joske [#3534]
+- Add `onbutton` to config option `<libinput><device><scrollMethod>`. Also add
+  associated option `<libinput><device><scrollButton>`. @diniamo [#3540]
+- Add `overrideInhibition` option to `<keybind>` [#3507] @drougas
+- Add action `ToggleShowDesktop` to hide/unhide windows, and default keybind
+  `Super-d` to trigger this action [#3500] [#3595] @johanmalm
+- Add `<privilegedInterfaces>` config option so that privileged protocols can be
+  restricted [#3493] @xi
+- Add action `DebugToggleKeyStateIndicator` to show a key-state on-screen
+  display (OSD) for debugging. [#3499] @johanmalm @tokyo4j
+- Add support for `color-management-v1` and `color-representation-manager-v1`
+  protocols [#3469] @ManuLinares
+- Add configuration option `<tabletTool minPressure="0.0" maxPressure="1.0" />`
+  to enable tablet tool pressure range libinput settings [#2916] @jp7677
+- Add `wl_fixes` interface [#2956] @kode54
+
+### Fixed
+
+- Enable labnag long option --exclusive-zone [#3576] @st0rm-shad0w
+- Position chromium popup correctly when a window is maximized on a multi-
+  output setup @elviosak [#3547]
+- Run session activation environment update synchronously to avoid a race
+  condition with the autostart script [#3543] @joske
+- Allow interactive resize on fully maximized windows so that a resize
+  initiated by modifier plus right-mouse-button-drag is not ignored [#3525]
+  @bjorn
+- Gracefully handle missing XWayland packages, so that a labwc compositor which
+  has been built with XWayland support (which is optional) can be run even if
+  XWayland is not installed. [#3401] @quite
+- Rework how XWayland window initial geometry is set to ensure that the natural
+  geometry does not exceed the usable output area when handling initial
+  maximize/fullscreen requests. [#3439] @jlindgren90.
+- For XWayland windows, sync always-on-top state back to X.Org Server. This
+  makes `wmctrl -b toggle,above` work. [#3446] @jlindgren90
+- Fix missing title and icon with XWayland client override-redirect toggle.
+  There are no known issues with clients, so this is purely for preventative
+  purposes. [#3450] @jlindgren90
+- Update titlebar title when set to empty and fix an associated issue causing
+  the title to be misplaced outside of the titlebar when the window is resized.
+  [#3443] @tokyo4j
+- When running nested, exit compositor when last output is destroyed because
+  in this situation, each output corresponds to a window in the parent
+  compositor and, unlike DRM outputs, these cannot be reconnected after being
+  destroyed. [#3440] @marler8997
+- Allow policy-based placement to apply when an initially-maximized/fullscreen
+  view is restored to floating geometry. [#3387] [#3502] @jlindgren90
+
+### Changed
+
+- Change the default keybinds for XF86Audio{LowerVolume,RaiseVolume,Mute} to use
+  pactl instead of amixer [#3484] @danielrrrr
+- Drop cosmic-workspace protocol [#3031] @tokyo4j
 
 ## Notes on wlroots-0.19
 
@@ -111,52 +217,35 @@ There are some regression warnings worth noting for the switch to wlroots 0.19:
 [wlroots-5098]:https://gitlab.freedesktop.org/wlroots/wlroots/-/merge_requests/5098
 [gtk-8792]: https://gitlab.gnome.org/GNOME/gtk/-/merge_requests/8792
 
-## unreleased
+## 0.9.7 - 2026-04-17
 
-[unreleased-commits]
+[0.9.7-commits]
 
-The codebase has been ported to wlroots 0.20 [#2956] @Consolatis
+This is a small bug fix release.
 
-### Added
+```
+               0.9.6--------0.9.7  <--- v0.9 branch with bug-fixes only
+                /
+               /
+0.9.4--------0.9.5--------  <-- master (built with wlroots-0.20)
+```
 
-- Add configuration option `<tabletTool minPressure="0.0" maxPressure="1.0" />`
-  to enable tablet tool pressure range libinput settings [#2916] @jp7677
-- Add `wl_fixes` interface [#2956] @kode54
+## Fixed
 
-### Fixed
-
-- Gracefully handle missing XWayland packages, so that a labwc compositor which
-  has been built with XWayland support (which is optional) can be run even if
-  XWayland is not installed. [#3401] @quite
-- Rework how XWayland window initial geometry is set to ensure that the natural
-  geometry does not exceed the usable output area when handling initial
-  maximize/fullscreen requests. [#3439] @jlindgren90.
-- For XWayland windows, sync always-on-top state back to X.Org Server. This
-  makes `wmctrl -b toggle,above` work. [#3446] @jlindgren90
-- Fix missing title and icon with XWayland client override-redirect toggle.
-  There are no known issues with clients, so this is purely for preventative
-  purposes. [#3450] @jlindgren90
-- Update titlebar title when set to empty and fix an associated issue causing
-  the title to be misplaced outside of the titlebar when the window is resized.
-  [#3443] @tokyo4j
-- When running nested, exit compositor when last output is destroyed because
-  in this situation, each output corresponds to a window in the parent
-  compositor and, unlike DRM outputs, these cannot be reconnected after being
-  destroyed. [#3440] @marler8997
-- Allow policy-based placement to apply when an initially-maximized/fullscreen
-  view is restored to floating geometry. [#3387] @jlindgren90
-
-### Changed
-
-- Drop cosmic-workspace protocol [#3031] @tokyo4j
+- Fix intermittent failed-to-get-texture issue with some clients (e.g. foot)
+  when using the window-switcher in the thumbnail mode. [#3511] @yuiiio
+- Fix tablet tool tilt motion. [#3494] @jp7677
+- Handle window-switcher buffer allocation failure when in 'thumbnail' mode.
+  This is believed to be very unlikely to happen, but has been reported by one
+  user and is believed to be GPU driver related. [#3490] @Consolatis
 
 ## 0.9.6 - 2026-03-15
 
 [0.9.6-commits]
 
 This is an earlier-than-usual release containing bug fixes only. It has been
-done on a separate branch (0.9.5-maintenance) to avoid the inclusion of
-refactoring and new features.
+done on a separate branch (v0.9) to avoid the inclusion of refactoring and new
+features.
 
 ```
                0.9.6  <--- bug-fixes only
@@ -213,9 +302,9 @@ Note to package maintainers: This release requires wayland version >=1.22.90
 - Add theme option window.button.hover.bg.color [#3365] @johanmalm
 - Implement scrollable window-switcher OSD [#3291] @tokyo4j
 - Support the `NextWindow` options listed below [#3271] @tokyo4j
-  - `<action name="NextWindow" workspace="current|all"/>`
-  - `<action name="NextWindow" output="all|focused|cursor"/>`
-  - `<action name="NextWindow" identifier="all|current"/>`
+  - `<action name="NextWindow" workspace="current|all" />`
+  - `<action name="NextWindow" output="all|focused|cursor" />`
+  - `<action name="NextWindow" identifier="all|current" />`
 - Add config option `*<desktops><initial>` for setting the active workspace on
   startup. [#3265] @5trixs0f
 
@@ -263,7 +352,7 @@ Note to package maintainers: This release requires wayland version >=1.22.90
     and get keyboard focus so that they can be operated with the keyboard.
     An example use-case is the xfce4-panel applications-menu being opened by
     the command xfce4-popup-applicationsmenu. [#3165] @johanmalm
-  - On popup destory, return focus to whoever had it before the popop [#3165]
+  - On popup destroy, return focus to whoever had it before the popop [#3165]
     @johanmalm @tokyo4j
 - Unshade window if selected from client-list-combined-menu [#3345] @Amodio
 - Show non-dialog child windows in window-switcher [#3339] @tokyo4j
@@ -297,7 +386,7 @@ A big thank you to all involved in this release.
 
 ### Added
 
-- Add `<windowSwitcher order="focus|age"/>` to optionally order windows by age
+- Add `<windowSwitcher order="focus|age" />` to optionally order windows by age
   rather than most recent focus. @mbroemme [#3229]
 - Replace `<snapping><range>` with `<snapping><range inner="" outer="">` to
   provide more granular control when configuring the size of snapping areas
@@ -328,7 +417,7 @@ A big thank you to all involved in this release.
   [#3134]
 - labnag: add --keyboard-focus option @tokyo4j [#3120]
 - Allow window switcher to temporarily unshade windows using config option
-  `<windowSwitcher unshade="yes|no"/>` @Amodio @Consolatis [#3124]
+  `<windowSwitcher unshade="yes|no" />` @Amodio @Consolatis [#3124]
 - For the 'classic' style window-switcher, add the following theme options:
     - `osd.window-switcher.style-classic.item.active.border.color`
     - `osd.window-switcher.style-classic.item.active.bg.color`
@@ -358,7 +447,7 @@ A big thank you to all involved in this release.
   client surface. Fixes a regression in 885919f. @tokyo4j [#3211]
 - Set all foreign-toplevel initial states correctly. This is not believed to fix
   any particular user-issue, but just feels safer. @jlindgren90 [#3217]
-- Update layer-shell client top layer visiblity on unmap instead of destroy
+- Update layer-shell client top layer visibility on unmap instead of destroy
   because it is possible for fullscreen xwayland windows to be unmapped without
   being destroyed, and in this case the top layer visibility needs to be updated
   to unhide other layer-shell clients like panels. @jlindgren90 [#3199]
@@ -370,7 +459,7 @@ A big thank you to all involved in this release.
   @elviosak [#3146] [#3168]
 - Work around client-side rounding issues at right/bottom pixel. This fixes an
   issue with some clients (notably Qt ones) where cursor coordinates in the
-  rightmost or bottom fixel are incorrectly rounded up putting them outside the
+  rightmost or bottom pixel are incorrectly rounded up putting them outside the
   surface bounds. The issue has been particularly noticeable with layer-shell
   clients like lxqt-panel. @jlindgren90 [#3157] [#2379] [#3099]
   Note: This also avoids a similar server-side rounding issue with some
@@ -418,7 +507,7 @@ A big thank you to all involved in this release.
   when a window is using fullscreen mode. @johanmalm [#3158]
 - Call labnag with on-demand keyboard interactivity by default @tokyo4j [#3120]
 - Temporarily unshade windows when switching windows. Restore old behaviour with
-  `<windowSwitcher unshade="no"/>` @Amodio @Consolatis [#3124]
+  `<windowSwitcher unshade="no" />` @Amodio @Consolatis [#3124]
 - In the classic style window-switcher, the default color of the selected window
   item has been changed to inherit the border color but with 15% opacity
   @tokyo4j [#3118]
@@ -437,7 +526,7 @@ A big thank you to all involved in this release.
   `<windowSwitcher style="thumbnail">`. @tokyo4j [#2981]
 - Add `toggle` option to `GoToDesktop` action. This has the effect of going back
   to the last desktop if already on the target. @RainerKuemmerle [#3024]
-- Add `<theme maximizedDecoration="titlebar|none"/>` to allow hiding titlebar
+- Add `<theme maximizedDecoration="titlebar|none" />` to allow hiding titlebar
   when window is maximized. @CosmicFusion @tokyo4j [#3015]
 - Use client-send-to-menu as 'Workspace' submenu in built-in client-menu
   @johanmalm [#2995]
@@ -488,7 +577,7 @@ A big thank you to all involved in this release.
 - Change default keybind `W-<arrow>` to combine cardinal directions to support
   resizing of windows to fill a quarter of an output. This only affects users
   who do not use an `rc.xml` (thereby using default keybinds) or use the
-  `<keyboard><default/>` option. Previous behavior can be restored by setting
+  `<keyboard><default />` option. Previous behavior can be restored by setting
   `combine="no"` as shown below. [#3081] @tokyo4j
 
 ```
@@ -587,7 +676,7 @@ window.*.title.bg.colorTo.splitTo:
   window rule to enable this. @Consolatis @tokyo4j [#2840]
 - Add config option `<core><primarySelection>`. This enables autoscroll
   (middle-click to scroll up/down) in Chromium and electron based clients
-  without inadvertantly pasting the primary clipboard. @johanmalm [#2832]
+  without inadvertently pasting the primary clipboard. @johanmalm [#2832]
 - Bump `xdg_shell` version from 3 to 6 @tokyo4j [#2814]
 - Bump `wl_compositor` version from 5 to 6 @tokyo4j [#2812]
 - Support tablet tool mouse buttons @jp7677 [#2778]
@@ -664,7 +753,7 @@ window.*.title.bg.colorTo.splitTo:
     agnostic on choice of launcher.
   - `A-<arrow>` for `MoveToEdge` because `Alt-` keybinds should be for clients
     to use and this one results in frequent user complaints because it prevents
-    some common usage patterns like alt-left/right in web browers.
+    some common usage patterns like alt-left/right in web browsers.
 - Change default titlebar menu button from a dot to an arrow @johanmalm [#2844]
 - When `dragLock` is set to `yes`, the drag no longer expires after a short
   delay (known as `Sticky` mode) as recommended by libinput [#2803]. The timeout
@@ -699,7 +788,7 @@ release.
 - Localize desktop-entry application names used by the window switcher via
   `desktop_entry_name` or the `%n` specifier @tokyo4j [#2653]
 - Add `HideCursor` action @jp7677 [#2633]
-- Support application icons in window-switcher using `<field content="icon"/>`
+- Support application icons in window-switcher using `<field content="icon" />`
   and use this by default. @tokyo4j [#2621]
 - Support application icons in client-list-combined-menu @tokyo4j [#2617]
 - Support the use of the keypad-enter key when using menu. @zeusgoose [#2610]
@@ -836,7 +925,7 @@ Notes to package maintainers:
   closing a popup did not move the pointer focus to the main toplevel until the
   cursor was moved. [#2443]
 - Improve algorithm for menu placement with xdg-positioner [#2408]
-- Do not forward IME key-release without correspinding key-press to avoid stuck
+- Do not forward IME key-release without corresponding key-press to avoid stuck
   keys [#2437]
 
 ### Changed
@@ -898,7 +987,7 @@ Notes to package maintainers:
 
 ```xml
 <windowRules>
-  <windowRule identifier="blender" wantAbsorbedModifierReleaseEvents="yes"/>
+  <windowRule identifier="blender" wantAbsorbedModifierReleaseEvents="yes" />
 </windowRules>
 ```
 
@@ -915,8 +1004,8 @@ menu.border.color: #aaaaaa
 ```xml
 <windowSwitcher>
   <fields>
-    <field content="custom" format="%n" width="25%"/>
-    <field content="title" width="75%"/>
+    <field content="custom" format="%n" width="25%" />
+    <field content="title" width="75%" />
   </fields>
 </windowSwitcher>
 ```
@@ -1046,7 +1135,7 @@ Notes to package maintainers:
 - Support the openbox style menus listed below. Written-by: @droc12345
   1. `client-list-combined-menu` shows windows across all workspaces. This can
      be used with a mouse/key bind using:
-     `<action name="ShowMenu" menu="client-list-combined-menu"/>` [#2101]
+     `<action name="ShowMenu" menu="client-list-combined-menu" />` [#2101]
   2. `client-send-to` shows all workspaces that the current window can be sent
      to. This can additional be used within a client menu using:
      `<menu id="client-send-to-menu" label="Send to Workspace..." />` [#2152]
@@ -1205,14 +1294,14 @@ have been attributed with a 'Written-by' against each relevant log entry.
 ```xml
 <placement>
   <policy>cascade</policy>
-  <cascadeOffset x="40" y="30"/>
+  <cascadeOffset x="40" y="30" />
 </placement>
 ```
 
 - Support relative tablet motion. Written-by: @jp7677 [#1962]
 
 ```xml
-<tabletTool motion="absolute|relative" relativeMotionSensitivity="1.0"/>
+<tabletTool motion="absolute|relative" relativeMotionSensitivity="1.0" />
 ```
 
 ### Fixed
@@ -1296,7 +1385,7 @@ joint effort by @spl237 and @Consolatis.
 - Respect `menu.overlap.x` when using pipemenus. [#1940]
 - Do not try to restore windows to very small width/height on unmaximize.
   This fixes a bug with Thonny (Python IDE made with Tk). [#1938]
-- Conditially set squared server-side decoration (SSD) corners when a view is
+- Conditionally set squared server-side decoration (SSD) corners when a view is
   tiled. Written-by: @jp7677 [#1926]
 - Remember initial direction when starting window-cycling with `PreviousView`.
   Also make the toggling of direction when shift is pressed relative to the
@@ -1320,7 +1409,7 @@ joint effort by @spl237 and @Consolatis.
   Chromium and Steam. [#1861]
 - Session-lock: fix flashing & update cursor shape. [#1858]
 - Remove tearing-controller listeners on destroy. [#1853]
-- Handle invalid `ForEach` and `If` action cofigs. [#1838]
+- Handle invalid `ForEach` and `If` action configs. [#1838]
 - Delay startup of applications until event loop is ready. This avoids race
   conditions when using autostart scripts that trigger a labwc SIGHUP. [#1588]
 - With `SendToDesktop` action follow=no option, ensure the topmost window is
@@ -1337,7 +1426,7 @@ joint effort by @spl237 and @Consolatis.
 
 - Remove subprojects/seatd.wrap as no longer needed
 - Action `MoveToCursor` is deprecated in favour of:
-  `<action name="AutoPlace" policy="cursor"/>`.
+  `<action name="AutoPlace" policy="cursor" />`.
 
 ## 0.7.2 - 2024-05-10
 
@@ -1354,7 +1443,7 @@ contributions from others as noted in the log.
 ### Added
 
 - Add `<menu><ignoreButtonReleasePeriod>` to prevent clicks with small movements
-  from inadvertantly closing a menu or selecting a menu item. This is the
+  from inadvertently closing a menu or selecting a menu item. This is the
   equivalent of `<menu><hideDelay>` on Openbox. [#1760]
 - Support drop-shadows (disabled by default) for windows using server-side
   decorations. Written-by: @cillian64
@@ -1382,7 +1471,7 @@ window.inactive.shadow.color: #00000040
 
 ```xml
 <action name="ForEach">
-  <query identifier="foo"/>
+  <query identifier="foo" />
   <then>
     <!-- carry out some action on match -->
   </then>
@@ -1424,7 +1513,7 @@ osd.window-switcher.width: 75%
 <snapping>
   <overlay>
     <enabled>yes|no</enabled>
-    <delay inner="500" outer="500"/>
+    <delay inner="500" outer="500" />
   </overlay>
 </snapping>
 ```
@@ -1587,7 +1676,7 @@ osd.window-switcher.preview.border.color: #ffffff,#00a2ff,#ffffff
 
 ```xml
 <keybind key="A-Space">
-  <action name="ShowMenu" menu="client-menu" atCursor="No"/>
+  <action name="ShowMenu" menu="client-menu" atCursor="No" />
 </keybind>
 ```
 
@@ -1595,7 +1684,7 @@ osd.window-switcher.preview.border.color: #ffffff,#00a2ff,#ffffff
   is already used by the action itself).  [#1589]
 
 ```xml
-<action name="MoveToOutput" output="HDMI-A-1"/>
+<action name="MoveToOutput" output="HDMI-A-1" />
 ```
 
 - Do not deactivate window when giving keyboard focus to a non-view
@@ -1660,8 +1749,8 @@ osd.window-switcher.preview.border.color: #ffffff,#00a2ff,#ffffff
   Written-by: @jp7677
 
 ```xml
-<touch mapToOutput=""/>
-<touch deviceName="" mapToOutput=""/>
+<touch mapToOutput="" />
+<touch deviceName="" mapToOutput="" />
 ```
 
 - Add tablet support including:
@@ -1874,7 +1963,7 @@ relating to surface focus and keyboard issues, amongst others.
 - Allow referencing the current workspace in actions, for example:
 
 ```xml
-<action name="SendToDesktop" to="current"/>
+<action name="SendToDesktop" to="current" />
 ```
 
 ### Fixed
@@ -2030,7 +2119,7 @@ relating to surface focus and keyboard issues, amongst others.
 ```xml
 <windowSwitcher>
   <fields>
-    <field content="identifier" width="25%"/>
+    <field content="identifier" width="25%" />
   </fields>
 </windowSwithcer>
 ```
@@ -2097,9 +2186,9 @@ relating to surface focus and keyboard issues, amongst others.
 ```xml
 <windowRules>
   <windowRule identifier="some-application">
-    <action name="Maximize"/>
+    <action name="Maximize" />
   </windowRule>
-  <windowRule identifier="foo*" serverDecoration="yes|no"/>
+  <windowRule identifier="foo*" serverDecoration="yes|no" />
 </windowRules>
 ```
 
@@ -2184,7 +2273,7 @@ Unless otherwise stated all contributions are by the core-devs
 
 ```xml
 <keyboard>
-  <default/>
+  <default />
   <keybind key="A-Left"><action name="None" /></keybind>
   <keybind key="A-Right"><action name="None" /></keybind>
 </keyboard>
@@ -2448,7 +2537,7 @@ reported, tested and fixed issues. Particular mentions go to @bi4k8,
   actions to be de-coupled from buttons. As a result, "Drag" and
   "DoubleClick" actions previously defined against "TitleBar" should now
   come under the "Title" context, for example:
-  `<mousebind button="Left" action="Drag"><action name="Move"/></mousebind>`
+  `<mousebind button="Left" action="Drag"><action name="Move" /></mousebind>`
 - Remove default alt-escape keybind for Exit because too many people have
   exited the compositor by mistake trying to get out of alt-tab cycling
   or similar.
@@ -2681,7 +2770,9 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
   ShowMenu
 
 [Keep a Changelog]: https://keepachangelog.com/en/1.0.0/
-[unreleased-commits]: https://github.com/labwc/labwc/compare/0.9.5...HEAD
+[unreleased-commits]: https://github.com/labwc/labwc/compare/0.20.0...HEAD
+[0.20.0-commits]: https://github.com/labwc/labwc/compare/0.9.5..0.20.0
+[0.9.7-commits]: https://github.com/labwc/labwc/compare/0.9.6...0.9.7
 [0.9.6-commits]: https://github.com/labwc/labwc/compare/0.9.5...0.9.6
 [0.9.5-commits]: https://github.com/labwc/labwc/compare/0.9.4...0.9.5
 [0.9.4-commits]: https://github.com/labwc/labwc/compare/0.9.3...0.9.4
@@ -3220,6 +3311,7 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
 [#3410]: https://github.com/labwc/labwc/pull/3410
 [#3411]: https://github.com/labwc/labwc/pull/3411
 [#3412]: https://github.com/labwc/labwc/pull/3412
+[#3424]: https://github.com/labwc/labwc/pull/3424
 [#3425]: https://github.com/labwc/labwc/pull/3425
 [#3426]: https://github.com/labwc/labwc/pull/3426
 [#3428]: https://github.com/labwc/labwc/pull/3428
@@ -3232,3 +3324,23 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
 [#3445]: https://github.com/labwc/labwc/pull/3445
 [#3446]: https://github.com/labwc/labwc/pull/3446
 [#3450]: https://github.com/labwc/labwc/pull/3450
+[#3469]: https://github.com/labwc/labwc/pull/3469
+[#3484]: https://github.com/labwc/labwc/pull/3484
+[#3490]: https://github.com/labwc/labwc/pull/3490
+[#3493]: https://github.com/labwc/labwc/pull/3493
+[#3494]: https://github.com/labwc/labwc/pull/3494
+[#3499]: https://github.com/labwc/labwc/pull/3499
+[#3500]: https://github.com/labwc/labwc/pull/3500
+[#3502]: https://github.com/labwc/labwc/pull/3502
+[#3505]: https://github.com/labwc/labwc/pull/3505
+[#3507]: https://github.com/labwc/labwc/pull/3507
+[#3511]: https://github.com/labwc/labwc/pull/3511
+[#3513]: https://github.com/labwc/labwc/pull/3513
+[#3525]: https://github.com/labwc/labwc/pull/3525
+[#3527]: https://github.com/labwc/labwc/pull/3527
+[#3534]: https://github.com/labwc/labwc/pull/3534
+[#3540]: https://github.com/labwc/labwc/pull/3540
+[#3543]: https://github.com/labwc/labwc/pull/3543
+[#3547]: https://github.com/labwc/labwc/pull/3547
+[#3567]: https://github.com/labwc/labwc/pull/3567
+[#3595]: https://github.com/labwc/labwc/pull/3595

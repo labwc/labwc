@@ -1103,7 +1103,7 @@ entry(struct theme *theme, const char *key, const char *value)
 		parse_color(value, theme->window[SSD_ACTIVE].button_hover_border_color);
 	}
 
-	/* botton hover overlay */
+	/* button hover overlay */
 	if (match_glob(key, "window.button.hover.bg.color")) {
 		parse_color(value, theme->window_button_hover_bg_color);
 	}

@@ -226,7 +226,7 @@ out:
 
 /*
  * Openbox built-in icons are not bigger than 8x8, so have only written this
- * function to cope wit that max size
+ * function to cope with that max size
  */
 #define LABWC_BUILTIN_ICON_MAX_SIZE (8)
 

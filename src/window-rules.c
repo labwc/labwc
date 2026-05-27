@@ -24,7 +24,7 @@ other_instances_exist(struct view *self, struct view_query *query)
 }
 
 static bool
-view_matches_criteria(struct window_rule *rule, struct view *view)
+view_matches_rule(struct window_rule *rule, struct view *view)
 {
 	struct view_query query = {
 		.identifier = rule->identifier,
@@ -52,7 +52,7 @@ window_rules_apply(struct view *view, enum window_rule_event event)
 		if (rule->event != event) {
 			continue;
 		}
-		if (view_matches_criteria(rule, view)) {
+		if (view_matches_rule(rule, view)) {
 			actions_run(view, &rule->actions, NULL);
 		}
 	}
@@ -69,8 +69,8 @@ window_rules_get_property(struct view *view, const char *property)
 	 * for foot's "serverDecoration" property to be "default".
 	 *
 	 *     <windowRules>
-	 *       <windowRule identifier="*" serverDecoration="no"/>
-	 *       <windowRule identifier="foot" serverDecoration="default"/>
+	 *       <windowRule identifier="*" serverDecoration="no" />
+	 *       <windowRule identifier="foot" serverDecoration="default" />
 	 *     </windowRules>
 	 */
 	struct window_rule *rule;
@@ -81,7 +81,7 @@ window_rules_get_property(struct view *view, const char *property)
 		 * attribute would still return here if that property was asked
 		 * for.
 		 */
-		if (view_matches_criteria(rule, view)) {
+		if (view_matches_rule(rule, view)) {
 			if (rule->server_decoration
 					&& !strcasecmp(property, "serverDecoration")) {
 				return rule->server_decoration;

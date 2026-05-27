@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 #define _POSIX_C_SOURCE 200809L
 #include "config.h"
+#include <assert.h>
 #include <signal.h>
 #include <string.h>
 #include <sys/wait.h>
@@ -9,6 +10,8 @@
 #include <wlr/config.h>
 #include <wlr/render/allocator.h>
 #include <wlr/types/wlr_alpha_modifier_v1.h>
+#include <wlr/types/wlr_color_management_v1.h>
+#include <wlr/types/wlr_color_representation_v1.h>
 #include <wlr/types/wlr_data_control_v1.h>
 #include <wlr/types/wlr_data_device.h>
 #include <wlr/types/wlr_drm.h>
@@ -87,6 +90,12 @@ reload_config_and_theme(void)
 {
 	/* Avoid UAF when dialog client is used during reconfigure */
 	action_prompts_destroy();
+
+	/*
+	 * Cancel any pending auto-raise before reloading config in case the
+	 * raiseOnFocusDelay option was disabled or changed.
+	 */
+	desktop_cancel_pending_auto_raise();
 
 	scaled_buffer_invalidate_sharing();
 	rcxml_finish();
@@ -215,39 +224,6 @@ handle_drm_lease_request(struct wl_listener *listener, void *data)
 #endif
 
 static bool
-protocol_is_privileged(const struct wl_interface *iface)
-{
-	static const char * const rejected[] = {
-		"wp_drm_lease_device_v1",
-		"zwlr_gamma_control_manager_v1",
-		"zwlr_output_manager_v1",
-		"zwlr_output_power_manager_v1",
-		"zwp_input_method_manager_v2",
-		"zwlr_virtual_pointer_manager_v1",
-		"zwp_virtual_keyboard_manager_v1",
-		"zwlr_export_dmabuf_manager_v1",
-		"zwlr_screencopy_manager_v1",
-		"ext_data_control_manager_v1",
-		"zwlr_data_control_manager_v1",
-		"wp_security_context_manager_v1",
-		"ext_idle_notifier_v1",
-		"zwlr_foreign_toplevel_manager_v1",
-		"ext_foreign_toplevel_list_v1",
-		"ext_session_lock_manager_v1",
-		"zwlr_layer_shell_v1",
-		"ext_workspace_manager_v1",
-		"ext_image_copy_capture_manager_v1",
-		"ext_output_image_capture_source_manager_v1",
-	};
-	for (size_t i = 0; i < ARRAY_SIZE(rejected); i++) {
-		if (!strcmp(iface->name, rejected[i])) {
-			return true;
-		}
-	}
-	return false;
-}
-
-static bool
 allow_for_sandbox(const struct wlr_security_context_v1_state *security_state,
 		const struct wl_interface *iface)
 {
@@ -289,6 +265,8 @@ allow_for_sandbox(const struct wlr_security_context_v1_state *security_state,
 		"xdg_wm_dialog_v1",
 		/* plus */
 		"wp_alpha_modifier_v1",
+		"wp_color_manager_v1",
+		"wp_color_representation_manager_v1",
 		"wp_linux_drm_syncobj_manager_v1",
 		"zxdg_exporter_v1",
 		"zxdg_exporter_v2",
@@ -327,6 +305,11 @@ server_global_filter(const struct wl_client *client, const struct wl_global *glo
 	}
 #endif
 
+	uint32_t iface_id = parse_privileged_interface(iface->name);
+	if (iface_id && !(iface_id & rc.allowed_interfaces)) {
+		return false;
+	}
+
 	/* Do not allow security_context_manager_v1 to clients with a security context attached */
 	const struct wlr_security_context_v1_state *security_context =
 		wlr_security_context_manager_v1_lookup_client(
@@ -342,11 +325,11 @@ server_global_filter(const struct wl_client *client, const struct wl_global *glo
 		/*
 		 * TODO: The following call is basically useless right now
 		 *       and should be replaced with
-		 *       assert(allow || protocol_is_privileged(iface));
+		 *       assert(allow || iface_id);
 		 *       This ensures that our lists are in sync with what
 		 *       protocols labwc supports.
 		 */
-		if (!allow && !protocol_is_privileged(iface)) {
+		if (!allow && !iface_id) {
 			wlr_log(WLR_ERROR, "Blocking unknown protocol %s", iface->name);
 		} else if (!allow) {
 			wlr_log(WLR_DEBUG, "Blocking %s for security context %s->%s->%s",
@@ -430,6 +413,39 @@ handle_renderer_lost(struct wl_listener *listener, void *data)
 
 	wlr_allocator_destroy(old_allocator);
 	wlr_renderer_destroy(old_renderer);
+}
+
+static void
+handle_toplevel_capture_source_destroy(struct wl_listener *listener, void *data)
+{
+	struct view *view = wl_container_of(listener, view, capture.on_capture_source_destroy);
+	assert(view->capture.source);
+	view->capture.source = NULL;
+	wl_list_remove(&listener->link);
+	wl_list_init(&listener->link);
+}
+
+static void
+handle_toplevel_capture_request(struct wl_listener *listener, void *data)
+{
+	struct wlr_ext_foreign_toplevel_image_capture_source_manager_v1_request *request = data;
+	struct view *view = request->toplevel_handle->data;
+	assert(view);
+	wlr_log(WLR_INFO, "Capturing toplevel %s", view->app_id);
+
+	if (!view->capture.source) {
+		view->capture.source = wlr_ext_image_capture_source_v1_create_with_scene_node(
+			&view->capture.scene->tree.node, server.wl_event_loop,
+			server.allocator, server.renderer);
+		assert(view->capture.source);
+
+		view->capture.on_capture_source_destroy.notify =
+			handle_toplevel_capture_source_destroy;
+		wl_signal_add(&view->capture.source->events.destroy,
+			&view->capture.on_capture_source_destroy);
+	}
+	wlr_ext_foreign_toplevel_image_capture_source_manager_v1_request_accept(
+		request, view->capture.source);
 }
 
 void
@@ -596,6 +612,47 @@ server_init(void)
 	 * | output->layer_tree[0]              | background layer surfaces (e.g. swaybg)
 	 */
 
+	if (server.renderer->features.input_color_transform) {
+		const enum wp_color_manager_v1_render_intent render_intents[] = {
+			WP_COLOR_MANAGER_V1_RENDER_INTENT_PERCEPTUAL,
+		};
+		size_t transfer_functions_len = 0;
+		enum wp_color_manager_v1_transfer_function *transfer_functions =
+			wlr_color_manager_v1_transfer_function_list_from_renderer(
+				server.renderer, &transfer_functions_len);
+
+		size_t primaries_len = 0;
+		enum wp_color_manager_v1_primaries *primaries =
+			wlr_color_manager_v1_primaries_list_from_renderer(
+				server.renderer, &primaries_len);
+
+		struct wlr_color_manager_v1 *cm = wlr_color_manager_v1_create(
+			server.wl_display, 2, &(struct wlr_color_manager_v1_options){
+				.features = {
+					.parametric = true,
+					.set_mastering_display_primaries = true,
+				},
+				.render_intents = render_intents,
+				.render_intents_len = ARRAY_SIZE(render_intents),
+				.transfer_functions = transfer_functions,
+				.transfer_functions_len = transfer_functions_len,
+				.primaries = primaries,
+				.primaries_len = primaries_len,
+			});
+
+		free(transfer_functions);
+		free(primaries);
+
+		if (cm) {
+			wlr_scene_set_color_manager_v1(server.scene, cm);
+		} else {
+			wlr_log(WLR_ERROR, "unable to create color manager");
+		}
+	}
+
+	wlr_color_representation_manager_v1_create_with_renderer(
+		server.wl_display, 1, server.renderer);
+
 	server.workspace_tree = lab_wlr_scene_tree_create(&server.scene->tree);
 	server.xdg_popup_tree = lab_wlr_scene_tree_create(&server.scene->tree);
 #if HAVE_XWAYLAND
@@ -670,6 +727,19 @@ server_init(void)
 	wlr_screencopy_manager_v1_create(server.wl_display);
 	wlr_ext_image_copy_capture_manager_v1_create(server.wl_display, 1);
 	wlr_ext_output_image_capture_source_manager_v1_create(server.wl_display, 1);
+
+	server.toplevel_capture.manager =
+		wlr_ext_foreign_toplevel_image_capture_source_manager_v1_create(
+			server.wl_display, 1);
+	if (server.toplevel_capture.manager) {
+		server.toplevel_capture.on.new_request.notify = handle_toplevel_capture_request;
+		wl_signal_add(&server.toplevel_capture.manager->events.new_request,
+			&server.toplevel_capture.on.new_request);
+	} else {
+		/* Allow safe removal on shutdown */
+		wl_list_init(&server.toplevel_capture.on.new_request.link);
+	}
+
 	wlr_data_control_manager_v1_create(server.wl_display);
 	wlr_ext_data_control_manager_v1_create(server.wl_display,
 		LAB_EXT_DATA_CONTROL_VERSION);
@@ -803,6 +873,8 @@ server_finish(void)
 		wl_list_remove(&server.drm_lease_request.link);
 		server.drm_lease_request.notify = NULL;
 	}
+
+	wl_list_remove(&server.toplevel_capture.on.new_request.link);
 
 	wlr_backend_destroy(server.backend);
 	wlr_allocator_destroy(server.allocator);

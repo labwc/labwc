@@ -21,12 +21,14 @@
 #include "cycle.h"
 #include "debug.h"
 #include "input/keyboard.h"
+#include "input/key-state.h"
 #include "labwc.h"
 #include "magnifier.h"
 #include "menu/menu.h"
 #include "output.h"
 #include "output-virtual.h"
 #include "regions.h"
+#include "show-desktop.h"
 #include "ssd.h"
 #include "theme.h"
 #include "translate.h"
@@ -82,6 +84,8 @@ struct action_arg_list {
 	X(SHRINK_TO_EDGE, "ShrinkToEdge") \
 	X(NEXT_WINDOW, "NextWindow") \
 	X(PREVIOUS_WINDOW, "PreviousWindow") \
+	X(NEXT_WINDOW_IMMEDIATE, "NextWindowImmediate") \
+	X(PREVIOUS_WINDOW_IMMEDIATE, "PreviousWindowImmediate") \
 	X(RECONFIGURE, "Reconfigure") \
 	X(SHOW_MENU, "ShowMenu") \
 	X(TOGGLE_MAXIMIZE, "ToggleMaximize") \
@@ -132,14 +136,16 @@ struct action_arg_list {
 	X(TOGGLE_MAGNIFY, "ToggleMagnify") \
 	X(ZOOM_IN, "ZoomIn") \
 	X(ZOOM_OUT, "ZoomOut") \
+	X(TOGGLE_SHOW_DESKTOP, "ToggleShowDesktop") \
 	X(WARP_CURSOR, "WarpCursor") \
-	X(HIDE_CURSOR, "HideCursor")
+	X(HIDE_CURSOR, "HideCursor") \
+	X(DEBUG_TOGGLE_KEY_STATE_INDICATOR, "DebugToggleKeyStateIndicator")
 
 /*
  * Will expand to:
  *
  * enum action_type {
- *	ACTION_TYPE_INVALID,
+ *	ACTION_TYPE_INVALID = 0,
  *	ACTION_TYPE_NONE,
  *	ACTION_TYPE_CLOSE,
  *	ACTION_TYPE_KILL,
@@ -333,6 +339,8 @@ action_arg_from_xml_node(struct action *action, const char *nodename, const char
 		break;
 	case ACTION_TYPE_NEXT_WINDOW:
 	case ACTION_TYPE_PREVIOUS_WINDOW:
+	case ACTION_TYPE_NEXT_WINDOW_IMMEDIATE:
+	case ACTION_TYPE_PREVIOUS_WINDOW_IMMEDIATE:
 		if (!strcasecmp(argument, "workspace")) {
 			if (!strcasecmp(content, "all")) {
 				action_arg_add_int(action, argument, CYCLE_WORKSPACE_ALL);
@@ -1142,6 +1150,21 @@ run_action(struct view *view, struct action *action,
 		}
 		break;
 	}
+	case ACTION_TYPE_NEXT_WINDOW_IMMEDIATE:
+	case ACTION_TYPE_PREVIOUS_WINDOW_IMMEDIATE: {
+		enum lab_cycle_dir dir = (action->type == ACTION_TYPE_NEXT_WINDOW_IMMEDIATE) ?
+			LAB_CYCLE_DIR_FORWARD : LAB_CYCLE_DIR_BACKWARD;
+		struct cycle_filter filter = {
+			.workspace = action_get_int(action, "workspace",
+				rc.window_switcher.workspace_filter),
+			.output = action_get_int(action, "output",
+				CYCLE_OUTPUT_ALL),
+			.app_id = action_get_int(action, "identifier",
+				CYCLE_APP_ID_ALL),
+		};
+		cycle_immediate(dir, filter);
+		break;
+	}
 	case ACTION_TYPE_RECONFIGURE:
 		kill(getpid(), SIGHUP);
 		break;
@@ -1289,7 +1312,7 @@ run_action(struct view *view, struct action *action,
 
 			/*
 			 * To support only setting one of width/height
-			 * in <action name="ResizeTo" width="" height=""/>
+			 * in <action name="ResizeTo" width="" height="" />
 			 * we fall back to current dimension when unset.
 			 */
 			struct wlr_box box = {
@@ -1560,6 +1583,9 @@ run_action(struct view *view, struct action *action,
 	case ACTION_TYPE_ZOOM_OUT:
 		magnifier_set_scale(MAGNIFY_DECREASE);
 		break;
+	case ACTION_TYPE_TOGGLE_SHOW_DESKTOP:
+		show_desktop_toggle();
+		break;
 	case ACTION_TYPE_WARP_CURSOR: {
 		const char *to = action_get_str(action, "to", "output");
 		const char *x = action_get_str(action, "x", "center");
@@ -1569,6 +1595,9 @@ run_action(struct view *view, struct action *action,
 	}
 	case ACTION_TYPE_HIDE_CURSOR:
 		cursor_set_visible(&server.seat, false);
+		break;
+	case ACTION_TYPE_DEBUG_TOGGLE_KEY_STATE_INDICATOR:
+		key_state_indicator_toggle();
 		break;
 	case ACTION_TYPE_INVALID:
 		wlr_log(WLR_ERROR, "Not executing unknown action");

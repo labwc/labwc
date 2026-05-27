@@ -123,11 +123,12 @@ interactive_begin(struct view *view, enum input_mode mode, enum lab_edge edges)
 		cursor_shape = LAB_CURSOR_GRAB;
 		break;
 	case LAB_INPUT_STATE_RESIZE: {
-		if (view->shaded || view->fullscreen ||
-				view->maximized == VIEW_AXIS_BOTH) {
+		if (view->shaded || view->fullscreen) {
 			/*
-			 * We don't allow resizing while shaded,
-			 * fullscreen or maximized in both directions.
+			 * We don't allow resizing while shaded or fullscreen.
+			 * Maximized views are handled below by un-maximizing
+			 * the axes being resized while keeping the current
+			 * geometry as the starting point.
 			 */
 			return;
 		}
@@ -141,9 +142,9 @@ interactive_begin(struct view *view, enum input_mode mode, enum lab_edge edges)
 		}
 
 		/*
-		 * If tiled or maximized in only one direction, reset
-		 * tiled state and un-maximize the relevant axes, but
-		 * keep the same geometry as the starting point.
+		 * If tiled or maximized, reset tiled state and un-maximize
+		 * the axes that are being resized, but keep the same
+		 * geometry as the starting point.
 		 */
 		enum view_axis maximized = view->maximized;
 		if (server.resize_edges & LAB_EDGES_LEFT_RIGHT) {

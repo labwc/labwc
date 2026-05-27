@@ -2,8 +2,10 @@
 #define _POSIX_C_SOURCE 200809L
 #include "menu/menu.h"
 #include <assert.h>
+#include <ctype.h>
 #include <libxml/parser.h>
 #include <signal.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 #include <strings.h>
@@ -131,6 +133,92 @@ validate(void)
 	}
 }
 
+/* Read a single Unicode codepoint and convert it to lowercase */
+static uint32_t
+read_unicode_char_lowercase(const char *first_byte, size_t *bytes_read)
+{
+	assert(bytes_read);
+
+	if (string_null_or_empty(first_byte)) {
+		*bytes_read = 0;
+		return 0;
+	}
+
+	gunichar codepoint = g_utf8_get_char_validated(first_byte, -1);
+
+	bool partial_read = (codepoint == (gunichar)-2);
+	bool failed_read = (codepoint == (gunichar)-1);
+	if (partial_read || failed_read) {
+		/* Read only the first byte */
+		*bytes_read = 1;
+		return (uint32_t)(unsigned char)first_byte[0];
+	}
+
+	*bytes_read = (size_t)(g_utf8_next_char(first_byte) - first_byte);
+
+	return (uint32_t)g_unichar_tolower(codepoint);
+}
+
+/* Retrieve the accelerator from an item label */
+static void
+item_parse_accelerator(struct menuitem *item, const char *text)
+{
+	const char *accel_ptr = NULL;
+	char *underscore = strchr(text, '_');
+	while (underscore) {
+		if (underscore[1] == '_') {
+			/* Ignore escaped underscores */
+			underscore = strchr(underscore + 2, '_');
+		} else if (underscore[1] != '\0') {
+			/* Found a valid accelerator */
+			accel_ptr = underscore + 1;
+			break;
+		} else {
+			/* Ignore empty accelerator */
+			break;
+		}
+	}
+
+	size_t bytes_read = 0;
+	if (!accel_ptr) {
+		/* Default to the first char */
+		item->text = xstrdup(text);
+		item->accelerator = read_unicode_char_lowercase(text, &bytes_read);
+	} else {
+		/* Set the accelerator and remove the preceding underscore */
+		item->use_markup = true;
+		item->accelerator = read_unicode_char_lowercase(accel_ptr, &bytes_read);
+		item->text = strdup_printf("%.*s<u>%.*s</u>%s",
+			/* Prefix length + prefix */
+			(int)(accel_ptr - 1 - text), text,
+			/* Accelerator (utf-8 byte) length + accelerator */
+			(int)bytes_read, accel_ptr,
+			/* Remainder */
+			accel_ptr + bytes_read);
+	}
+}
+
+/* Remove underscores used for escaping other underscores from a string */
+static void
+unescape_underscores(char *text)
+{
+	if (!text) {
+		return;
+	}
+
+	char *src = text;
+	char *dst = text;
+	while (*src) {
+		if (*src == '_' && *(src + 1) == '_') {
+			*dst++ = '_';
+			src += 2;
+		} else {
+			*dst++ = *src++;
+		}
+	}
+	*dst = '\0';
+}
+
 static struct menuitem *
 item_create(struct menu *menu, const char *text, const char *icon_name, bool show_arrow)
 {
@@ -142,8 +230,9 @@ item_create(struct menu *menu, const char *text, const char *icon_name, bool sho
 	menuitem->parent = menu;
 	menuitem->selectable = true;
 	menuitem->type = LAB_MENU_ITEM;
-	menuitem->text = xstrdup(text);
 	menuitem->arrow = show_arrow ? "›" : NULL;
+	item_parse_accelerator(menuitem, text);
+	unescape_underscores(menuitem->text);
 
 #if HAVE_LIBSFDO
 	if (rc.menu_show_icons && !string_null_or_empty(icon_name)) {
@@ -250,8 +339,8 @@ item_create_scene_for_state(struct menuitem *item, float *text_color,
 	/* Create label */
 	struct scaled_font_buffer *label_buffer = scaled_font_buffer_create(tree);
 	assert(label_buffer);
-	scaled_font_buffer_update(label_buffer, item->text, label_max_width,
-		&rc.font_menuitem, text_color, bg_color);
+	scaled_font_buffer_update_markup(label_buffer, item->text, label_max_width,
+		&rc.font_menuitem, text_color, bg_color, item->use_markup);
 	/* Vertically center and left-align label */
 	int x = theme->menu_items_padding_x + icon_width;
 	int y = (theme->menu_item_height - label_buffer->height) / 2;
@@ -609,7 +698,7 @@ fill_menu(struct menu *parent, xmlNode *n)
 			 *
 			 * <?xml version="1.0" encoding="UTF-8"?>
 			 * <openbox_menu>
-			 *   <menu id="root-menu" label="foo" execute="bar"/>
+			 *   <menu id="root-menu" label="foo" execute="bar" />
 			 * </openbox_menu>
 			 */
 		} else {
@@ -1529,6 +1618,60 @@ void
 menu_item_select_previous(void)
 {
 	menu_item_select(/* forward */ false);
+}
+
+bool
+menu_item_select_by_accelerator(uint32_t accelerator)
+{
+	struct menu *menu = get_selection_leaf();
+	if (!menu || wl_list_empty(&menu->menuitems)) {
+		return false;
+	}
+
+	bool needs_exec = false;
+	bool matched = false;
+
+	struct menuitem *selection = menu->selection.item;
+	struct wl_list *start = selection ? &selection->link : &menu->menuitems;
+	struct wl_list *current = start;
+	struct menuitem *item = NULL;
+	struct menuitem *next_selection = NULL;
+	do {
+		current = current->next;
+		if (current == &menu->menuitems) {
+			/* Allow wrap around */
+			continue;
+		}
+		item = wl_container_of(current, item, link);
+		if (item->accelerator == accelerator) {
+			if (!matched) {
+				/* Found first match */
+				next_selection = item;
+				needs_exec = true;
+				matched = true;
+			} else {
+				/*
+				 * Found another match,
+				 * cycle selection instead of executing
+				 */
+				needs_exec = false;
+				break;
+			}
+		}
+	} while (current != start);
+
+	if (!next_selection) {
+		return false;
+	}
+
+	menu_process_item_selection(next_selection);
+	if (needs_exec && next_selection->submenu) {
+		/* Since we can't execute a submenu, enter it */
+		needs_exec = false;
+		menu_submenu_enter();
+	}
+
+	return needs_exec;
 }
 
 bool

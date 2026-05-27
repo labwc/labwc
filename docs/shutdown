@@ -3,3 +3,11 @@
 # This file is executed as a shell script when labwc is preparing to terminate
 # itself.
 # For further details see labwc-config(5).
+
+# When running under systemd, uncomment the systemctl line below to tear down
+# graphical-session.target (which cascades to labwc-session.target via
+# BindsTo, and to any service declaring PartOf=graphical-session.target).
+# Running synchronously here ensures those services are stopped before the
+# Wayland socket goes away, avoiding "Broken pipe" failures on teardown.
+#
+# systemctl --user stop graphical-session.target

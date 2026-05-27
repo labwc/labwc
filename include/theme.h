@@ -165,6 +165,8 @@ struct theme {
 	float osd_border_color[4];
 	float osd_label_text_color[4];
 
+	float overview_bg_color[4];
+
 	struct window_switcher_classic_theme {
 		int width;
 		int padding;

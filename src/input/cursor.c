@@ -23,6 +23,7 @@
 #include "config/rcxml.h"
 #include "cycle.h"
 #include "dnd.h"
+#include "overview.h"
 #include "idle.h"
 #include "input/gestures.h"
 #include "input/keyboard.h"
@@ -1233,6 +1234,14 @@ cursor_process_button_release(struct seat *seat, uint32_t button,
 	if (server.input_mode == LAB_INPUT_STATE_CYCLE) {
 		if (ctx.type == LAB_NODE_CYCLE_OSD_ITEM) {
 			cycle_on_cursor_release(ctx.node);
+		}
+		return notify;
+	}
+	if (server.input_mode == LAB_INPUT_STATE_OVERVIEW) {
+		if (ctx.type == LAB_NODE_OVERVIEW_ITEM) {
+			overview_on_cursor_release(ctx.node);
+		} else {
+			overview_finish(/*focus_selected*/ false);
 		}
 		return notify;
 	}

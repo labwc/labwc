@@ -20,6 +20,7 @@ enum input_mode {
 	LAB_INPUT_STATE_RESIZE,
 	LAB_INPUT_STATE_MENU,
 	LAB_INPUT_STATE_CYCLE, /* a.k.a. window switching */
+	LAB_INPUT_STATE_OVERVIEW, /* overview mode */
 };
 
 struct seat {

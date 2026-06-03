@@ -621,7 +621,24 @@ xdg_toplevel_view_configure(struct view *view, struct wlr_box geo)
 	if (geo.width != view->pending.width
 			|| geo.height != view->pending.height) {
 		if (toplevel->base->initialized) {
-			serial = wlr_xdg_toplevel_set_size(toplevel, geo.width, geo.height);
+			/*
+			 * geo.{width,height} are checked here to guard against
+			 * an odd edge-case reported in #3608 which involves TTY
+			 * switching between labwc and Xfce running on X.Org on
+			 * another TTY. It is not yet clear what causes this,
+			 * but hitting wlroots assert() is not great, so let's
+			 * protect against it.
+			 *
+			 * Ref:
+			 * - https://github.com/labwc/labwc/issues/3608
+			 */
+			if (geo.width > 0 && geo.height > 0) {
+				serial = wlr_xdg_toplevel_set_size(toplevel,
+						geo.width, geo.height);
+			} else {
+				wlr_log(WLR_ERROR, "cannot set size %dx%d",
+					geo.width, geo.height);
+			}
 		} else {
 			/*
 			 * This may happen, for example, when a panel resizes because a

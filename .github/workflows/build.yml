@@ -92,9 +92,15 @@ jobs:
           sed -i '/^Types/ s/deb/& deb-src/' /etc/apt/sources.list.d/debian.sources
           apt-get update
           apt-get upgrade -y
-          apt-get install -y git gcc clang gdb xwayland
-          apt-get build-dep -y labwc
-          apt-get build-dep -y libwlroots-0.19-dev
+          apt-get install -y git gcc clang gdb xwayland meson pkgconf
+          apt-get build-dep -y libwlroots-0.20-dev
+          # Debian Testing temporarily removed labwc due to wlroots 0.20 transition
+          # apt-get build-dep -y labwc
+          # Thus install the deps manually
+          apt-get install -y libxml2-dev liblzma-dev libglib2.0-dev \
+            libcairo2-dev libpango1.0-dev libinput-dev libpng-dev \
+            librsvg2-dev wayland-protocols libxkbcommon-dev libdrm-dev \
+            scdoc gettext libsfdo-dev
 
       - name: Install FreeBSD dependencies
         if: matrix.name == 'FreeBSD'

@@ -84,6 +84,19 @@ The format is based on [Keep a Changelog]
 
 [unreleased-commits]
 
+## Notes on wlroots-0.20
+
+There are some regression warnings worth noting for the switch to wlroots 0.20:
+
+- lxqt-panel auto-hiding does not work with a panel size greater than 40 [#3600]
+  [wlroots-5392]
+- Some Wine game windows disappear after alt-tab. It is not yet clear where the
+  bug is, but the issue manifests itself when running wlroots-0.20 [#3615]
+  [wlroots-4103]
+
+[wlroots-5392]: https://gitlab.freedesktop.org/wlroots/wlroots/-/merge_requests/5392
+[wlroots-4103]: https://gitlab.freedesktop.org/wlroots/wlroots/-/work_items/4103
+
 ## 0.20.0 - 2026-05-25
 
 [0.20.0-commits]
@@ -3223,6 +3236,7 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
 [#2956]: https://github.com/labwc/labwc/pull/2956
 [#2965]: https://github.com/labwc/labwc/pull/2965
 [#2967]: https://github.com/labwc/labwc/pull/2967
+[#2968]: https://github.com/labwc/labwc/pull/2968
 [#2970]: https://github.com/labwc/labwc/pull/2970
 [#2971]: https://github.com/labwc/labwc/pull/2971
 [#2972]: https://github.com/labwc/labwc/pull/2972
@@ -3343,4 +3357,9 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
 [#3543]: https://github.com/labwc/labwc/pull/3543
 [#3547]: https://github.com/labwc/labwc/pull/3547
 [#3567]: https://github.com/labwc/labwc/pull/3567
+[#3576]: https://github.com/labwc/labwc/pull/3576
+[#3577]: https://github.com/labwc/labwc/pull/3577
+[#3581]: https://github.com/labwc/labwc/pull/3581
 [#3595]: https://github.com/labwc/labwc/pull/3595
+[#3600]: https://github.com/labwc/labwc/pull/3600
+[#3615]: https://github.com/labwc/labwc/pull/3615

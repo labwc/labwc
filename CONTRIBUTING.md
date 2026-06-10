@@ -19,7 +19,8 @@
 - [6. Unit Tests](#unit-tests)
 - [7. Submitting Patches](#submitting-patches)
 - [8. Native Language Support](#native-language-support)
-- [9. Upversion](#upversion)
+- [9. Tools](#tools)
+- [10. Upversion](#upversion)
 
 # How to Contribute
 
@@ -471,6 +472,29 @@ This generates a new pot file at `po/labwc.pot`
 
 3. Copy the header from the original `labwc.pot` to the new one, keeping
 the newly generated dates, check for sanity and commit.
+
+# Tools
+
+We permit LLM and AI-assisted tooling, but only on the basis that humans remain
+fully accountable. Contributors must use an `Assisted-by:` tag in the commit
+logs if AI tools generated or significantly assisted with any part of the code
+or documentation. Humans retain full legal and technical responsibility for the
+resulting work, including any defects.
+
+We have received Pull Requests where the submitter clearly did not understand
+the code, could not reason about it, and would be unable to maintain it.  This
+is not acceptable.
+
+Any AI-generated code contribution must be compatible with the GPL-2.0-only
+license.
+
+While LLMs can be useful for triage, review, clean-up, API refactoring and
+similar tasks, we strongly discourage AI slop. Code review effort is usually the
+project's primary bottleneck, and submitting unreviewed, AI-generated garbage
+wastes reviewer time, slows development, and harms the overall health of the
+project. Likewise, AI-generated commit messages and AI-written text in issues
+and discussions are strongly discourage and may be treated as sabotage on this
+basis.
 
 # Upversion
 

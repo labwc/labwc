@@ -590,15 +590,13 @@ handle_set_class(struct wl_listener *listener, void *data)
 	struct view *view = &xwayland_view->base;
 
 	/*
-	 * Use the WM_CLASS 'instance' (1st string) for the app_id. Per
-	 * ICCCM, this is usually "the trailing part of the name used to
-	 * invoke the program (argv[0] stripped of any directory names)".
-	 *
-	 * In most cases, the 'class' (2nd string) is the same as the
-	 * 'instance' except for being capitalized. We want lowercase
-	 * here since we use the app_id for icon lookups.
+	 * Use the WM_CLASS 'class' (2nd string) for the app_id. (Note
+	 * that this is often capitalized, which must be accounted for
+	 * in icon lookups.) We used to use the 'instance' (1st string)
+	 * but this caused missing icons with Firefox, which has an
+	 * instance of 'Navigator' for historical reasons.
 	 */
-	view_set_app_id(view, xwayland_view->xwayland_surface->instance);
+	view_set_app_id(view, xwayland_view->xwayland_surface->class);
 }
 
 static void

@@ -9,8 +9,8 @@ The format is based on [Keep a Changelog]
 
 | Date       | All Changes   | wlroots version | lines-of-code |
 |------------|---------------|-----------------|---------------|
+| 2026-06-11 | [0.9.8]       | 0.19.3          | 29284         |
 | 2026-04-17 | [0.9.7]       | 0.19.2          | 29277         |
-| 2026-06-11 | [0.9.8]       | 0.19.3          | 29277         |
 | 2026-03-15 | [0.9.6]       | 0.19.2          | 29271         |
 | 2026-03-04 | [0.9.5]       | 0.19.2          | 29251         |
 | 2026-02-27 | [0.9.4]       | 0.19.2          | 29225         |
@@ -119,6 +119,7 @@ There are some regression warnings worth noting for the switch to wlroots 0.19:
 
 ### Fixed
 
+- Handle titles with no visible characters @Consolatis [#3631]
 - Save window position on initial placement to fix Raspberry Pi pygame SDL
   XWayland window starting off-screen. @tokyo4j [#3433] [#3625] [#3616]
 
@@ -3227,3 +3228,4 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
 [#3511]: https://github.com/labwc/labwc/pull/3511
 [#3616]: https://github.com/labwc/labwc/pull/3616
 [#3625]: https://github.com/labwc/labwc/pull/3625
+[#3631]: https://github.com/labwc/labwc/pull/3631

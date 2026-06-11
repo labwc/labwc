@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog]
 
 | Date       | All Changes   | wlroots version | lines-of-code |
 |------------|---------------|-----------------|---------------|
+| 2026-06-15 | [0.20.1]      | 0.20.1          | 28337         |
 | 2026-05-25 | [0.20.0]      | 0.20.1          | 28313         |
 | 2026-06-11 | [0.9.8]       | 0.19.3          | 29284         |
 | 2026-04-17 | [0.9.7]       | 0.19.2          | 29277         |
@@ -46,6 +47,7 @@ The format is based on [Keep a Changelog]
 | 2021-03-05 | [0.1.0]       | 0.12.0          | 4627          |
 
 [unreleased]: NEWS.md#unreleased
+[0.20.1]: NEWS.md#0201---2026-06-15
 [0.20.0]: NEWS.md#0200---2026-05-25
 [0.9.8]: NEWS.md#098---2026-06-11
 [0.9.7]: NEWS.md#097---2026-04-17
@@ -98,6 +100,22 @@ There are some regression warnings worth noting for the switch to wlroots 0.20:
 
 [wlroots-5392]: https://gitlab.freedesktop.org/wlroots/wlroots/-/merge_requests/5392
 [wlroots-4103]: https://gitlab.freedesktop.org/wlroots/wlroots/-/work_items/4103
+
+## 0.20.1 - 2026-06-15
+
+[0.20.1-commits]
+
+This is a small bug fix release.
+
+### Fixed
+
+- Handle titles with no visible characters, for example the left-to-right mark
+  (&lrm;) @Consolatis [#3630]
+- Protect against SIGABRT when TTY switching in unusual circumstances by
+  ensuring that xdg-shell windows have sensible width and height before trying
+  to set size on configure. This protects against an edge case experienced when
+  switching between labwc on one TTY and Xfce on XOrg on another TTY.
+  @johanmalm @Tamaranch [#3617]
 
 ## 0.20.0 - 2026-05-25
 
@@ -2795,7 +2813,8 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
   ShowMenu
 
 [Keep a Changelog]: https://keepachangelog.com/en/1.0.0/
-[unreleased-commits]: https://github.com/labwc/labwc/compare/0.20.0...HEAD
+[unreleased-commits]: https://github.com/labwc/labwc/compare/0.20.1...HEAD
+[0.20.1-commits]: https://github.com/labwc/labwc/compare/0.20.0..0.20.1
 [0.20.0-commits]: https://github.com/labwc/labwc/compare/0.9.5..0.20.0
 [0.9.8-commits]: https://github.com/labwc/labwc/compare/0.9.7...0.9.8
 [0.9.7-commits]: https://github.com/labwc/labwc/compare/0.9.6...0.9.7
@@ -3378,5 +3397,7 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
 [#3600]: https://github.com/labwc/labwc/pull/3600
 [#3615]: https://github.com/labwc/labwc/pull/3615
 [#3616]: https://github.com/labwc/labwc/pull/3616
+[#3617]: https://github.com/labwc/labwc/pull/3617
 [#3625]: https://github.com/labwc/labwc/pull/3625
+[#3630]: https://github.com/labwc/labwc/pull/3630
 [#3631]: https://github.com/labwc/labwc/pull/3631

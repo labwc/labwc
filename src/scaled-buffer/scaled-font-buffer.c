@@ -29,7 +29,7 @@ _create_buffer(struct scaled_buffer *scaled_buffer, double scale)
 		&self->font, self->color, bg_pattern, scale);
 
 	if (!buffer) {
-		wlr_log(WLR_ERROR, "font_buffer_create() failed");
+		wlr_log(WLR_INFO, "font_buffer_create() failed");
 	}
 
 	zfree_pattern(solid_bg_pattern);

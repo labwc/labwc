@@ -482,7 +482,7 @@ or documentation. Humans retain full legal and technical responsibility for the
 resulting work, including any defects.
 
 We have received Pull Requests where the submitter clearly did not understand
-the code, could not reason about it, and would be unable to maintain it.  This
+the code, could not reason about it, and would be unable to maintain it. This
 is not acceptable.
 
 Any AI-generated code contribution must be compatible with the GPL-2.0-only
@@ -493,7 +493,7 @@ similar tasks, we strongly discourage AI slop. Code review effort is usually the
 project's primary bottleneck, and submitting unreviewed, AI-generated garbage
 wastes reviewer time, slows development, and harms the overall health of the
 project. Likewise, AI-generated commit messages and AI-written text in issues
-and discussions are strongly discourage and may be treated as sabotage on this
+and discussions are strongly discouraged and may be treated as sabotage on this
 basis.
 
 # Upversion

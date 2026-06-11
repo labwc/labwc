@@ -82,6 +82,7 @@ font_buffer_create(struct lab_data_buffer **buffer, int max_width,
 	cairo_pattern_t *bg_pattern, double scale)
 {
 	if (string_null_or_empty(text)) {
+		*buffer = NULL;
 		return;
 	}
 
@@ -89,6 +90,13 @@ font_buffer_create(struct lab_data_buffer **buffer, int max_width,
 	font_get_buffer_size(max_width, text, font, &width, &computed_height);
 	if (height <= 0) {
 		height = computed_height;
+	}
+
+	if (height <= 0 || width <= 0) {
+		wlr_log(WLR_INFO, "Refusing to create invisible font buffer of %dx%d",
+			width, height);
+		*buffer = NULL;
+		return;
 	}
 
 	*buffer = buffer_create_cairo(width, height, scale);

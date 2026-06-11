@@ -95,6 +95,7 @@ buffer_adopt_cairo_surface(cairo_surface_t *surface)
 
 	buffer->surface = surface;
 	buffer->data = cairo_image_surface_get_data(buffer->surface);
+	assert(buffer->data);
 	buffer->format = DRM_FORMAT_ARGB8888;
 	buffer->stride = cairo_image_surface_get_stride(buffer->surface);
 	buffer->logical_width = width;
@@ -107,6 +108,12 @@ buffer_adopt_cairo_surface(cairo_surface_t *surface)
 struct lab_data_buffer *
 buffer_create_cairo(uint32_t logical_width, uint32_t logical_height, float scale)
 {
+	if (!logical_width || !logical_height) {
+		wlr_log(WLR_ERROR, "Failed to create cairo buffer of %ux%u: dimensions must be > 0",
+			logical_width, logical_height);
+		return NULL;
+	}
+
 	/* Create an image surface with the scaled size */
 	cairo_surface_t *surface =
 		cairo_image_surface_create(CAIRO_FORMAT_ARGB32,
@@ -142,6 +149,7 @@ buffer_create_from_data(void *pixel_data, uint32_t width, uint32_t height,
 	buffer->logical_width = width;
 	buffer->logical_height = height;
 	buffer->data = pixel_data;
+	assert(buffer->data);
 	buffer->format = DRM_FORMAT_ARGB8888;
 	buffer->stride = stride;
 	buffer->surface = cairo_image_surface_create_for_data(
@@ -188,6 +196,10 @@ buffer_resize(struct lab_data_buffer *src_buffer, int width, int height,
 
 	struct lab_data_buffer *buffer =
 		buffer_create_cairo(width, height, scale);
+	if (!buffer) {
+		wlr_log(WLR_INFO, "Failed to resize buffer to %dx%d", width, height);
+		return NULL;
+	}
 	cairo_t *cairo = cairo_create(buffer->surface);
 
 	struct wlr_box container = {

@@ -153,7 +153,7 @@ Build dependencies include:
 - meson, ninja, gcc/clang
 - wayland-protocols
 
-Disable xwayland with `meson -Dxwayland=disabled build/`
+Disable xwayland with `meson setup -Dxwayland=disabled build/`
 
 For OS/distribution specific details see [wiki].
 

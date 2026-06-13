@@ -447,6 +447,11 @@ action_arg_from_xml_node(struct action *action, const char *nodename, const char
 		}
 		break;
 	case ACTION_TYPE_MOVETO:
+		if (!strcmp(argument, "x") || !strcmp(argument, "y")) {
+			action_arg_add_str(action, argument, content);
+			goto cleanup;
+		}
+		break;
 	case ACTION_TYPE_MOVE_RELATIVE:
 		if (!strcmp(argument, "x") || !strcmp(argument, "y")) {
 			action_arg_add_int(action, argument, atoi(content));
@@ -1054,6 +1059,54 @@ warp_cursor(struct view *view, const char *to, const char *x, const char *y)
 	cursor_update_focus();
 }
 
+struct point {
+	int x;
+	int y;
+};
+
+static struct point
+get_moveto_point(struct view *view, const char *pos_x, const char *pos_y)
+{
+	struct point point = { 0 };
+	struct border margin = ssd_thickness(view);
+	struct wlr_box max_extents = ssd_max_extents(view);
+	struct wlr_box usable = output_usable_area_in_layout_coords(view->output);
+	point.x += usable.x;
+	point.y += usable.y;
+
+	/* Parse horizontal position */
+	if (!strcasecmp(pos_x, "center")) {
+		point.x += (usable.width - max_extents.width) / 2;
+		point.x += margin.left;
+	} else if (strchr(pos_x, '%')) {
+		point.x += (usable.width * atoi(pos_x)) / 100;
+		point.x += margin.left;
+	} else if (pos_x[0] == '-') {
+		point.x +=  usable.width - view->current.width + strtol(pos_x, NULL, 10);
+		point.x -= margin.right;
+	} else {
+		point.x += atoi(pos_x);
+		point.x += margin.left;
+	}
+
+	/* Parse veritcal position */
+	if (!strcasecmp(pos_y, "center")) {
+		point.y += (usable.height - max_extents.height) / 2;
+		point.y += margin.top;
+	} else if (strchr(pos_y, '%')) {
+		point.y += (usable.height * atoi(pos_y)) / 100;
+		point.y	+= margin.top;
+	} else if (pos_y[0] == '-') {
+		point.y += usable.height - view->current.height + strtol(pos_y, NULL, 10);
+		point.y -= margin.bottom;
+	} else {
+		point.y += atoi(pos_y);
+		point.y	+= margin.top;
+	}
+
+	return point;
+}
+
 static void
 run_action(struct view *view, struct action *action,
 	struct cursor_context *ctx)
@@ -1299,10 +1352,10 @@ run_action(struct view *view, struct action *action,
 		break;
 	case ACTION_TYPE_MOVETO:
 		if (view) {
-			int x = action_get_int(action, "x", 0);
-			int y = action_get_int(action, "y", 0);
-			struct border margin = ssd_thickness(view);
-			view_move(view, x + margin.left, y + margin.top);
+			const char *x = action_get_str(action, "x", "0");
+			const char *y = action_get_str(action, "y", "0");
+			struct point point = get_moveto_point(view, x, y);
+			view_move(view, point.x, point.y);
 		}
 		break;
 	case ACTION_TYPE_RESIZETO:

@@ -6,6 +6,8 @@
 #include "labwc.h"
 #include "view.h"
 
+#define LAB_XDG_DECORATION_VERSION 2
+
 struct xdg_deco {
 	struct wlr_xdg_toplevel_decoration_v1 *wlr_xdg_decoration;
 	enum wlr_xdg_toplevel_decoration_v1_mode client_mode;
@@ -118,7 +120,8 @@ void
 xdg_server_decoration_init(void)
 {
 	struct wlr_xdg_decoration_manager_v1 *xdg_deco_mgr = NULL;
-	xdg_deco_mgr = wlr_xdg_decoration_manager_v1_create(server.wl_display);
+	xdg_deco_mgr = wlr_xdg_decoration_manager_v1_create(server.wl_display,
+		LAB_XDG_DECORATION_VERSION);
 	if (!xdg_deco_mgr) {
 		wlr_log(WLR_ERROR, "unable to create the XDG deco manager");
 		exit(EXIT_FAILURE);

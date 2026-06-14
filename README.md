@@ -153,9 +153,12 @@ Build dependencies include:
 - meson, ninja, gcc/clang
 - wayland-protocols
 
-Disable xwayland with `meson setup -Dxwayland=disabled build/`
-
 For OS/distribution specific details see [wiki].
+
+Disable xwayland with `meson setup -Dxwayland=disabled build/`. Disable xwayland
+in the automatically downloaded wlroots with: 
+
+    meson setup -Dxwayland=disabled -Dwlroots:backends=drm,libinput -Dwlroots:xwayland=disabled build/
 
 If the right version of `wlroots` is not found on the system, the build setup
 will automatically download the wlroots repo. If this fallback is not desired

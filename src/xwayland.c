@@ -800,7 +800,7 @@ handle_map(struct wl_listener *listener, void *data)
 		 * layout changes that could have occurred between
 		 * ensure_initial_geometry_and_output() and map.
 		 */
-		view_adjust_for_layout_change(view);
+		view_adjust_for_layout_change(view, /* force */ true);
 		/*
 		 * When mapping the view for the first time, visual
 		 * artifacts are reduced if we display it immediately at

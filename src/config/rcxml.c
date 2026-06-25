@@ -1164,6 +1164,8 @@ entry(xmlNode *node, char *nodename, char *content)
 		set_bool(content, &rc.xwayland_persistence);
 	} else if (!strcasecmp(nodename, "primarySelection.core")) {
 		set_bool(content, &rc.primary_selection);
+	} else if (!strcasecmp(nodename, "allowIMEOnLockScreen.core")) {
+		set_bool(content, &rc.allow_ime_on_lock_screen);
 
 	} else if (!strcasecmp(nodename, "promptCommand.core")) {
 		xstrdup_replace(rc.prompt_command, content);
@@ -1536,6 +1538,7 @@ rcxml_init(void)
 	rc.allowed_interfaces = UINT32_MAX;
 	rc.xwayland_persistence = false;
 	rc.primary_selection = true;
+	rc.allow_ime_on_lock_screen = false;
 
 	init_font_defaults(&rc.font_activewindow);
 	init_font_defaults(&rc.font_inactivewindow);

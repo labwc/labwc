@@ -27,6 +27,7 @@
 #include "input/keyboard.h"
 #include "input/key-state.h"
 #include "labwc.h"
+#include "layers.h"
 #include "output.h"
 #include "session-lock.h"
 #include "view.h"
@@ -606,6 +607,13 @@ handle_new_virtual_keyboard(struct wl_listener *listener, void *data)
 	struct input *input = new_keyboard(seat, device, true);
 	device->data = input;
 	seat_add_device(seat, input);
+
+	/*
+	 * A newly bound virtual keyboard may identify a layer-shell client as
+	 * an on-screen keyboard (see should_be_on_lock_screen()); re-evaluate
+	 * elevation in case the OSK surface mapped before its virtual keyboard.
+	 */
+	layers_update_on_lock_screen();
 }
 
 static void

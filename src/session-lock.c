@@ -8,6 +8,7 @@
 #include "common/mem.h"
 #include "common/scene-helpers.h"
 #include "labwc.h"
+#include "layers.h"
 #include "node.h"
 #include "output.h"
 
@@ -63,6 +64,13 @@ update_focus(void *data)
 	if (!output->manager->focused) {
 		focus_surface(output->manager, output->surface->surface);
 	}
+	/*
+	 * Re-assert any input-method on-screen keyboard above the lock screen
+	 * now that the lock surface has actually mapped. This avoids a race
+	 * where the OSK was elevated before the lock surface existed (or the
+	 * OSK / input-method had not settled yet at lock time).
+	 */
+	layers_update_on_lock_screen();
 }
 
 static void
@@ -283,6 +291,10 @@ handle_lock_unlock(struct wl_listener *listener, void *data)
 	}
 	manager->last_active_view = NULL;
 
+	/* Return any input-method on-screen keyboard to its normal layer */
+	wlr_log(WLR_INFO, "IME-on-lock: ===== session UNLOCKED =====");
+	layers_update_on_lock_screen();
+
 	cursor_update_focus();
 }
 
@@ -343,6 +355,14 @@ handle_new_session_lock(struct wl_listener *listener, void *data)
 	manager->locked = true;
 	manager->lock = lock;
 	wlr_session_lock_v1_send_locked(lock);
+
+	/*
+	 * If an input-method on-screen keyboard is already mapped (for example
+	 * brought up just before locking via SetVisible), elevate it above the
+	 * lock screen.
+	 */
+	wlr_log(WLR_INFO, "IME-on-lock: ===== session LOCKED =====");
+	layers_update_on_lock_screen();
 }
 
 static void

@@ -86,6 +86,12 @@ struct rcxml {
 	uint32_t allowed_interfaces;
 	bool xwayland_persistence;
 	bool primary_selection;
+	/*
+	 * Opt-in exception that lets the on-screen keyboard belonging to the
+	 * active input-method client render (and receive pointer/touch input)
+	 * above an ext-session-lock-v1 lock screen.
+	 */
+	bool allow_ime_on_lock_screen;
 	char *prompt_command;
 
 	/* placement */

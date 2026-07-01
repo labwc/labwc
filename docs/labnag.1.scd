@@ -26,16 +26,16 @@ _labnag_ [options...]
 	Enable debugging.
 
 *-e, --edge* top|bottom
-	Set the edge to use.
+	Set the edge to use. Default is top.
 
 *-y, --layer* overlay|top|bottom|background
-	Set the layer to use.
+	Set the layer to use. Default is top.
 
 *-k, --keyboard-focus none|exclusive|on-demand*
-	Set the policy for keyboard focus.
+	Set the policy for keyboard focus. Default is none.
 
 *-f, --font* <font>
-	Set the font to use.
+	Set the font to use. Default is _Sans 10_.
 
 *-h, --help*
 	Show help message and quit.
@@ -66,55 +66,57 @@ _labnag_ [options...]
 # APPEARANCE OPTIONS
 
 *--background-color* <RRGGBB[AA]>
-	Set the color of the background.
+	Set the color of the background. Default is 900000.
 
 *--button-border-color* <RRGGBB[AA]>
-	Set the color of the button border.
+	Set the color of the button border. Default is D92424.
 
 *--border-bottom-color* <RRGGBB[AA]>
-	Set the color of the bottom border.
+	Set the color of the bottom border. Default is 470909.
 
 *--button-background-color* <RRGGBB[AA]>
-	Set the color for the background for buttons.
+	Set the color for the background for buttons. Default is 680A0A.
 
 *--text-color* <RRGGBB[AA]>
-	Set the text color.
+	Set the text color. Default is FFFFFF.
 
 *--button-text-color* <RRGGBB[AA]>
-	Set the button text color.
+	Set the button text color. Default is FFFFFF.
 
 *--border-bottom-size* <size>
-	Set the thickness of the bottom border.
+	Set the thickness of the bottom border. Default is 3.
 
 *--message-padding* <padding>
-	Set the padding for the message.
+	Set the padding for the message. Default is 8.
 
 *--details-background-color* <RRGGBB[AA]>
-	Set the color for the background for details.
+	Set the color for the background for details. Default is 680A0A.
 
 *--details-border-size* <size>
-	Set the thickness for the details border.
+	Set the thickness for the details border. Default is 3.
 
 *--details-border-color* <RRGGBB[AA]>
-	Set the color of the details border.
+	Set the color of the details border. Default is 680A0A.
 
 *--details-margin* <margin>
-	Set the margin for the details.
+	Set the margin for the details. Default is 11.
 
 *--button-border-size* <size>
-	Set the thickness for the button border.
+	Set the thickness for the button border. Default is 3.
 
 *--button-gap* <gap>
-	Set the size of the gap between buttons.
+	Set the size of the gap between buttons. Default is 20.
 
 *--button-dismiss-gap* <gap>
 	Set the size of the gap between the dismiss button and another button.
+	Default is 15.
 
 *--button-margin-right* <margin>
 	Set the margin from the right of the dismiss button to edge.
+	Default is 2.
 
 *--button-padding* <padding>
-	Set the padding for the button text.
+	Set the padding for the button text. Default is 3.
 
 # EXAMPLE
 

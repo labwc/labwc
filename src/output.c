@@ -530,6 +530,30 @@ configure_new_output(struct output *output)
 	server.pending_output_layout_change--;
 
 	/*
+	 * Force the initial modeset commit to actually happen.
+	 *
+	 * lab_wlr_scene_output_commit() skips the real commit whenever the
+	 * scene reports neither damage nor needs_frame. But on this very
+	 * first commit the output has not been modeset yet, so its resolution
+	 * is still 0x0: scene damage is clipped against that empty area and
+	 * can never accumulate, and needs_frame is never raised on its own.
+	 * As a result the enabled=true state set above would never be
+	 * committed and the output would stay black until some unrelated
+	 * event (VT switch, hotplug, display-manager restart) happens to
+	 * raise needs_frame.
+	 *
+	 * With hardware cursors this is masked, because uploading the cursor
+	 * image raises needs_frame as a side effect. With
+	 * WLR_NO_HARDWARE_CURSORS=1 (software cursors) that path is gone and
+	 * the missing initial commit becomes reliably reproducible, e.g.
+	 * under QEMU/virtio-gpu.
+	 *
+	 * Schedule a frame here so needs_frame is raised and this enable is
+	 * always committed, independent of the cursor mode.
+	 */
+	wlr_output_schedule_frame(wlr_output);
+
+	/*
 	 * Commit the output this way instead, HDR needs a buffer, and
 	 * this commit must be called after the output is added to the
 	 * layout above.

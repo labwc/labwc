@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: labwc\n"
 "Report-Msgid-Bugs-To: https://github.com/labwc/labwc/issues\n"
 "POT-Creation-Date: 2024-09-19 21:09+1000\n"
-"PO-Revision-Date: 2025-08-02 08:01+0000\n"
+"PO-Revision-Date: 2026-07-14 03:29+0000\n"
 "Last-Translator: Dimitrios Glentadakis <dglent@free.fr>\n"
 "Language-Team: Greek <https://translate.lxqt-project.org/projects/labwc/"
 "labwc/el/>\n"
@@ -21,7 +21,7 @@ msgstr ""
 
 #: src/menu/menu.c:1016
 msgid "Go there..."
-msgstr "Πήγαινε εκεί..."
+msgstr "Πήγαινε..."
 
 #: src/menu/menu.c:1034
 msgid "Terminal"

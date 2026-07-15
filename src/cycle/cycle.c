@@ -204,7 +204,7 @@ cycle_finish(bool switch_focus)
 	struct view *selected_view = server.cycle.selected_view;
 	destroy_cycle();
 
-	seat_focus_override_end(&server.seat, /*restore_focus*/ false);
+	seat_focus_override_end(&server.seat, /*restore_focus*/ !switch_focus);
 
 	/* Hiding OSD may need a cursor change */
 	cursor_update_focus();

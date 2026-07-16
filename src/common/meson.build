@@ -10,6 +10,7 @@ labwc_sources += files(
   'lab-scene-rect.c',
   'match.c',
   'mem.c',
+  'nag.c',
   'nodename.c',
   'node-type.c',
   'parse-bool.c',

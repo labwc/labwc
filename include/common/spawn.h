@@ -23,6 +23,19 @@ void spawn_async_no_shell(char const *command);
 void spawn_sync_no_shell(char const *command);
 
 /**
+ * spawn_piped_async_no_shell - execute asynchronously
+ * @command: command to be executed
+ * @pipe_fd_w: set to the write end of a pipe
+ *             connected to stdin of the command
+ * Notes:
+ * The returned pid_t has to be waited for to
+ * not produce zombies and the pipe_fd_w has to
+ * be closed. spawn_piped_close() can be used
+ * to ensure both.
+ */
+pid_t spawn_piped_async_no_shell(const char *command, int *pipe_fd_w);
+
+/**
  * spawn_piped - execute asynchronously
  * @command: command to be executed
  * @pipe_fd: set to the read end of a pipe

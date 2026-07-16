@@ -180,6 +180,7 @@ this is for compatibility with Openbox.
   <xwaylandPersistence>no</xwaylandPersistence>
   <primarySelection>yes</primarySelection>
   <promptCommand>[see details below]</promptCommand>
+  <errorCommand>[see details below]</errorCommand>
 </core>
 ```
 
@@ -314,6 +315,29 @@ this is for compatibility with Openbox.
 		--text="%m" \\
 		--ok-label="%y" \\
 		--cancel-label="%n"
+	```
+
+*<core><errorCommand>*
+	Set command to be invoked for displaying errors in the config files,
+	it is executed when errors are detected on startup and reconfigure.
+	The errors are sent to STDIN of the program, and a SIGTERM is sent to
+	it if the process is still running when a reconfigure is triggered.
+
+	The default error command is:
+	```
+	labnag \\
+		--message 'Config Error' \\
+		--button-dismiss 'Close' \\
+		--layer overlay \\
+		--timeout 0 \\
+		--detailed-message
+	```
+
+	Example using `zenity`:
+	```
+	<core>
+	  <errorCommand>zenity --title='Config Error' --text-info</errorCommand>
+	</core>
 	```
 
 ## PLACEMENT

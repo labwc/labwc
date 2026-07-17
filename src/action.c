@@ -21,7 +21,7 @@
 #include "cycle.h"
 #include "debug.h"
 #include "input/keyboard.h"
-#include "input/key-state.h"
+#include "input/key-state-indicator.h"
 #include "labwc.h"
 #include "magnifier.h"
 #include "menu/menu.h"

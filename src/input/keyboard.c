@@ -14,7 +14,7 @@
 #include "cycle.h"
 #include "idle.h"
 #include "input/ime.h"
-#include "input/key-state.h"
+#include "input/key-state-indicator.h"
 #include "labwc.h"
 #include "menu/menu.h"
 #include "session-lock.h"
@@ -153,7 +153,7 @@ handle_modifiers(struct wl_listener *listener, void *data)
 	if ((cycling || seat->workspace_osd_shown_by_modifier)
 			&& !keyboard_get_all_modifiers(seat)) {
 		if (cycling) {
-			if (key_state_nr_bound_keys()) {
+			if (seat->keyboard_group->keyboard.num_keycodes > 0) {
 				should_cancel_cycling_on_next_key_release = true;
 			} else {
 				should_cancel_cycling_on_next_key_release = false;
@@ -381,7 +381,7 @@ handle_key_release(uint32_t evdev_keycode)
 	 * Release events for keys that were not bound should always be
 	 * forwarded to clients to avoid stuck keys.
 	 */
-	if (!key_state_corresponding_press_event_was_bound(evdev_keycode)) {
+	if (lab_set_contains(&server.seat.pressed_sent_keys, evdev_keycode)) {
 		return LAB_KEY_HANDLED_FALSE;
 	}
 
@@ -403,7 +403,6 @@ handle_key_release(uint32_t evdev_keycode)
 	 * If a press event was handled by a compositor binding, then do
 	 * not forward the corresponding release event to clients.
 	 */
-	key_state_bound_key_remove(evdev_keycode);
 	return LAB_KEY_HANDLED_TRUE;
 }
 
@@ -505,12 +504,8 @@ handle_compositor_keybindings(struct keyboard *keyboard,
 	struct keyinfo keyinfo = get_keyinfo(wlr_keyboard, event->keycode);
 	bool locked = server.session_lock_manager->locked;
 
-	key_state_set_pressed(event->keycode,
-		event->state == WL_KEYBOARD_KEY_STATE_PRESSED);
-
 	if (event->state == WL_KEYBOARD_KEY_STATE_RELEASED) {
 		if (cur_keybind && cur_keybind->on_release) {
-			key_state_bound_key_remove(event->keycode);
 			if (locked && !cur_keybind->allow_when_locked) {
 				cur_keybind = NULL;
 				return LAB_KEY_HANDLED_TRUE;
@@ -524,7 +519,6 @@ handle_compositor_keybindings(struct keyboard *keyboard,
 
 	/* Catch C-A-F1 to C-A-F12 to change tty */
 	if (handle_change_vt_key(keyboard, &keyinfo.translated)) {
-		key_state_store_pressed_key_as_bound(event->keycode);
 		return LAB_KEY_HANDLED_TRUE_AND_VT_CHANGED;
 	}
 
@@ -535,12 +529,10 @@ handle_compositor_keybindings(struct keyboard *keyboard,
 	 */
 	if (!locked) {
 		if (server.input_mode == LAB_INPUT_STATE_MENU) {
-			key_state_store_pressed_key_as_bound(event->keycode);
 			handle_menu_keys(&keyinfo.translated);
 			return LAB_KEY_HANDLED_TRUE;
 		} else if (server.input_mode == LAB_INPUT_STATE_CYCLE) {
 			if (handle_cycle_view_key(&keyinfo)) {
-				key_state_store_pressed_key_as_bound(event->keycode);
 				return LAB_KEY_HANDLED_TRUE;
 			}
 		}
@@ -551,12 +543,6 @@ handle_compositor_keybindings(struct keyboard *keyboard,
 	 */
 	cur_keybind = match_keybinding(&keyinfo, keyboard->is_virtual);
 	if (cur_keybind && (!locked || cur_keybind->allow_when_locked)) {
-		/*
-		 * Update key-state before action_run() because the action
-		 * might lead to seat_focus() in which case we pass the
-		 * 'pressed-sent' keys to the new surface.
-		 */
-		key_state_store_pressed_key_as_bound(event->keycode);
 		if (!cur_keybind->on_release) {
 			actions_run(NULL, &cur_keybind->actions, NULL);
 		}
@@ -646,11 +632,10 @@ handle_key(struct wl_listener *listener, void *data)
 	enum lab_key_handled handled =
 		handle_compositor_keybindings(keyboard, event);
 
-	if (handled == LAB_KEY_HANDLED_TRUE_AND_VT_CHANGED) {
-		return;
-	}
-
-	if (handled) {
+	switch (handled) {
+	case LAB_KEY_HANDLED_TRUE_AND_VT_CHANGED:
+		break;
+	case LAB_KEY_HANDLED_TRUE:
 		/*
 		 * We do not start the repeat-timer on pressed modifiers (like
 		 * Super_L) because it is only for our own internal use with
@@ -660,10 +645,25 @@ handle_key(struct wl_listener *listener, void *data)
 				&& event->state == WL_KEYBOARD_KEY_STATE_PRESSED) {
 			start_keybind_repeat(keyboard, event);
 		}
-	} else if (!input_method_keyboard_grab_forward_key(keyboard, event)) {
+		break;
+	case LAB_KEY_HANDLED_FALSE:
+		/*
+		 * Note: Technically we could just use
+		 * wlr_seat->keyboard_state.keyboard->keycodes instead, but we
+		 * have seat->pressed_sent_keys for convenience.
+		 */
+		if (event->state == WL_KEYBOARD_KEY_STATE_PRESSED) {
+			lab_set_add(&seat->pressed_sent_keys, event->keycode);
+		} else {
+			lab_set_remove(&seat->pressed_sent_keys, event->keycode);
+		}
+		if (input_method_keyboard_grab_forward_key(keyboard, event)) {
+			break;
+		}
 		wlr_seat_set_keyboard(wlr_seat, keyboard->wlr_keyboard);
 		wlr_seat_keyboard_notify_key(wlr_seat, event->time_msec,
 			event->keycode, event->state);
+		break;
 	}
 }
 

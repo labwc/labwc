@@ -7,7 +7,6 @@
 #include <string.h>
 #include <wlr/types/wlr_keyboard_group.h>
 #include <wlr/util/log.h>
-#include "common/list.h"
 #include "common/mem.h"
 #include "config/rcxml.h"
 #include "labwc.h"
@@ -72,7 +71,7 @@ keybind_contains_keysym(struct keybind *keybind, xkb_keysym_t keysym)
 	return false;
 }
 
-static bool
+bool
 keybind_contains_any_keysym(struct keybind *keybind,
 		const xkb_keysym_t *syms, int nr_syms)
 {
@@ -205,7 +204,6 @@ keybind_create(const char *keybind)
 	if (!k) {
 		return NULL;
 	}
-	wl_list_append(&rc.keybinds, &k->link);
 	k->keysyms = xmalloc(k->keysyms_len * sizeof(xkb_keysym_t));
 	memcpy(k->keysyms, keysyms, k->keysyms_len * sizeof(xkb_keysym_t));
 	wl_list_init(&k->actions);

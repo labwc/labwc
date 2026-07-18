@@ -75,6 +75,7 @@ input = dependency('libinput', version: '>=1.26', required: wlroots.get_variable
 pixman = dependency('pixman-1')
 math = cc.find_library('m')
 png = dependency('libpng')
+jsonc = dependency('json-c')
 svg = dependency('librsvg-2.0', version: '>=2.46', required: false)
 sfdo_basedir = dependency(
   'libsfdo-basedir',
@@ -174,6 +175,7 @@ labwc_deps = [
   pixman,
   math,
   png,
+  jsonc,
 ]
 if have_rsvg
   labwc_deps += [

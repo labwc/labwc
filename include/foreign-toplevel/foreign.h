@@ -9,5 +9,6 @@ struct foreign_toplevel *foreign_toplevel_create(struct view *view);
 void foreign_toplevel_set_parent(struct foreign_toplevel *toplevel,
 	struct foreign_toplevel *parent);
 void foreign_toplevel_destroy(struct foreign_toplevel *toplevel);
+const char *foreign_toplevel_get_identifier(struct foreign_toplevel *toplevel);
 
 #endif /* LABWC_FOREIGN_TOPLEVEL_H */

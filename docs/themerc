@@ -58,6 +58,19 @@ window.inactive.shadow.size: 40
 window.active.shadow.color: #00000060
 window.inactive.shadow.color: #00000040
 
+# window bottom handle and grips
+window.handle.width: 6
+window.grip.width: 20
+window.active.handle.bg: Solid
+window.active.handle.bg.color: #a0a0a0
+window.inactive.handle.bg: Solid
+window.inactive.handle.bg.color: #c0c0c0
+# Grips inherit from handle if not set explicitly
+# window.active.grip.bg: Solid
+# window.active.grip.bg.color: #a0a0a0
+# window.inactive.grip.bg: Solid
+# window.inactive.grip.bg.color: #c0c0c0
+
 # Note that "menu", "iconify", "max", "close" buttons colors can be defined
 # individually by inserting the type after the button node, for example:
 #

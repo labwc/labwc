@@ -184,6 +184,7 @@ handle_sigchld(int signal, void *data)
 				"spawned child %ld exited with %d",
 				(long)info.si_pid, info.si_status);
 		}
+		nag_check_pid(info.si_pid);
 		break;
 	case CLD_KILLED:
 	case CLD_DUMPED:
@@ -194,6 +195,7 @@ handle_sigchld(int signal, void *data)
 				signame ? signame : "unknown");
 		/* Allow cleanup of killed prompt */
 		action_check_prompt_result(info.si_pid, -info.si_status);
+		nag_check_pid(info.si_pid);
 		break;
 	default:
 		wlr_log(WLR_ERROR,

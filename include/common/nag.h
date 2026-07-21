@@ -2,11 +2,13 @@
 #ifndef LABWC_NAG_H
 #define LABWC_NAG_H
 
+#include <sys/wait.h>
 #include <wlr/util/log.h>
 #include "common/buf.h"
 
 struct buf *nag_get_buf(void);
 void nag_set_error(enum wlr_log_importance importance);
+void nag_check_pid(pid_t exited_pid);
 void nag_reset(void);
 void nag_show_callback(void *data);
 

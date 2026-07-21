@@ -2,7 +2,6 @@
 #define _POSIX_C_SOURCE 200809L
 #include "common/nag.h"
 #include <stdarg.h>
-#include <sys/wait.h>
 #include <unistd.h>
 #include "common/buf.h"
 #include "config/rcxml.h"
@@ -27,15 +26,21 @@ nag_set_error(enum wlr_log_importance importance)
 }
 
 void
+nag_check_pid(pid_t exited_pid)
+{
+	if (pid && pid == exited_pid) {
+		pid = 0;
+	}
+}
+
+void
 nag_reset(void)
 {
 	has_error = false;
 	buf_reset(&log_buf);
 	if (pid > 0) {
-		if (!waitpid(pid, NULL, WNOHANG)) {
-			kill(pid, SIGTERM);
-			/* waitpid() is done in a generic SIGCHLD handler in src/server.c */
-		}
+		kill(pid, SIGTERM);
+		/* waitpid() is done in a generic SIGCHLD handler in src/server.c */
 	}
 	pid = 0;
 }

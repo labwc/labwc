@@ -10,10 +10,10 @@ void nag_set_error(enum wlr_log_importance importance);
 void nag_reset(void);
 void nag_show_callback(void *data);
 
-#define nag_log(verb, fmt, ...) \
+#define nag_log(verbosity, fmt, ...) \
 do { \
-	wlr_log(verb, fmt, ##__VA_ARGS__); \
-	nag_set_error(verb); \
+	wlr_log(verbosity, fmt, ##__VA_ARGS__); \
+	nag_set_error(verbosity); \
 	buf_add_fmt(nag_get_buf(), fmt "\n", ##__VA_ARGS__); \
 } while (0)
 

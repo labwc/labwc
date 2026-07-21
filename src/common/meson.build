@@ -1,4 +1,5 @@
 labwc_sources += files(
+  'borderset.c',
   'box.c',
   'buf.c',
   'dir.c',

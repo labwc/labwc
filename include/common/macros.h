@@ -69,4 +69,15 @@
 
 #define LAB_WLR_VERSION_LOWER(major, minor, micro) (!LAB_WLR_VERSION_AT_LEAST(major, minor, micro))
 
+/**
+ * PIXEL () - calculate pixel offset in an array
+ *
+ * @param x x-coordinate
+ * @param y y-coordinate
+ * @param size width of the buffer in pixes
+ * Assumes "bw" was defined externally
+ */
+
+#define PIXEL(x, y, size) (size * y + x)
+
 #endif /* LABWC_MACROS_H */

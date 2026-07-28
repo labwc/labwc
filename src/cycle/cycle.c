@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: GPL-2.0-only
 #include "cycle.h"
 #include <assert.h>
+#include <ctype.h>
+#include <string.h>
 #include <wlr/types/wlr_scene.h>
 #include <wlr/util/box.h>
 #include <wlr/util/log.h>
@@ -13,6 +15,7 @@
 #include "labwc.h"
 #include "node.h"
 #include "output.h"
+#include "regions.h"
 #include "scaled-buffer/scaled-font-buffer.h"
 #include "scaled-buffer/scaled-icon-buffer.h"
 #include "ssd.h"
@@ -96,9 +99,14 @@ cycle_reinitialize(void)
 	struct view *selected_view_prev =
 		get_next_selected_view(LAB_CYCLE_DIR_BACKWARD);
 	struct cycle_filter filter = cycle->filter;
+	char *region_names = filter.region_names
+		? xstrdup(filter.region_names) : NULL;
+	filter.region_names = region_names;
 
 	destroy_cycle();
-	if (init_cycle(filter)) {
+	bool initialized = init_cycle(filter);
+	zfree(region_names);
+	if (initialized) {
 		/*
 		 * Preserve the selected view (or its previous view) if it's
 		 * still in the cycle list
@@ -344,6 +352,166 @@ get_cycle_app_id(struct cycle_filter *filter)
 	return NULL;
 }
 
+struct cycle_context {
+	struct cycle_filter filter;
+	enum lab_view_criteria criteria;
+	uint64_t outputs;
+	const char *app_id;
+};
+
+static bool
+cycle_region_name_next(const char **cursor, const char **name, size_t *length)
+{
+	if (!*cursor) {
+		return false;
+	}
+
+	const char *begin = *cursor;
+	const char *separator = strchr(begin, '|');
+	const char *end = separator ? separator : begin + strlen(begin);
+	*cursor = separator ? separator + 1 : NULL;
+
+	while (begin < end && isspace((unsigned char)*begin)) {
+		++begin;
+	}
+	while (end > begin && isspace((unsigned char)end[-1])) {
+		--end;
+	}
+	*name = begin;
+	*length = end - begin;
+	return true;
+}
+
+static struct region *
+cycle_region_from_name(struct wl_list *regions, const char *name, size_t length)
+{
+	struct region *region;
+	wl_list_for_each(region, regions, link) {
+		if (strlen(region->name) == length
+				&& !strncmp(region->name, name, length)) {
+			return region;
+		}
+	}
+	return NULL;
+}
+
+bool
+cycle_regions_are_valid(const char *region_names)
+{
+	if (!region_names) {
+		return true;
+	}
+
+	const char *cursor = region_names;
+	const char *name;
+	size_t length;
+	while (cycle_region_name_next(&cursor, &name, &length)) {
+		if (!length || !cycle_region_from_name(&rc.regions, name, length)) {
+			int log_length = length > 128 ? 128 : (int)length;
+			wlr_log(WLR_ERROR, "Invalid window switcher region: '%.*s%s'",
+				log_length, name, length > 128 ? "..." : "");
+			return false;
+		}
+	}
+	return true;
+}
+
+static bool
+cycle_context_init(struct cycle_context *context, struct cycle_filter filter)
+{
+	if (!cycle_regions_are_valid(filter.region_names)) {
+		return false;
+	}
+
+	*context = (struct cycle_context) {
+		.filter = filter,
+		.criteria = get_view_criteria(&filter),
+		.outputs = get_outputs_by_filter(filter.output),
+		.app_id = get_cycle_app_id(&filter),
+	};
+	return true;
+}
+
+static bool
+view_is_assigned_to_cycle_region(struct view *view, struct region *region)
+{
+	if (view->tiled_region
+			&& !strcmp(view->tiled_region->name, region->name)) {
+		return true;
+	}
+	return view->tiled_region_evacuate
+		&& !strcmp(view->tiled_region_evacuate, region->name);
+}
+
+static bool
+overlap_meets_threshold(double overlap_area, double area, int percent)
+{
+	return percent > 0 && area > 0
+		&& overlap_area * 100.0 >= area * (double)percent;
+}
+
+static bool
+view_matches_cycle_region(struct view *view, struct region *region,
+		struct cycle_filter *filter)
+{
+	if (view_is_assigned_to_cycle_region(view, region)) {
+		return true;
+	}
+
+	struct wlr_box overlap;
+	if (!wlr_box_intersection(&overlap, &view->current, &region->geo)) {
+		return false;
+	}
+	double overlap_area = (double)overlap.width * (double)overlap.height;
+	double view_area = (double)view->current.width * (double)view->current.height;
+	double region_area = (double)region->geo.width * (double)region->geo.height;
+
+	return overlap_meets_threshold(overlap_area, view_area,
+			filter->window_overlap_percent)
+		|| overlap_meets_threshold(overlap_area, region_area,
+			filter->region_overlap_percent);
+}
+
+static bool
+view_matches_cycle_regions(struct view *view, struct cycle_filter *filter)
+{
+	if (!filter->region_names) {
+		return true;
+	}
+	if (!output_is_usable(view->output)) {
+		return false;
+	}
+
+	const char *cursor = filter->region_names;
+	const char *name;
+	size_t length;
+	while (cycle_region_name_next(&cursor, &name, &length)) {
+		struct region *region = cycle_region_from_name(
+			&view->output->regions, name, length);
+		if (region && view_matches_cycle_region(view, region, filter)) {
+			return true;
+		}
+	}
+	return false;
+}
+
+static bool
+view_matches_cycle_filter(struct view *view, struct cycle_context *context)
+{
+	if (!view_matches_criteria(view, context->criteria)) {
+		return false;
+	}
+	if (context->filter.output != CYCLE_OUTPUT_ALL
+			&& (!view->output || !(context->outputs & view->output->id_bit))) {
+		return false;
+	}
+	if (context->app_id
+			&& (!view->app_id || strcmp(view->app_id, context->app_id))) {
+		return false;
+	}
+	return view_matches_cycle_regions(view, &context->filter);
+}
+
 static struct wl_list *prev(struct wl_list *elm) { return elm->prev; }
 static struct wl_list *next(struct wl_list *elm) { return elm->next; }
 
@@ -354,9 +522,10 @@ cycle_immediate(enum lab_cycle_dir direction, struct cycle_filter filter)
 		return;
 	}
 
-	enum lab_view_criteria criteria = get_view_criteria(&filter);
-	uint64_t cycle_outputs = get_outputs_by_filter(filter.output);
-	const char *cycle_app_id = get_cycle_app_id(&filter);
+	struct cycle_context context;
+	if (!cycle_context_init(&context, filter)) {
+		return;
+	}
 
 	struct wl_list *head = &server.views;
 	struct wl_list *(*iter)(struct wl_list *list);
@@ -367,15 +536,7 @@ cycle_immediate(enum lab_cycle_dir direction, struct cycle_filter filter)
 
 	for (struct wl_list *elm = iter(from); elm != head; elm = iter(elm)) {
 		struct view *view = wl_container_of(elm, view, link);
-		if (!view_matches_criteria(view, criteria)) {
-			continue;
-		}
-		if (filter.output != CYCLE_OUTPUT_ALL) {
-			if (!view->output || !(cycle_outputs & view->output->id_bit)) {
-				continue;
-			}
-		}
-		if (cycle_app_id && strcmp(view->app_id, cycle_app_id) != 0) {
+		if (!view_matches_cycle_filter(view, &context)) {
 			continue;
 		}
 		if (server.active_view && direction == LAB_CYCLE_DIR_FORWARD) {
@@ -396,18 +557,14 @@ cycle_immediate(enum lab_cycle_dir direction, struct cycle_filter filter)
 static bool
 init_cycle(struct cycle_filter filter)
 {
-	enum lab_view_criteria criteria = get_view_criteria(&filter);
-	uint64_t cycle_outputs = get_outputs_by_filter(filter.output);
-	const char *cycle_app_id = get_cycle_app_id(&filter);
+	struct cycle_context context;
+	if (!cycle_context_init(&context, filter)) {
+		return false;
+	}
 
 	struct view *view;
-	for_each_view(view, &server.views, criteria) {
-		if (filter.output != CYCLE_OUTPUT_ALL) {
-			if (!view->output || !(cycle_outputs & view->output->id_bit)) {
-				continue;
-			}
-		}
-		if (cycle_app_id && strcmp(view->app_id, cycle_app_id) != 0) {
+	wl_list_for_each(view, &server.views, link) {
+		if (!view_matches_cycle_filter(view, &context)) {
 			continue;
 		}
 
@@ -421,6 +578,9 @@ init_cycle(struct cycle_filter filter)
 		wlr_log(WLR_DEBUG, "no views to switch between");
 		return false;
 	}
+	server.cycle.region_names = filter.region_names
+		? xstrdup(filter.region_names) : NULL;
+	filter.region_names = server.cycle.region_names;
 	server.cycle.filter = filter;
 
 	if (rc.window_switcher.osd.show) {
@@ -496,6 +656,8 @@ destroy_cycle(void)
 		wl_list_remove(&view->cycle_link);
 		view->cycle_link = (struct wl_list){0};
 	}
+
+	zfree(server.cycle.region_names);
 
 	server.cycle = (struct cycle_state){0};
 	wl_list_init(&server.cycle.views);

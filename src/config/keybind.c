@@ -161,7 +161,7 @@ keybind_create(const char *keybind)
 			 * "-". In order to avoid such duplications, we perform
 			 * a lookahead on the tokens to treat that edge-case.
 			 */
-			if (symnames[i+1] && !symnames[i+1][0]) {
+			if (symnames[i + 1] && !symnames[i + 1][0]) {
 				continue;
 			}
 			symname = "-";

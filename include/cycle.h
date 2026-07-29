@@ -99,7 +99,7 @@ bool cycle_regions_are_valid(const char *region_names);
 
 /* Begin window switcher */
 void cycle_begin(enum lab_cycle_dir direction,
-	struct cycle_filter filter);
+	struct cycle_filter filter, bool topmost_first);
 
 /* Cycle the selected view in the window switcher */
 void cycle_step(enum lab_cycle_dir direction);
@@ -112,7 +112,7 @@ void cycle_reinitialize(void);
 
 /* Immediately cycle to next/previous window */
 void cycle_immediate(enum lab_cycle_dir direction,
-	struct cycle_filter filter);
+	struct cycle_filter filter, bool topmost_first);
 
 /* Focus the clicked window and close OSD */
 void cycle_on_cursor_release(struct wlr_scene_node *node);

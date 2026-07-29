@@ -125,10 +125,10 @@ Actions are used in menus and keyboard/mouse bindings.
 	Resize and move the active window back to its untiled or unmaximized
 	position if it had been maximized or tiled to a direction or region.
 
-*<action name="NextWindow" workspace="current" output="all" identifier="all" region="value" windowOverlapPercent="0" regionOverlapPercent="0" />*++
-*<action name="PreviousWindow" workspace="current" output="all" identifier="all" region="value" windowOverlapPercent="0" regionOverlapPercent="0" />*++
-*<action name="NextWindowImmediate" workspace="current" output="all" identifier="all" region="value" windowOverlapPercent="0" regionOverlapPercent="0" />*++
-*<action name="PreviousWindowImmediate" workspace="current" output="all" identifier="all" region="value" windowOverlapPercent="0" regionOverlapPercent="0" />*++
+*<action name="NextWindow" workspace="current" output="all" identifier="all" region="value" windowOverlapPercent="0" regionOverlapPercent="0" topmostFirst="no" />*++
+*<action name="PreviousWindow" workspace="current" output="all" identifier="all" region="value" windowOverlapPercent="0" regionOverlapPercent="0" topmostFirst="no" />*++
+*<action name="NextWindowImmediate" workspace="current" output="all" identifier="all" region="value" windowOverlapPercent="0" regionOverlapPercent="0" topmostFirst="no" />*++
+*<action name="PreviousWindowImmediate" workspace="current" output="all" identifier="all" region="value" windowOverlapPercent="0" regionOverlapPercent="0" topmostFirst="no" />*++
 	Cycle focus to next/previous window, respectively.
 
 	Default keybinds for NextWindow and PreviousWindow are Alt-Tab and
@@ -151,6 +151,13 @@ Actions are used in menus and keyboard/mouse bindings.
 	*identifier* [all|current]
 	This determines whether to cycle through all windows or only windows of
 	the same application as the currently focused window. Default is "all".
+
+	*topmostFirst* [yes|no]
+	When set to yes, initially select the topmost window matching all filters if
+	it is not already focused. If it is already focused, select the next or
+	previous matching window as usual. For NextWindow and PreviousWindow, this
+	only affects the initial selection when the Window Switcher begins; Immediate
+	actions perform the check on every invocation. Default is no.
 
 	*region* [name[|name...]]
 	This restricts cycling to windows assigned to one or more named regions. Use
@@ -179,7 +186,7 @@ Actions are used in menus and keyboard/mouse bindings.
 ```
 <keybind key="W-KP_7">
   <action name="NextWindowImmediate"
-    region="top-left|left|bottom-left" />
+    region="top-left|left|bottom-left" topmostFirst="yes" />
 </keybind>
 ```
 

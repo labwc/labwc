@@ -394,6 +394,10 @@ action_arg_from_xml_node(struct action *action, const char *nodename, const char
 			}
 			goto cleanup;
 		}
+		if (!strcasecmp(argument, "topmostFirst")) {
+			action_arg_add_bool(action, argument, parse_bool(content, false));
+			goto cleanup;
+		}
 		if (!strcasecmp(argument, "region")) {
 			action_arg_add_str(action, argument, content);
 			goto cleanup;
@@ -1195,7 +1199,8 @@ run_action(struct view *view, struct action *action,
 		if (server.input_mode == LAB_INPUT_STATE_CYCLE) {
 			cycle_step(dir);
 		} else {
-			cycle_begin(dir, filter);
+			bool topmost_first = action_get_bool(action, "topmostFirst", false);
+			cycle_begin(dir, filter, topmost_first);
 		}
 		break;
 	}
@@ -1204,7 +1209,8 @@ run_action(struct view *view, struct action *action,
 		enum lab_cycle_dir dir = (action->type == ACTION_TYPE_NEXT_WINDOW_IMMEDIATE) ?
 			LAB_CYCLE_DIR_FORWARD : LAB_CYCLE_DIR_BACKWARD;
 		struct cycle_filter filter = cycle_filter_from_action(action);
-		cycle_immediate(dir, filter);
+		bool topmost_first = action_get_bool(action, "topmostFirst", false);
+		cycle_immediate(dir, filter, topmost_first);
 		break;
 	}
 	case ACTION_TYPE_RECONFIGURE:

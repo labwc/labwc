@@ -85,6 +85,19 @@ get_first_view(struct wl_list *views)
 	return view;
 }
 
+/* Return the topmost view in the filtered cycle list. */
+static struct view *
+get_topmost_cycle_view(void)
+{
+	struct view *view;
+	wl_list_for_each(view, &server.views, link) {
+		if (view->cycle_link.next) {
+			return view;
+		}
+	}
+	return NULL;
+}
+
 void
 cycle_reinitialize(void)
 {
@@ -164,7 +177,7 @@ restore_preview_node(void)
 
 void
 cycle_begin(enum lab_cycle_dir direction,
-		struct cycle_filter filter)
+		struct cycle_filter filter, bool topmost_first)
 {
 	if (server.input_mode != LAB_INPUT_STATE_PASSTHROUGH) {
 		return;
@@ -175,15 +188,21 @@ cycle_begin(enum lab_cycle_dir direction,
 	}
 
 	struct view *active_view = server.active_view;
-	if (active_view && active_view->cycle_link.next) {
-		/* Select the active view if it's in the cycle list */
-		server.cycle.selected_view = active_view;
+	struct view *topmost_view = get_topmost_cycle_view();
+	assert(topmost_view);
+	if (topmost_first && topmost_view != active_view) {
+		server.cycle.selected_view = topmost_view;
 	} else {
-		/* Otherwise, select the first view in the cycle list */
-		server.cycle.selected_view = get_first_view(&server.cycle.views);
+		if (active_view && active_view->cycle_link.next) {
+			/* Select the active view if it's in the cycle list */
+			server.cycle.selected_view = active_view;
+		} else {
+			/* Otherwise, select the first view in the cycle list */
+			server.cycle.selected_view = get_first_view(&server.cycle.views);
+		}
+		/* Pre-select the next view in the given direction */
+		server.cycle.selected_view = get_next_selected_view(direction);
 	}
-	/* Pre-select the next view in the given direction */
-	server.cycle.selected_view = get_next_selected_view(direction);
 
 	seat_focus_override_begin(&server.seat,
 		LAB_INPUT_STATE_CYCLE, LAB_CURSOR_DEFAULT);
@@ -512,11 +531,24 @@ view_matches_cycle_filter(struct view *view, struct cycle_context *context)
 	return view_matches_cycle_regions(view, &context->filter);
 }
 
+static struct view *
+get_topmost_matching_view(struct cycle_context *context)
+{
+	struct view *view;
+	wl_list_for_each(view, &server.views, link) {
+		if (view_matches_cycle_filter(view, context)) {
+			return view;
+		}
+	}
+	return NULL;
+}
+
 static struct wl_list *prev(struct wl_list *elm) { return elm->prev; }
 static struct wl_list *next(struct wl_list *elm) { return elm->next; }
 
 void
-cycle_immediate(enum lab_cycle_dir direction, struct cycle_filter filter)
+cycle_immediate(enum lab_cycle_dir direction, struct cycle_filter filter,
+		bool topmost_first)
 {
 	if (wl_list_empty(&server.views)) {
 		return;
@@ -527,18 +559,33 @@ cycle_immediate(enum lab_cycle_dir direction, struct cycle_filter filter)
 		return;
 	}
 
-	struct wl_list *head = &server.views;
-	struct wl_list *(*iter)(struct wl_list *list);
-	iter = direction == LAB_CYCLE_DIR_FORWARD ? next : prev;
-
-	struct wl_list *from = (direction == LAB_CYCLE_DIR_FORWARD) && server.active_view
-		? &server.active_view->link : head;
-
-	for (struct wl_list *elm = iter(from); elm != head; elm = iter(elm)) {
-		struct view *view = wl_container_of(elm, view, link);
-		if (!view_matches_cycle_filter(view, &context)) {
-			continue;
+	struct view *selected_view = NULL;
+	if (topmost_first) {
+		struct view *topmost_view = get_topmost_matching_view(&context);
+		if (topmost_view != server.active_view) {
+			selected_view = topmost_view;
 		}
+	}
+
+	if (!selected_view) {
+		struct wl_list *head = &server.views;
+		struct wl_list *(*iter)(struct wl_list *list);
+		iter = direction == LAB_CYCLE_DIR_FORWARD ? next : prev;
+
+		struct wl_list *from =
+			(direction == LAB_CYCLE_DIR_FORWARD) && server.active_view
+			? &server.active_view->link : head;
+
+		for (struct wl_list *elm = iter(from); elm != head; elm = iter(elm)) {
+			struct view *view = wl_container_of(elm, view, link);
+			if (view_matches_cycle_filter(view, &context)) {
+				selected_view = view;
+				break;
+			}
+		}
+	}
+
+	if (selected_view) {
 		if (server.active_view && direction == LAB_CYCLE_DIR_FORWARD) {
 			/*
 			 * When cycling forward, the current active view needs to be
@@ -547,8 +594,7 @@ cycle_immediate(enum lab_cycle_dir direction, struct cycle_filter filter)
 			 */
 			view_move_to_back(server.active_view);
 		}
-		desktop_focus_view(view, true);
-		break;
+		desktop_focus_view(selected_view, true);
 	}
 	cursor_update_focus();
 }

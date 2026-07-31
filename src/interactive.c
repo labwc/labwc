@@ -267,7 +267,7 @@ edge_from_cursor(struct seat *seat, struct output **dest_output,
 		} else if (right < rc.snap_edge_corner_range) {
 			*edge2 = LAB_EDGE_RIGHT;
 		}
-	} else if (*edge1  == LAB_EDGE_LEFT || *edge1 == LAB_EDGE_RIGHT) {
+	} else if (*edge1 == LAB_EDGE_LEFT || *edge1 == LAB_EDGE_RIGHT) {
 		if (top < rc.snap_edge_corner_range) {
 			*edge2 = LAB_EDGE_TOP;
 		} else if (bottom < rc.snap_edge_corner_range) {

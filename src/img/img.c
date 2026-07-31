@@ -105,7 +105,7 @@ lab_img_copy(struct lab_img *img)
 }
 
 void
-lab_img_add_modifier(struct lab_img *img,  lab_img_modifier_func_t modifier)
+lab_img_add_modifier(struct lab_img *img, lab_img_modifier_func_t modifier)
 {
 	lab_img_modifier_func_t *mod = wl_array_add(&img->modifiers, sizeof(*mod));
 	*mod = modifier;

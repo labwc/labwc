@@ -724,7 +724,16 @@ extending outward from the snapped edge.
 	indicated thickness, regardless of their visual size. Borders visually
 	narrower than the minimum effective thickness will be augmented with
 	invisible zones just beyond the window that serve as click targets for
-	mouse actions. Default is 8.
+	mouse actions. 	Default is 8.
+
+*<resize><adjustNeighbors>* [yes|no]
+	When a tiled window is interactively resized, automatically adjust
+	neighboring tiled windows to keep the layout gap-free. Also makes
+	edge-snapping fill the remaining space around existing tiled
+	windows instead of splitting the output in half. The layout
+	is intentionally limited to 2 columns x 2 rows. Client minimum size
+	hints are enforced — grid alignment may fall out of sync in edge
+	cases. Default is no.
 
 # INPUT CONFIGURATION
 

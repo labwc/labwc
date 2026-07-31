@@ -726,6 +726,15 @@ extending outward from the snapped edge.
 	invisible zones just beyond the window that serve as click targets for
 	mouse actions. Default is 8.
 
+*<resize><adjustTiledNeighbors>* [yes|no]
+	When a tiled window is interactively resized, automatically adjust
+	neighboring tiled windows to keep the layout gap-free. Also makes
+	edge-snapping fill the remaining space around existing tiled
+	windows instead of splitting the output in half. The layout
+	is intentionally limited to 2 columns x 2 rows. Client minimum size
+	hints are enforced — grid alignment may fall out of sync in edge
+	cases. Default is no.
+
 # INPUT CONFIGURATION
 
 This section describes configuration of input devices including:

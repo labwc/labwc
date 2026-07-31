@@ -153,6 +153,17 @@
 
       <cornerRange>8</cornerRange>
     -->
+
+    <!--
+      Automatically adjust neighboring tiled windows when a window is
+      resized. This keeps common snap layouts gap-free (A|B, A|B/C,
+      A/B|C, A/B|C/D, where | separates columns and / separates
+      vertically stacked windows) and makes edge-snapping fill the
+      remaining space around existing tiled windows. The layout is
+      limited to 2 columns x 2 rows. Disabled by default.
+
+      <adjustTiledNeighbors>true</adjustTiledNeighbors>
+    -->
   </resize>
 
   <focus>

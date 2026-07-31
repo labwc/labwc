@@ -14,7 +14,9 @@
 #include <wlr/types/wlr_xdg_shell.h>
 #include <wlr/util/log.h>
 #include "action.h"
+#include "buffer.h"
 #include "common/buf.h"
+#include "common/graphic-helpers.h"
 #include "common/dir.h"
 #include "common/font.h"
 #include "common/lab-scene-rect.h"
@@ -277,8 +279,9 @@ item_create_scene_for_state(struct menuitem *item, float *text_color,
 		return tree;
 	}
 
-	/* Create background */
-	lab_wlr_scene_rect_create(tree, bg_width, theme->menu_item_height, bg_color);
+	/* Create background with rounded corners */
+	create_rounded_rect_bg(tree, bg_width,
+		theme->menu_item_height, bg_color, rc.corner_radius, false);
 
 	/* Create icon */
 	bool show_app_icon = !strcmp(item->parent->id, "client-list-combined-menu")
@@ -446,9 +449,9 @@ title_create_scene(struct menuitem *menuitem, int *item_y)
 		goto error;
 	}
 
-	/* Background */
-	lab_wlr_scene_rect_create(menuitem->normal_tree,
-		bg_width, theme->menu_header_height, bg_color);
+	/* Background with rounded corners */
+	create_rounded_rect_bg(menuitem->normal_tree, bg_width,
+		theme->menu_header_height, bg_color, rc.corner_radius, false);
 
 	/* Draw separator title */
 	struct scaled_font_buffer *title_font_buffer =
@@ -540,16 +543,51 @@ menu_create_scene(struct menu *menu)
 	}
 	menu->size.height = item_y + theme->menu_border_width;
 
-	struct lab_scene_rect_options opts = {
-		.border_colors = (float *[1]) {theme->menu_border_color},
-		.nr_borders = 1,
-		.border_width = theme->menu_border_width,
-		.width = menu->size.width,
-		.height = menu->size.height,
-	};
-	struct lab_scene_rect *bg_rect =
-		lab_scene_rect_create(menu->scene_tree, &opts);
-	wlr_scene_node_lower_to_bottom(&bg_rect->tree->node);
+	/* Draw rounded menu background (border + fill) as single buffer */
+	static const double deg2 = 0.017453292519943295;
+	int bw = theme->menu_border_width;
+	int w = menu->size.width;
+	int h = menu->size.height;
+	double r = MIN(rc.corner_radius, MIN(w, h) / 2.0);
+	double ir = MAX(r - bw, 0);
+
+	struct lab_data_buffer *bg_buf = buffer_create_cairo(w, h, 1);
+	cairo_surface_t *surface = bg_buf->surface;
+	cairo_t *cr = cairo_create(surface);
+
+	cairo_set_operator(cr, CAIRO_OPERATOR_CLEAR);
+	cairo_paint(cr);
+
+	/* Outer rounded rect — border color */
+	cairo_set_operator(cr, CAIRO_OPERATOR_SOURCE);
+	cairo_new_sub_path(cr);
+	cairo_arc(cr, r, r, r, 180 * deg2, 270 * deg2);
+	cairo_arc(cr, w - r, r, r, -90 * deg2, 0);
+	cairo_arc(cr, w - r, h - r, r, 0, 90 * deg2);
+	cairo_arc(cr, r, h - r, r, 90 * deg2, 180 * deg2);
+	cairo_close_path(cr);
+	set_cairo_color(cr, theme->menu_border_color);
+	cairo_fill(cr);
+
+	/* Inner rounded rect — background fill */
+	cairo_new_sub_path(cr);
+	cairo_arc(cr, bw + ir, bw + ir, ir, 180 * deg2,
+		270 * deg2);
+	cairo_arc(cr, w - bw - ir, bw + ir, ir, -90 * deg2, 0);
+	cairo_arc(cr, w - bw - ir, h - bw - ir, ir, 0,
+		90 * deg2);
+	cairo_arc(cr, bw + ir, h - bw - ir, ir, 90 * deg2,
+		180 * deg2);
+	cairo_close_path(cr);
+	set_cairo_color(cr, theme->menu_items_bg_color);
+	cairo_fill(cr);
+
+	cairo_surface_flush(surface);
+	cairo_destroy(cr);
+
+	struct wlr_scene_buffer *bg_node =
+		lab_wlr_scene_buffer_create(menu->scene_tree, &bg_buf->base);
+	wlr_scene_node_lower_to_bottom(&bg_node->node);
 }
 
 /*

@@ -29,6 +29,27 @@
 #define VIEW_FALLBACK_HEIGHT 480
 
 /*
+ * Tile neighbor management intentionally limits layouts to a maximum
+ * of 2 columns x 2 rows (A|B, A|B+C, A+B|C, A-B|C-D).
+ * A window's tile_col/tile_row use:
+ *   TILE_POS_NONE             : not tiled
+ *   TILE_POS_LEFT_OR_TOP      : left column / top row
+ *   TILE_POS_RIGHT_OR_BOTTOM  : right column / bottom row
+ * More complex arrangements are left to dedicated tiling WMs.
+ *
+ * NOTE: Client minimum size hints are enforced — neighbor adjustment
+ * will not shrink a window below its declared minimum. In edge cases
+ * this means grid-aligned edges may fall out of sync. This is
+ * intentional: preserving client size constraints takes priority over
+ * perfect layout alignment.
+ */
+enum tile_position {
+	TILE_POS_NONE = -1,
+	TILE_POS_LEFT_OR_TOP = 0,
+	TILE_POS_RIGHT_OR_BOTTOM = 1,
+};
+
+/*
  * In labwc, a view is a container for surfaces which can be moved around by
  * the user. In practice this means XDG toplevel and XWayland windows.
  */
@@ -141,6 +162,11 @@ struct view {
 
 	/* This is cleared when the view is not in the cycle list */
 	struct wl_list cycle_link;
+
+	/* Link in tiled-window list (managed by snap-to-edge) */
+	struct wl_list tile_link;
+	enum tile_position tile_col;
+	enum tile_position tile_row;
 
 	/*
 	 * The primary output that the view is displayed on. Specifically:
@@ -584,6 +610,8 @@ void view_adjust_for_layout_change(struct view *view);
 void view_move_to_edge(struct view *view, enum lab_edge direction, bool snap_to_windows);
 void view_grow_to_edge(struct view *view, enum lab_edge direction);
 void view_shrink_to_edge(struct view *view, enum lab_edge direction);
+void view_adjust_neighbors(struct view *view);
+void view_untile_managed(struct view *view);
 void view_snap_to_edge(struct view *view, enum lab_edge direction,
 	bool across_outputs, bool combine);
 void view_snap_to_region(struct view *view, struct region *region);

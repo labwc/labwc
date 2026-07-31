@@ -281,7 +281,7 @@ item_create_scene_for_state(struct menuitem *item, float *text_color,
 
 	/* Create background with rounded corners */
 	create_rounded_rect_bg(tree, bg_width,
-		theme->menu_item_height, bg_color, rc.corner_radius, false);
+		theme->menu_item_height, bg_color, rc.corner_radius - 1, false);
 
 	/* Create icon */
 	bool show_app_icon = !strcmp(item->parent->id, "client-list-combined-menu")
@@ -451,7 +451,7 @@ title_create_scene(struct menuitem *menuitem, int *item_y)
 
 	/* Background with rounded corners */
 	create_rounded_rect_bg(menuitem->normal_tree, bg_width,
-		theme->menu_header_height, bg_color, rc.corner_radius, false);
+		theme->menu_header_height, bg_color, rc.corner_radius - 1, false);
 
 	/* Draw separator title */
 	struct scaled_font_buffer *title_font_buffer =

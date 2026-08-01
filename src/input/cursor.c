@@ -89,6 +89,14 @@ static_assert(
 	ARRAY_SIZE(cursors_x11) == LAB_CURSOR_COUNT,
 	"X11 cursor names are out of sync");
 
+static int
+hide_cursor(void *data)
+{
+	struct seat *seat = data;
+	cursor_set_visible(seat, false);
+	return 0;
+}
+
 enum lab_cursors
 cursor_get_from_edge(enum lab_edge resize_edges)
 {
@@ -924,6 +932,7 @@ handle_motion(struct wl_listener *listener, void *data)
 	struct seat *seat = wl_container_of(listener, seat, on_cursor.motion);
 	struct wlr_pointer_motion_event *event = data;
 	idle_manager_notify_activity(seat->wlr_seat);
+	wl_event_source_timer_update(server.hide_timer, 5000);
 	cursor_set_visible(seat, /* visible */ true);
 
 	if (seat->cursor_scroll_wheel_emulation) {
@@ -978,6 +987,7 @@ handle_motion_absolute(struct wl_listener *listener, void *data)
 	struct seat *seat = wl_container_of(listener, seat, on_cursor.motion_absolute);
 	struct wlr_pointer_motion_absolute_event *event = data;
 	idle_manager_notify_activity(seat->wlr_seat);
+	wl_event_source_timer_update(server.hide_timer, 5000);
 	cursor_set_visible(seat, /* visible */ true);
 
 	double lx, ly;
@@ -1293,6 +1303,7 @@ handle_button(struct wl_listener *listener, void *data)
 	struct seat *seat = wl_container_of(listener, seat, on_cursor.button);
 	struct wlr_pointer_button_event *event = data;
 	idle_manager_notify_activity(seat->wlr_seat);
+	wl_event_source_timer_update(server.hide_timer, 5000);
 	cursor_set_visible(seat, /* visible */ true);
 
 	bool notify;
@@ -1439,6 +1450,7 @@ handle_axis(struct wl_listener *listener, void *data)
 	struct seat *seat = wl_container_of(listener, seat, on_cursor.axis);
 	struct wlr_pointer_axis_event *event = data;
 	idle_manager_notify_activity(seat->wlr_seat);
+	wl_event_source_timer_update(server.hide_timer, 5000);
 	cursor_set_visible(seat, /* visible */ true);
 
 	/* input->scroll_factor is set for pointer/touch devices */
@@ -1645,6 +1657,13 @@ cursor_init(struct seat *seat)
 	CONNECT_SIGNAL(cursor_shape_manager, seat, request_set_shape);
 	CONNECT_SIGNAL(seat->wlr_seat, seat, request_set_selection);
 	CONNECT_SIGNAL(seat->wlr_seat, seat, request_set_primary_selection);
+
+	server.hide_timer = wl_event_loop_add_timer(
+		server.wl_event_loop,
+		hide_cursor,
+		seat
+		);
+	wl_event_source_timer_update(server.hide_timer, 5000);
 }
 
 void cursor_finish(struct seat *seat)

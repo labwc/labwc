@@ -1108,7 +1108,7 @@ run_action(struct view *view, struct action *action,
 					&& !view->fullscreen
 					&& view_is_tiled(view)
 					&& view->tiled == edge) {
-				view_set_untiled(view);
+				view_untile_managed(view);
 				view_apply_natural_geometry(view);
 				break;
 			}
@@ -1416,7 +1416,7 @@ run_action(struct view *view, struct action *action,
 					&& !view->fullscreen
 					&& view_is_tiled(view)
 					&& view->tiled_region == region) {
-				view_set_untiled(view);
+				view_untile_managed(view);
 				view_apply_natural_geometry(view);
 				break;
 			}
@@ -1429,7 +1429,7 @@ run_action(struct view *view, struct action *action,
 	case ACTION_TYPE_UNSNAP:
 		if (view && !view->fullscreen && !view_is_floating(view)) {
 			view_maximize(view, VIEW_AXIS_NONE);
-			view_set_untiled(view);
+			view_untile_managed(view);
 			view_apply_natural_geometry(view);
 		}
 		break;

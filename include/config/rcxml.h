@@ -180,6 +180,7 @@ struct rcxml {
 	bool resize_draw_contents;
 	int resize_corner_range;
 	int resize_minimum_area;
+	bool resize_adjust_tiled_neighbors;
 
 	struct {
 		int popuptime;

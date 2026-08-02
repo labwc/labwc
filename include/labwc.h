@@ -206,6 +206,9 @@ struct server {
 	uint64_t next_view_creation_id;
 	struct wl_list unmanaged_surfaces;
 
+	/* tiled-views list (snap-to-edge managed views) */
+	struct wl_list tiled_views;
+
 	struct seat seat;
 	struct wlr_scene *scene;
 	struct wlr_scene_output_layout *scene_layout;

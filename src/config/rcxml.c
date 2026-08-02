@@ -1399,6 +1399,8 @@ entry(xmlNode *node, char *nodename, char *content)
 		rc.resize_corner_range = atoi(content);
 	} else if (!strcasecmp(nodename, "minimumArea.resize")) {
 		rc.resize_minimum_area = MAX(0, atoi(content));
+	} else if (!strcasecmp(nodename, "adjustTiledNeighbors.resize")) {
+		set_bool(content, &rc.resize_adjust_tiled_neighbors);
 	} else if (!strcasecmp(nodename, "mouseEmulation.tablet")) {
 		set_bool(content, &rc.tablet.force_mouse_emulation);
 	} else if (!strcasecmp(nodename, "mapToOutput.tablet")) {
@@ -1592,6 +1594,7 @@ rcxml_init(void)
 	rc.resize_draw_contents = true;
 	rc.resize_corner_range = -1;
 	rc.resize_minimum_area = 8;
+	rc.resize_adjust_tiled_neighbors = false;
 
 	rc.workspace_config.popuptime = INT_MIN;
 	rc.workspace_config.min_nr_workspaces = 1;

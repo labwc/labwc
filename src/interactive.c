@@ -154,7 +154,10 @@ interactive_begin(struct view *view, enum input_mode mode, enum lab_edge edges)
 			maximized &= ~VIEW_AXIS_VERTICAL;
 		}
 		view_set_maximized(view, maximized);
-		view_set_untiled(view);
+		if (view->tile_col == TILE_COL_NONE
+				&& view->tile_row == TILE_ROW_NONE) {
+			view_untile_managed(view);
+		}
 		cursor_shape = cursor_get_from_edge(server.resize_edges);
 		break;
 	}
@@ -326,9 +329,16 @@ interactive_finish(struct view *view)
 	}
 
 	if (server.input_mode == LAB_INPUT_STATE_MOVE) {
-		if (!snap_to_region(view)) {
-			snap_to_edge(view);
+		bool snapped = snap_to_region(view);
+		if (!snapped) {
+			snapped = snap_to_edge(view);
 		}
+		if (!snapped && !wl_list_empty(&view->tile_link)) {
+			/* Moved away from snap position — remove from tile list */
+			view_untile_managed(view);
+		}
+	} else if (server.input_mode == LAB_INPUT_STATE_RESIZE) {
+		view_adjust_neighbors(view);
 	}
 
 	interactive_cancel(view);

@@ -476,19 +476,23 @@ handle_cycle_view_key(struct keyinfo *keyinfo)
 
 	/* cycle to next */
 	for (int i = 0; i < keyinfo->translated.nr_syms; i++) {
-		if (keyinfo->translated.syms[i] == XKB_KEY_Escape) {
+		switch (keyinfo->translated.syms[i]) {
+		case XKB_KEY_Escape:
 			/* Esc deactivates window switcher */
 			cycle_finish(/*switch_focus*/ false);
 			return true;
-		}
-		if (keyinfo->translated.syms[i] == XKB_KEY_Up
-				|| keyinfo->translated.syms[i] == XKB_KEY_Left) {
+		case XKB_KEY_Return:
+		case XKB_KEY_KP_Enter:
+			/* Enter accepts the currently selected window */
+			cycle_finish(/*switch_focus*/ true);
+			return true;
+		case XKB_KEY_Up:
+		case XKB_KEY_Left:
 			/* Up/Left cycles the window backward */
 			cycle_step(LAB_CYCLE_DIR_BACKWARD);
 			return true;
-		}
-		if (keyinfo->translated.syms[i] == XKB_KEY_Down
-				|| keyinfo->translated.syms[i] == XKB_KEY_Right) {
+		case XKB_KEY_Down:
+		case XKB_KEY_Right:
 			/* Down/Right cycles the window forward */
 			cycle_step(LAB_CYCLE_DIR_FORWARD);
 			return true;

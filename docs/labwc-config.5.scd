@@ -179,6 +179,7 @@ this is for compatibility with Openbox.
   <reuseOutputMode>no</reuseOutputMode>
   <xwaylandPersistence>no</xwaylandPersistence>
   <primarySelection>yes</primarySelection>
+  <allowIMEOnLockScreen>no</allowIMEOnLockScreen>
   <promptCommand>[see details below]</promptCommand>
 </core>
 ```
@@ -266,6 +267,22 @@ this is for compatibility with Openbox.
 	configured at launch. This enables autoscroll (middle-click to scroll
 	up/down) in Chromium and electron based clients without inadvertently
 	pasting the primary clipboard. Default is yes.
+
+*<core><allowIMEOnLockScreen>* [yes|no]
+	Allow the on-screen keyboard (OSK) belonging to the active
+	input-method client (the holder of the zwp_input_method_v2 global) to
+	be shown, and to receive pointer/touch input, above an
+	ext-session-lock-v1 lock screen (e.g. swaylock). This is an opt-in
+	exception to the lock screen normally hiding all other surfaces, and
+	exists so touch-screen users can enter their password with an external
+	OSK. labwc does not show the OSK automatically; bring it up together
+	with the locker, for example:
+
+	```
+	busctl call sm.puri.OSK0 /sm/puri/OSK0 sm.puri.OSK0 SetVisible b true && swaylock
+	```
+
+	Default is no.
 
 *<core><promptCommand>*
 	Set command to be invoked for an action prompt (*<action><prompt>*)

@@ -623,7 +623,7 @@
       <!-- <middleEmulation>no</middleEmulation> -->
       <!-- <disableWhileTyping>yes</disableWhileTyping> -->
       <!-- <clickMethod>buttonAreas</clickMethod> -->
-      <!-- <scrollMethod>twofinger</scrollMethod> -->
+      <!-- <scrollMethod>twoFinger</scrollMethod> -->
       <!-- <scrollButton>274</scrollButton> -->
       <!-- <sendEventsMode>yes</sendEventsMode> -->
       <!-- <calibrationMatrix>1 0 0 0 1 0</calibrationMatrix> -->

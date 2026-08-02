@@ -85,12 +85,16 @@ uint32_t output_formats_10bit[] = {
 };
 
 static bool
-output_set_render_format(struct output *output, uint32_t candidates[], size_t count)
+output_set_render_format(struct output *output, uint32_t candidates[], size_t count,
+	const struct wlr_drm_format_set *formats)
 {
 	for (size_t i = 0; i < count; i++) {
-		wlr_output_state_set_render_format(&output->pending, candidates[i]);
-		if (wlr_output_test_state(output->wlr_output, &output->pending)) {
-			return true;
+		const uint32_t format = candidates[i];
+		if (!formats || wlr_drm_format_set_get(formats, format)) {
+			wlr_output_state_set_render_format(&output->pending, format);
+			if (wlr_output_test_state(output->wlr_output, &output->pending)) {
+				return true;
+			}
 		}
 	}
 	return false;
@@ -149,6 +153,7 @@ output_state_setup_hdr(struct output *output, bool silent)
 {
 	uint32_t render_format = output->wlr_output->render_format;
 	const char *unsupported_reason = NULL;
+	const struct wlr_drm_format_set *formats = NULL;
 	bool hdr_supported = output_supports_hdr(output->wlr_output,
 		&unsupported_reason);
 	bool hdr_succeeded = false;
@@ -173,15 +178,17 @@ output_state_setup_hdr(struct output *output, bool silent)
 		 */
 		hdr_succeeded = true;
 	} else if (render_bit_depth == LAB_RENDER_BIT_DEPTH_10) {
+		formats = wlr_output_get_primary_formats(output->wlr_output,
+			WLR_BUFFER_CAP_DMABUF);
 		hdr_succeeded = output_set_render_format(output, output_formats_10bit,
-			ARRAY_SIZE(output_formats_10bit));
+			ARRAY_SIZE(output_formats_10bit), formats);
 		if (!hdr_succeeded) {
 			if (!silent) {
 				wlr_log(WLR_INFO, "No 10 bit color formats"
 					" supported, HDR disabled.");
 			}
 			if (!output_set_render_format(output, output_formats_8bit,
-					ARRAY_SIZE(output_formats_8bit))) {
+					ARRAY_SIZE(output_formats_8bit), formats)) {
 				if (!silent) {
 					wlr_log(WLR_ERROR, "No 8 bit color formats"
 						" supported either!");
@@ -189,8 +196,10 @@ output_state_setup_hdr(struct output *output, bool silent)
 			}
 		}
 	} else {
+		formats = wlr_output_get_primary_formats(output->wlr_output,
+			WLR_BUFFER_CAP_DMABUF);
 		if (!output_set_render_format(output, output_formats_8bit,
-				ARRAY_SIZE(output_formats_8bit)) && !silent) {
+				ARRAY_SIZE(output_formats_8bit), formats) && !silent) {
 			wlr_log(WLR_ERROR, "No 8 bit color formats supported!");
 		}
 	}

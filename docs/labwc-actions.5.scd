@@ -77,6 +77,18 @@ Actions are used in menus and keyboard/mouse bindings.
 *<action name="MoveTo" x="" y="" />*
 	Move to position (x, y).
 
+	*x* and *y* take the following types of value:
+	- A positive number like *10*. This will position the window at the
+	  specified distance (in pixels) from the top/left edge of the output
+	  (monitor).
+	- A negative number like *-5* which will similarly position the window
+	  but relative to the bottom/right edge.
+	- The string *center* which will center the window relative to the
+	  output in that dimension
+	- A percentage like *33%* which is interpreted as a relative value of
+	  the output dimensions and will position the window by that amount
+	  from the top/left edge.
+
 *<action name="ResizeTo" width="" height="" />*
 	Resize window.
 

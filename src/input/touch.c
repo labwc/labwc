@@ -27,7 +27,7 @@ struct touch_point {
 	struct wl_list link; /* seat.touch_points */
 };
 
-static struct wlr_surface*
+static struct wlr_surface *
 touch_get_coords(struct seat *seat, struct wlr_touch *touch, double x, double y,
 		double *x_offset, double *y_offset)
 {

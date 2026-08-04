@@ -199,7 +199,7 @@ adjust_for_motion_sensitivity(double motion_sensitivity, double *dx, double *dy)
 	*dy = *dy * motion_sensitivity;
 }
 
-static struct wlr_surface*
+static struct wlr_surface *
 tablet_get_coords(struct drawing_tablet *tablet, struct drawing_tablet_tool *tool,
 		double *x, double *y, double *dx, double *dy)
 {

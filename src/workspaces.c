@@ -115,7 +115,7 @@ _osd_update(void)
 		if (!hide_boxes) {
 			x = (width - marker_width) / 2;
 			wl_list_for_each(workspace, &server.workspaces.all, link) {
-				bool active =  workspace == server.workspaces.current;
+				bool active = workspace == server.workspaces.current;
 				set_cairo_color(cairo, rc.theme->osd_label_text_color);
 				struct wlr_fbox fbox = {
 					.x = x,

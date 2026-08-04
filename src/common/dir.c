@@ -62,8 +62,15 @@ struct ctx {
 	struct wl_list *list;
 };
 
-struct wl_list *paths_get_prev(struct wl_list *elm) { return elm->prev; }
-struct wl_list *paths_get_next(struct wl_list *elm) { return elm->next; }
+struct wl_list *paths_get_prev(struct wl_list *elm)
+{
+	return elm->prev;
+}
+
+struct wl_list *paths_get_next(struct wl_list *elm)
+{
+	return elm->next;
+}
 
 static void
 build_config_path(struct ctx *ctx, char *prefix, const char *path)
@@ -117,9 +124,9 @@ find_dir(struct ctx *ctx)
 		 * separated paths and that we have structured the
 		 * .default_prefix in the same way.
 		 */
-		gchar * *prefixes;
+		gchar **prefixes;
 		prefixes = g_strsplit(prefix.data, ":", -1);
-		for (gchar * *p = prefixes; *p; p++) {
+		for (gchar **p = prefixes; *p; p++) {
 			ctx->build_path_fn(ctx, *p, d.path);
 			if (debug) {
 				fprintf(stderr, "%s\n", ctx->buf);

@@ -26,7 +26,7 @@
 	#define wlr_backend_is_drm(backend) (false)
 #endif
 
-static const char *const env_vars[] = {
+static const char * const env_vars[] = {
 	"WAYLAND_DISPLAY",
 	"XDG_CURRENT_DESKTOP",
 	"XCURSOR_SIZE",

@@ -142,9 +142,10 @@ interactive_begin(struct view *view, enum input_mode mode, enum lab_edge edges)
 		}
 
 		/*
-		 * If tiled or maximized, reset tiled state and un-maximize
-		 * the axes that are being resized, but keep the same
-		 * geometry as the starting point.
+		 * If maximized, un-maximize the axes that are being resized,
+		 * but keep the same geometry as the starting point. Reset
+		 * tiled state unless the view is an edge-snapped tile, whose
+		 * tiled decoration is preserved during the resize.
 		 */
 		enum view_axis maximized = view->maximized;
 		if (server.resize_edges & LAB_EDGES_LEFT_RIGHT) {
@@ -154,9 +155,8 @@ interactive_begin(struct view *view, enum input_mode mode, enum lab_edge edges)
 			maximized &= ~VIEW_AXIS_VERTICAL;
 		}
 		view_set_maximized(view, maximized);
-		if (view->tile_col == TILE_COL_NONE
-				&& view->tile_row == TILE_ROW_NONE) {
-			view_untile_managed(view);
+		if (!(view->tiled & LAB_EDGES_ALL)) {
+			view_set_untiled(view);
 		}
 		cursor_shape = cursor_get_from_edge(server.resize_edges);
 		break;
@@ -333,9 +333,9 @@ interactive_finish(struct view *view)
 		if (!snapped) {
 			snapped = snap_to_edge(view);
 		}
-		if (!snapped && !wl_list_empty(&view->tile_link)) {
-			/* Moved away from snap position — remove from tile list */
-			view_untile_managed(view);
+		if (!snapped && view->tiled != LAB_EDGE_NONE) {
+			/* Moved away from snap position — reset tiled state */
+			view_set_untiled(view);
 		}
 	} else if (server.input_mode == LAB_INPUT_STATE_RESIZE) {
 		view_adjust_neighbors(view);

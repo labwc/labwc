@@ -125,10 +125,10 @@ Actions are used in menus and keyboard/mouse bindings.
 	Resize and move the active window back to its untiled or unmaximized
 	position if it had been maximized or tiled to a direction or region.
 
-*<action name="NextWindow" workspace="current" output="all" identifier="all" />*++
-*<action name="PreviousWindow" workspace="current" output="all" identifier="all" />*++
-*<action name="NextWindowImmediate" workspace="current" output="all" identifier="all" />*++
-*<action name="PreviousWindowImmediate" workspace="current" output="all" identifier="all" />*++
+*<action name="NextWindow" workspace="current" output="all" identifier="all" region="value" windowOverlapPercent="0" regionOverlapPercent="0" topmostFirst="no" />*++
+*<action name="PreviousWindow" workspace="current" output="all" identifier="all" region="value" windowOverlapPercent="0" regionOverlapPercent="0" topmostFirst="no" />*++
+*<action name="NextWindowImmediate" workspace="current" output="all" identifier="all" region="value" windowOverlapPercent="0" regionOverlapPercent="0" topmostFirst="no" />*++
+*<action name="PreviousWindowImmediate" workspace="current" output="all" identifier="all" region="value" windowOverlapPercent="0" regionOverlapPercent="0" topmostFirst="no" />*++
 	Cycle focus to next/previous window, respectively.
 
 	Default keybinds for NextWindow and PreviousWindow are Alt-Tab and
@@ -137,6 +137,8 @@ Actions are used in menus and keyboard/mouse bindings.
 
 	NextWindowImmediate and PreviousWindowImmediate skip the Window Switcher
 	and OSD, useful for binding to keys without modifiers.
+	Window Switcher filters are fixed when cycling starts; the Immediate actions
+	re-evaluate their filters on every invocation.
 
 	*workspace* [all|current]
 	This determines whether to cycle through windows on all workspaces or
@@ -149,6 +151,44 @@ Actions are used in menus and keyboard/mouse bindings.
 	*identifier* [all|current]
 	This determines whether to cycle through all windows or only windows of
 	the same application as the currently focused window. Default is "all".
+
+	*topmostFirst* [yes|no]
+	When set to yes, initially select the topmost window matching all filters if
+	it is not already focused. If it is already focused, select the next or
+	previous matching window as usual. For NextWindow and PreviousWindow, this
+	only affects the initial selection when the Window Switcher begins; Immediate
+	actions perform the check on every invocation. Default is no.
+
+	*region* [name[|name...]]
+	This restricts cycling to windows assigned to one or more named regions. Use
+	the "|" character to separate multiple names; a window may match any listed
+	region. Whitespace around each name is ignored. Non-zero overlap percentages
+	additionally match windows based on their geometry. Regions on each window's
+	output are used, allowing this filter to be combined with the _output_ filter.
+	If omitted, windows are not filtered by region. See labwc-config(5) for
+	information on defining regions.
+
+	*windowOverlapPercent* [0-100]
+	This is the minimum percentage of the window area that must lie inside the
+	region. Default is 0, which disables this geometric check.
+
+	*regionOverlapPercent* [0-100]
+	This is the minimum percentage of the region area that must lie inside the
+	window. Default is 0, which disables this geometric check.
+
+	A window explicitly assigned to any listed region always matches. Other windows
+	match when either enabled overlap threshold is met for any listed region. Thus
+	the default behavior is exact region-assignment matching.
+
+	For example, a keypad binding can switch immediately within any of three
+	left-side regions without starting the Window Switcher:
+
+```
+<keybind key="W-KP_7">
+  <action name="NextWindowImmediate"
+    region="top-left|left|bottom-left" topmostFirst="yes" />
+</keybind>
+```
 
 *<action name="Reconfigure" />*
 	Re-load configuration and theme files.

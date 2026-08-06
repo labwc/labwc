@@ -904,12 +904,9 @@ output_config_apply(struct wlr_output_configuration_v1 *config)
 				server.workspaces.ext_group, output->wlr_output);
 
 			/*
-			 * At time of writing, wlr_output_layout_remove()
-			 * indirectly destroys the wlr_scene_output, but
-			 * this behavior may change in future. To remove
-			 * doubt and avoid either a leak or double-free,
-			 * explicitly destroy the wlr_scene_output before
-			 * calling wlr_output_layout_remove().
+			 * wlr_output_layout_remove() only unbinds the
+			 * wlr_scene_output from the layout; it does not
+			 * destroy it. Destroy explicitly to avoid a leak.
 			 */
 			wlr_scene_output_destroy(output->scene_output);
 			wlr_output_layout_remove(server.output_layout, o);

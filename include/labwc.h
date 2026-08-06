@@ -324,6 +324,8 @@ struct server {
 	pid_t primary_client_pid;
 
 	char *title_fmt;
+
+	struct wl_list ipc_clients;
 };
 
 /* defined in main.c */

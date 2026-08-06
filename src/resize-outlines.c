@@ -5,6 +5,7 @@
 #include "common/border.h"
 #include "common/lab-scene-rect.h"
 #include "config/rcxml.h"
+#include "ipc.h"
 #include "resize-indicator.h"
 #include "ssd.h"
 #include "theme.h"
@@ -49,6 +50,9 @@ resize_outlines_update(struct view *view, struct wlr_box new_geo)
 		&view->resize_outlines.rect->tree->node, true);
 
 	outlines->view_geo = new_geo;
+
+	/* Required in case <resize drawContents="no" /> is used */
+	ipc_event_window_geometry(view, &new_geo);
 
 	resize_indicator_update(view);
 }

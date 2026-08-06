@@ -19,6 +19,7 @@
 #include "cycle.h"
 #include "foreign-toplevel/foreign.h"
 #include "input/keyboard.h"
+#include "ipc.h"
 #include "labwc.h"
 #include "menu/menu.h"
 #include "output.h"
@@ -567,6 +568,17 @@ view_moved(struct view *view)
 	if (rc.resize_indicator && server.grabbed_view == view) {
 		resize_indicator_update(view);
 	}
+
+	/*
+	 * Fallback IPC emission: catch geometry corrections made by
+	 * the client on commit (e.g. terminal snapping to char grid).
+	 * The primary emission point is in view_move_resize() which
+	 * fires immediately using view->pending. Events are
+	 * deduplicated in ipc_event_window_geometry().
+	 */
+	if (view->mapped) {
+		ipc_event_window_geometry(view, &view->current);
+	}
 }
 
 void
@@ -589,6 +601,16 @@ view_move_resize(struct view *view, struct wlr_box geo)
 	 */
 	if (!view->adjusting_for_layout_change) {
 		view_save_last_placement(view);
+	}
+
+	/*
+	 * Emit IPC move/resize events based on pending geometry.
+	 * This fires immediately when the resize is requested rather
+	 * than waiting for the client to commit, giving subscribers
+	 * realtime tracking that matches interactive move behaviour.
+	 */
+	if (view->mapped) {
+		ipc_event_window_geometry(view, &view->pending);
 	}
 }
 

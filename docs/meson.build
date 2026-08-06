@@ -8,6 +8,7 @@ if scdoc.found()
     'labwc-menu.5',
     'labwc-theme.5',
     'labnag.1',
+    'labmsg.1',
   ]
   foreach manpage : manpages
     markdown = manpage + '.scd'

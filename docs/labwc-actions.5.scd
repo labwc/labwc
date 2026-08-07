@@ -63,6 +63,10 @@ Actions are used in menus and keyboard/mouse bindings.
 	top or bottom tell how much to resize on that edge of window,
 	positive values grow window, negative shrink window.
 
+	Note that some applications like terminal emulators may refuse growing
+	or shrinking by small amounts to keep the window size aligned to their
+	internal cell size.
+
 *<action name="GrowToEdge" direction="value" />*
 	Resize window to fill the space between its edge and any other
 	window edge.

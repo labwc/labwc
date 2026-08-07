@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog]
 
 | Date       | All Changes   | wlroots version | lines-of-code |
 |------------|---------------|-----------------|---------------|
+| 2026-08-21 | [0.20.2]      | 0.20.2          | 28350         |
 | 2026-06-15 | [0.20.1]      | 0.20.1          | 28337         |
 | 2026-05-25 | [0.20.0]      | 0.20.1          | 28313         |
 | 2026-06-11 | [0.9.8]       | 0.19.3          | 29284         |
@@ -47,6 +48,7 @@ The format is based on [Keep a Changelog]
 | 2021-03-05 | [0.1.0]       | 0.12.0          | 4627          |
 
 [unreleased]: NEWS.md#unreleased
+[0.20.2]: NEWS.md#0202---2026-08-21
 [0.20.1]: NEWS.md#0201---2026-06-15
 [0.20.0]: NEWS.md#0200---2026-05-25
 [0.9.8]: NEWS.md#098---2026-06-11
@@ -92,14 +94,33 @@ The format is based on [Keep a Changelog]
 
 There are some regression warnings worth noting for the switch to wlroots 0.20:
 
-- lxqt-panel auto-hiding does not work with a panel size greater than 40 [#3600]
-  [wlroots-5392]
+- With wlroots < 0.20.2 lxqt-panel auto-hiding does not work with a panel size
+  greater than 40 [#3600] [wlroots-5392] [wlroots-5407]
 - Some Wine game windows disappear after alt-tab. It is not yet clear where the
   bug is, but the issue manifests itself when running wlroots-0.20 [#3615]
   [wlroots-4103]
+- `wl_output` make/model properties are no longer sent because these are legacy
+  and should not be relied on [wlroots-5045]
 
 [wlroots-5392]: https://gitlab.freedesktop.org/wlroots/wlroots/-/merge_requests/5392
+[wlroots-5407]: https://gitlab.freedesktop.org/wlroots/wlroots/-/merge_requests/5407
 [wlroots-4103]: https://gitlab.freedesktop.org/wlroots/wlroots/-/work_items/4103
+[wlroots-5045]: https://gitlab.freedesktop.org/wlroots/wlroots/-/merge_requests/5045
+
+## 0.20.2 - 2026-08-21
+
+[0.20.2-commits]
+
+### Fixed
+
+- Do not leave a failed output render format on the pending state @Andy1210
+  [#3685]
+- When window-cycling is cancelled, for example by pressing escape, give back
+  focus to the window that had it before cycling started @elviosak [#3667]
+- Fix missing panel icon with Firefox running under X11 @jlindgren90 [#3641]
+- labnag(1): document defaults @cunlem [#3654]
+- Force the initial modeset commit to fix an issue with QEMU/virtio-gpu
+  and `WLR_NO_HARDWARE_CURSORS=1`. @KiritakeKumi [#3656]
 
 ## 0.20.1 - 2026-06-15
 
@@ -1945,7 +1966,7 @@ Should bug fixes be required against `0.6.6` (built with wlroots `0.16`), a
 - Add `ToggleOmnipresent` action and add an "Always on Visible Workspace" entry
   for it in the client-menu under the Workspaces submenu. Written-by: @bnason
 - Account for space taken up by XWayland clients with `_NET_WM_STRUT_PARTIAL`
-  property in the `usable_area` calculation. This increases inter-operability
+  property in the `usable_area` calculation. This increases interoperability
   with X11 desktop components.
 - Set XWayland's `_NET_WORKAREA` property based on usable area. XWayland
   clients use the `_NET_WORKAREA` root window property to determine how much of
@@ -2813,7 +2834,8 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
   ShowMenu
 
 [Keep a Changelog]: https://keepachangelog.com/en/1.0.0/
-[unreleased-commits]: https://github.com/labwc/labwc/compare/0.20.1...HEAD
+[unreleased-commits]: https://github.com/labwc/labwc/compare/0.20.2...HEAD
+[0.20.2-commits]: https://github.com/labwc/labwc/compare/0.20.1..0.20.2
 [0.20.1-commits]: https://github.com/labwc/labwc/compare/0.20.0..0.20.1
 [0.20.0-commits]: https://github.com/labwc/labwc/compare/0.9.5..0.20.0
 [0.9.8-commits]: https://github.com/labwc/labwc/compare/0.9.7...0.9.8
@@ -3401,3 +3423,8 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
 [#3625]: https://github.com/labwc/labwc/pull/3625
 [#3630]: https://github.com/labwc/labwc/pull/3630
 [#3631]: https://github.com/labwc/labwc/pull/3631
+[#3641]: https://github.com/labwc/labwc/pull/3641
+[#3654]: https://github.com/labwc/labwc/pull/3654
+[#3656]: https://github.com/labwc/labwc/pull/3656
+[#3667]: https://github.com/labwc/labwc/pull/3667
+[#3685]: https://github.com/labwc/labwc/pull/3685

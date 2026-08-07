@@ -97,9 +97,12 @@ There are some regression warnings worth noting for the switch to wlroots 0.20:
 - Some Wine game windows disappear after alt-tab. It is not yet clear where the
   bug is, but the issue manifests itself when running wlroots-0.20 [#3615]
   [wlroots-4103]
+- `wl_output` make/model properties are no longer sent because these are legacy
+  and should not be relied on [wlroots-5045]
 
 [wlroots-5392]: https://gitlab.freedesktop.org/wlroots/wlroots/-/merge_requests/5392
 [wlroots-4103]: https://gitlab.freedesktop.org/wlroots/wlroots/-/work_items/4103
+[wlroots-5045]: https://gitlab.freedesktop.org/wlroots/wlroots/-/merge_requests/5045
 
 ## 0.20.1 - 2026-06-15
 

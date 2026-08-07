@@ -85,7 +85,8 @@ uint32_t output_formats_10bit[] = {
 };
 
 static bool
-output_set_render_format(struct output *output, uint32_t candidates[], size_t count)
+output_set_render_format(struct output *output, uint32_t candidates[],
+		size_t count, bool silent)
 {
 	for (size_t i = 0; i < count; i++) {
 		wlr_output_state_set_render_format(&output->pending, candidates[i]);
@@ -93,6 +94,16 @@ output_set_render_format(struct output *output, uint32_t candidates[], size_t co
 			return true;
 		}
 	}
+	if (!silent) {
+		wlr_log(WLR_DEBUG, "output %s supports none of the %zu candidate"
+			" render formats", output->wlr_output->name, count);
+	}
+	/*
+	 * Leaving the last candidate tried on the pending state means no
+	 * swapchain can be created for this output at all, so clear the flag
+	 * and leave the format alone instead.
+	 */
+	output->pending.committed &= ~WLR_OUTPUT_STATE_RENDER_FORMAT;
 	return false;
 }
 
@@ -174,14 +185,14 @@ output_state_setup_hdr(struct output *output, bool silent)
 		hdr_succeeded = true;
 	} else if (render_bit_depth == LAB_RENDER_BIT_DEPTH_10) {
 		hdr_succeeded = output_set_render_format(output, output_formats_10bit,
-			ARRAY_SIZE(output_formats_10bit));
+			ARRAY_SIZE(output_formats_10bit), silent);
 		if (!hdr_succeeded) {
 			if (!silent) {
 				wlr_log(WLR_INFO, "No 10 bit color formats"
 					" supported, HDR disabled.");
 			}
 			if (!output_set_render_format(output, output_formats_8bit,
-					ARRAY_SIZE(output_formats_8bit))) {
+					ARRAY_SIZE(output_formats_8bit), silent)) {
 				if (!silent) {
 					wlr_log(WLR_ERROR, "No 8 bit color formats"
 						" supported either!");
@@ -190,7 +201,7 @@ output_state_setup_hdr(struct output *output, bool silent)
 		}
 	} else {
 		if (!output_set_render_format(output, output_formats_8bit,
-				ARRAY_SIZE(output_formats_8bit)) && !silent) {
+				ARRAY_SIZE(output_formats_8bit), silent) && !silent) {
 			wlr_log(WLR_ERROR, "No 8 bit color formats supported!");
 		}
 	}

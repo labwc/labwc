@@ -15,7 +15,7 @@ void
 buf_expand_tilde(struct buf *s)
 {
 	struct buf tmp = BUF_INIT;
-	for (int i = 0 ; i < s->len ; i++) {
+	for (int i = 0; i < s->len; i++) {
 		if (s->data[i] == '~') {
 			buf_add(&tmp, getenv("HOME"));
 		} else {
@@ -49,8 +49,8 @@ buf_expand_shell_variables(struct buf *s)
 	struct buf tmp = BUF_INIT;
 	struct buf environment_variable = BUF_INIT;
 
-	for (int i = 0 ; i < s->len ; i++) {
-		if (s->data[i] == '$' && isvalid(s->data[i+1])) {
+	for (int i = 0; i < s->len; i++) {
+		if (s->data[i] == '$' && isvalid(s->data[i + 1])) {
 			/* expand environment variable */
 			buf_clear(&environment_variable);
 			int len = 0;

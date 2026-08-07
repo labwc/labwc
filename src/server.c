@@ -54,6 +54,7 @@
 #include "action.h"
 #include "common/macros.h"
 #include "common/mem.h"
+#include "common/nag.h"
 #include "common/scene-helpers.h"
 #include "config/rcxml.h"
 #include "config/session.h"
@@ -98,6 +99,7 @@ reload_config_and_theme(void)
 
 	scaled_buffer_invalidate_sharing();
 	rcxml_finish();
+	nag_reset();
 	rcxml_read(rc.config_file);
 	theme_finish(rc.theme);
 	theme_init(rc.theme, rc.theme_name);
@@ -119,6 +121,8 @@ reload_config_and_theme(void)
 	resize_indicator_reconfigure();
 	kde_server_decoration_update_default();
 	workspaces_reconfigure();
+
+	wl_event_loop_add_idle(server.wl_event_loop, nag_show_callback, NULL);
 }
 
 static int
@@ -180,6 +184,7 @@ handle_sigchld(int signal, void *data)
 				"spawned child %ld exited with %d",
 				(long)info.si_pid, info.si_status);
 		}
+		nag_check_pid(info.si_pid);
 		break;
 	case CLD_KILLED:
 	case CLD_DUMPED:
@@ -190,6 +195,7 @@ handle_sigchld(int signal, void *data)
 				signame ? signame : "unknown");
 		/* Allow cleanup of killed prompt */
 		action_check_prompt_result(info.si_pid, -info.si_status);
+		nag_check_pid(info.si_pid);
 		break;
 	default:
 		wlr_log(WLR_ERROR,
@@ -809,6 +815,7 @@ server_init(void)
 #if HAVE_XWAYLAND
 	xwayland_server_init(server.compositor);
 #endif
+	wl_event_loop_add_idle(server.wl_event_loop, nag_show_callback, NULL);
 }
 
 void

@@ -30,12 +30,14 @@ nag_set_error(enum wlr_log_importance importance)
 	}
 }
 
-void
+bool
 nag_check_pid(pid_t exited_pid)
 {
 	if (pid && pid == exited_pid) {
 		pid = 0;
+		return true;
 	}
+	return false;
 }
 
 void

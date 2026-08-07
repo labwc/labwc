@@ -179,12 +179,12 @@ handle_sigchld(int signal, void *data)
 	const char *signame;
 	switch (info.si_code) {
 	case CLD_EXITED:
-		if (!action_check_prompt_result(info.si_pid, info.si_status)) {
+		if (!action_check_prompt_result(info.si_pid, info.si_status)
+				&& !nag_check_pid(info.si_pid)) {
 			wlr_log(info.si_status == 0 ? WLR_DEBUG : WLR_ERROR,
 				"spawned child %ld exited with %d",
 				(long)info.si_pid, info.si_status);
 		}
-		nag_check_pid(info.si_pid);
 		break;
 	case CLD_KILLED:
 	case CLD_DUMPED:

@@ -1949,7 +1949,7 @@ Should bug fixes be required against `0.6.6` (built with wlroots `0.16`), a
 - Add `ToggleOmnipresent` action and add an "Always on Visible Workspace" entry
   for it in the client-menu under the Workspaces submenu. Written-by: @bnason
 - Account for space taken up by XWayland clients with `_NET_WM_STRUT_PARTIAL`
-  property in the `usable_area` calculation. This increases inter-operability
+  property in the `usable_area` calculation. This increases interoperability
   with X11 desktop components.
 - Set XWayland's `_NET_WORKAREA` property based on usable area. XWayland
   clients use the `_NET_WORKAREA` root window property to determine how much of

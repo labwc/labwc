@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog]
 
 | Date       | All Changes   | wlroots version | lines-of-code |
 |------------|---------------|-----------------|---------------|
+| 2026-08-21 | [0.20.2]      | 0.20.2          | 28350         |
 | 2026-06-15 | [0.20.1]      | 0.20.1          | 28337         |
 | 2026-05-25 | [0.20.0]      | 0.20.1          | 28313         |
 | 2026-06-11 | [0.9.8]       | 0.19.3          | 29284         |
@@ -47,6 +48,7 @@ The format is based on [Keep a Changelog]
 | 2021-03-05 | [0.1.0]       | 0.12.0          | 4627          |
 
 [unreleased]: NEWS.md#unreleased
+[0.20.2]: NEWS.md#0202---2026-08-21
 [0.20.1]: NEWS.md#0201---2026-06-15
 [0.20.0]: NEWS.md#0200---2026-05-25
 [0.9.8]: NEWS.md#098---2026-06-11
@@ -104,6 +106,21 @@ There are some regression warnings worth noting for the switch to wlroots 0.20:
 [wlroots-5407]: https://gitlab.freedesktop.org/wlroots/wlroots/-/merge_requests/5407
 [wlroots-4103]: https://gitlab.freedesktop.org/wlroots/wlroots/-/work_items/4103
 [wlroots-5045]: https://gitlab.freedesktop.org/wlroots/wlroots/-/merge_requests/5045
+
+## 0.20.2 - 2026-08-21
+
+[0.20.2-commits]
+
+### Fixed
+
+- Do not leave a failed output render format on the pending state @Andy1210
+  [#3685]
+- When window-cycling is cancelled, for example by pressing escape, give back
+  focus to the window that had it before cycling started @elviosak [#3667]
+- Fix missing panel icon with Firefox running under X11 @jlindgren90 [#3641]
+- labnag(1): document defaults @cunlem [#3654]
+- Force the initial modeset commit to fix an issue with QEMU/virtio-gpu
+  and `WLR_NO_HARDWARE_CURSORS=1`. @KiritakeKumi [#3656]
 
 ## 0.20.1 - 2026-06-15
 
@@ -2817,7 +2834,8 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
   ShowMenu
 
 [Keep a Changelog]: https://keepachangelog.com/en/1.0.0/
-[unreleased-commits]: https://github.com/labwc/labwc/compare/0.20.1...HEAD
+[unreleased-commits]: https://github.com/labwc/labwc/compare/0.20.2...HEAD
+[0.20.2-commits]: https://github.com/labwc/labwc/compare/0.20.1..0.20.2
 [0.20.1-commits]: https://github.com/labwc/labwc/compare/0.20.0..0.20.1
 [0.20.0-commits]: https://github.com/labwc/labwc/compare/0.9.5..0.20.0
 [0.9.8-commits]: https://github.com/labwc/labwc/compare/0.9.7...0.9.8
@@ -3405,3 +3423,8 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
 [#3625]: https://github.com/labwc/labwc/pull/3625
 [#3630]: https://github.com/labwc/labwc/pull/3630
 [#3631]: https://github.com/labwc/labwc/pull/3631
+[#3641]: https://github.com/labwc/labwc/pull/3641
+[#3654]: https://github.com/labwc/labwc/pull/3654
+[#3656]: https://github.com/labwc/labwc/pull/3656
+[#3667]: https://github.com/labwc/labwc/pull/3667
+[#3685]: https://github.com/labwc/labwc/pull/3685

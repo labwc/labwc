@@ -30,13 +30,30 @@ set_cloexec(int fd)
 	int flags = fcntl(fd, F_GETFD);
 	if (flags == -1) {
 		wlr_log_errno(WLR_ERROR,
-			"Unable to set the CLOEXEC flag: fnctl failed");
+			"Unable to get the CLOEXEC flag: fcntl failed");
 		return false;
 	}
 	flags = flags | FD_CLOEXEC;
 	if (fcntl(fd, F_SETFD, flags) == -1) {
 		wlr_log_errno(WLR_ERROR,
-			"Unable to set the CLOEXEC flag: fnctl failed");
+			"Unable to set the CLOEXEC flag: fcntl failed");
+		return false;
+	}
+	return true;
+}
+
+static bool
+set_nonblock(int fd)
+{
+	int flags = fcntl(fd, F_GETFL);
+	if (flags == -1) {
+		wlr_log_errno(WLR_ERROR,
+			"Unable to get the O_NONBLOCK flag: fcntl failed");
+		return false;
+	}
+	if (fcntl(fd, F_SETFL, flags | O_NONBLOCK) == -1) {
+		wlr_log_errno(WLR_ERROR,
+			"Unable to set the O_NONBLOCK flag: fcntl failed");
 		return false;
 	}
 	return true;
@@ -217,9 +234,16 @@ spawn_piped_async_no_shell(const char *command, int *pipe_fd_w)
 		execvp(argv[0], argv);
 		_exit(1);
 	}
+
 	/* labwc */
 	close(pipe_rw[0]);
 	g_strfreev(argv);
+
+	/*
+	 * Prevent blocking of the labwc process when
+	 * writing more than the pipe buffer can hold.
+	 */
+	set_nonblock(pipe_rw[1]);
 
 	/*
 	 * Prevent leaking the write end of the pipe to further

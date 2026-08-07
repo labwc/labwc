@@ -1257,6 +1257,8 @@ entry(xmlNode *node, char *nodename, char *content)
 		rc.snap_edge_corner_range = atoi(content);
 	} else if (!strcasecmp(nodename, "enabled.overlay.snapping")) {
 		set_bool(content, &rc.snap_overlay_enabled);
+	} else if (!strcasecmp(nodename, "onTop.overlay.snapping")) {
+		set_bool(content, &rc.snap_overlay_on_top);
 	} else if (!strcasecmp(nodename, "inner.delay.overlay.snapping")) {
 		rc.snap_overlay_delay_inner = atoi(content);
 	} else if (!strcasecmp(nodename, "outer.delay.overlay.snapping")) {
@@ -1573,6 +1575,7 @@ rcxml_init(void)
 	rc.snap_edge_range_outer = 10;
 	rc.snap_edge_corner_range = 50;
 	rc.snap_overlay_enabled = true;
+	rc.snap_overlay_on_top = false;
 	rc.snap_overlay_delay_inner = 500;
 	rc.snap_overlay_delay_outer = 500;
 	rc.snap_top_maximize = true;

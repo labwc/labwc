@@ -92,8 +92,8 @@ The format is based on [Keep a Changelog]
 
 There are some regression warnings worth noting for the switch to wlroots 0.20:
 
-- lxqt-panel auto-hiding does not work with a panel size greater than 40 [#3600]
-  [wlroots-5392]
+- With wlroots < 0.20.2 lxqt-panel auto-hiding does not work with a panel size
+  greater than 40 [#3600] [wlroots-5392] [wlroots-5407]
 - Some Wine game windows disappear after alt-tab. It is not yet clear where the
   bug is, but the issue manifests itself when running wlroots-0.20 [#3615]
   [wlroots-4103]
@@ -101,6 +101,7 @@ There are some regression warnings worth noting for the switch to wlroots 0.20:
   and should not be relied on [wlroots-5045]
 
 [wlroots-5392]: https://gitlab.freedesktop.org/wlroots/wlroots/-/merge_requests/5392
+[wlroots-5407]: https://gitlab.freedesktop.org/wlroots/wlroots/-/merge_requests/5407
 [wlroots-4103]: https://gitlab.freedesktop.org/wlroots/wlroots/-/work_items/4103
 [wlroots-5045]: https://gitlab.freedesktop.org/wlroots/wlroots/-/merge_requests/5045
 

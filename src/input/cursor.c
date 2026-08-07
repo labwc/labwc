@@ -934,7 +934,7 @@ handle_motion(struct wl_listener *listener, void *data)
 	idle_manager_notify_activity(seat->wlr_seat);
 
 	if (rc.hide_cursor) {
-		wl_event_source_timer_update(server.hide_timer, rc.hide_cursor_delay);
+		wl_event_source_timer_update(server.hide_cursor_timer, rc.hide_cursor_delay);
 	}
 
 	cursor_set_visible(seat, /* visible */ true);
@@ -993,7 +993,7 @@ handle_motion_absolute(struct wl_listener *listener, void *data)
 	idle_manager_notify_activity(seat->wlr_seat);
 
 	if (rc.hide_cursor) {
-		wl_event_source_timer_update(server.hide_timer, rc.hide_cursor_delay);
+		wl_event_source_timer_update(server.hide_cursor_timer, rc.hide_cursor_delay);
 	}
 
 	cursor_set_visible(seat, /* visible */ true);
@@ -1313,7 +1313,7 @@ handle_button(struct wl_listener *listener, void *data)
 	idle_manager_notify_activity(seat->wlr_seat);
 
 	if (rc.hide_cursor) {
-		wl_event_source_timer_update(server.hide_timer, rc.hide_cursor_delay);
+		wl_event_source_timer_update(server.hide_cursor_timer, rc.hide_cursor_delay);
 	}
 
 	cursor_set_visible(seat, /* visible */ true);
@@ -1464,7 +1464,7 @@ handle_axis(struct wl_listener *listener, void *data)
 	idle_manager_notify_activity(seat->wlr_seat);
 
 	if (rc.hide_cursor) {
-		wl_event_source_timer_update(server.hide_timer, rc.hide_cursor_delay);
+		wl_event_source_timer_update(server.hide_cursor_timer, rc.hide_cursor_delay);
 	}
 
 	cursor_set_visible(seat, /* visible */ true);
@@ -1675,12 +1675,12 @@ cursor_init(struct seat *seat)
 	CONNECT_SIGNAL(seat->wlr_seat, seat, request_set_primary_selection);
 
 	if (rc.hide_cursor) {
-		server.hide_timer = wl_event_loop_add_timer(
+		server.hide_cursor_timer = wl_event_loop_add_timer(
 			server.wl_event_loop,
 			hide_cursor,
 			seat
 			);
-		wl_event_source_timer_update(server.hide_timer, rc.hide_cursor_delay);
+		wl_event_source_timer_update(server.hide_cursor_timer, rc.hide_cursor_delay);
 	}
 }
 

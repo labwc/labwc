@@ -137,6 +137,8 @@ struct rcxml {
 	/* mouse */
 	long doubleclick_time;     /* in ms */
 	struct wl_list mousebinds; /* struct mousebind.link */
+	bool hide_cursor;
+	int hide_cursor_delay;
 
 	/* touch tablet */
 	struct wl_list touch_configs;

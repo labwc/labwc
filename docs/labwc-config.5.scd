@@ -887,6 +887,12 @@ input-devices by the Wayland protocol.
 *<mouse><doubleClickTime>*
 	Set double click time in milliseconds. Default is 500.
 
+*<mouse><hideCursor>*
+	Hide cursor while idle. Default is false.
+
+*<mouse><hideCursorDelay>*
+	Set hide cursor delay in milliseconds. Default is 5000.
+
 *<mouse><context name=""><mousebind button="" direction="" action=""><action>*
 	Multiple *<mousebind>* can exist within one *<context>*; and multiple
 	*<action>* can exist within one *<mousebind>*.

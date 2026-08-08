@@ -4,10 +4,15 @@
 #include <wlr/types/wlr_scene.h>
 #include "common/mem.h"
 #include "common/scene-helpers.h"
+#include "common/macros.h"
+#include "common/borderset.h"
+#include "theme.h"
+#include "buffer.h"
 
 struct border_scene {
 	struct wlr_scene_tree *tree;
 	struct wlr_scene_rect *top, *bottom, *left, *right;
+	struct bufferset *textured_borders;
 };
 
 static void
@@ -37,10 +42,30 @@ lab_scene_rect_create(struct wlr_scene_tree *parent,
 		struct border_scene *border = &rect->borders[i];
 		float *color = opts->border_colors[i];
 		border->tree = lab_wlr_scene_tree_create(rect->tree);
+
 		border->top = lab_wlr_scene_rect_create(border->tree, 0, 0, color);
 		border->right = lab_wlr_scene_rect_create(border->tree, 0, 0, color);
 		border->bottom = lab_wlr_scene_rect_create(border->tree, 0, 0, color);
 		border->left = lab_wlr_scene_rect_create(border->tree, 0, 0, color);
+
+		if (opts->border_type) {
+			float r = color[0];
+			float g = color[1];
+			float b = color[2];
+			float a = color[3];
+			int bw = rect->border_width;
+			uint32_t colour32 = (uint32_t)(a*255) << 24 |
+				(uint32_t)(r*255) << 16 |
+				(uint32_t)(g*255) << 8 |
+				(uint32_t)(b*255);
+			struct borderset *renderedborders = get_borders(colour32, bw,
+				opts->border_type, opts->bevel_width,
+				opts->highlight, opts->shadow);
+			border->textured_borders = generate_bufferset(border->tree,
+				renderedborders, bw);
+		} else {
+			border->textured_borders = NULL;
+		}
 	}
 
 	rect->node_destroy.notify = handle_node_destroy;
@@ -81,6 +106,9 @@ resize_border(struct border_scene *border, int border_width, int width, int heig
 	wlr_scene_rect_set_size(border->bottom, width, border_width);
 	wlr_scene_rect_set_size(border->left, border_width, height - border_width * 2);
 	wlr_scene_rect_set_size(border->right, border_width, height - border_width * 2);
+	if (border->textured_borders) {
+		renderBufferset(border->textured_borders, width, height, 0);
+	}
 }
 
 void

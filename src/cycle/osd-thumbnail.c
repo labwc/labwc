@@ -158,6 +158,10 @@ create_item_scene(struct wlr_scene_tree *parent, struct view *view,
 		.bg_color = switcher_theme->item_active_bg_color,
 		.width = switcher_theme->item_width,
 		.height = switcher_theme->item_height,
+		.border_type = theme->osd_border_type,
+		.bevel_width = theme->osd_border_bevel_width,
+		.highlight = theme->osd_highlight,
+		.shadow = theme->osd_shadow
 	};
 	item->active_bg = lab_scene_rect_create(tree, &opts);
 
@@ -290,6 +294,10 @@ cycle_osd_thumbnail_init(struct cycle_osd_output *osd_output)
 		.bg_color = theme->osd_bg_color,
 		.width = items_width + 2 * padding,
 		.height = items_height + 2 * padding,
+		.border_type = theme->osd_border_type,
+		.bevel_width = theme->osd_border_bevel_width,
+		.highlight = theme->osd_highlight,
+		.shadow = theme->osd_shadow
 	};
 	struct lab_scene_rect *bg =
 		lab_scene_rect_create(osd_output->tree, &bg_opts);

@@ -7,7 +7,9 @@
 #include <wlr/util/log.h>
 #include "common/buf.h"
 
+/* May return NULL if the buffer is currently written to a client */
 struct buf *nag_get_buf(void);
+
 void nag_set_error(enum wlr_log_importance importance);
 bool nag_check_pid(pid_t exited_pid);
 void nag_reset(void);
@@ -17,7 +19,9 @@ void nag_show_callback(void *data);
 do { \
 	wlr_log(verbosity, fmt, ##__VA_ARGS__); \
 	nag_set_error(verbosity); \
-	buf_add_fmt(nag_get_buf(), fmt "\n", ##__VA_ARGS__); \
+	if (nag_get_buf()) { \
+		buf_add_fmt(nag_get_buf(), fmt "\n", ##__VA_ARGS__); \
+	} \
 } while (0)
 
 #endif /* LABWC_NAG_H */

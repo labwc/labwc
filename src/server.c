@@ -863,6 +863,7 @@ server_finish(void)
 
 	wl_display_destroy_clients(server.wl_display);
 
+	nag_finish();
 	seat_finish();
 	output_finish();
 	xdg_shell_finish();

@@ -123,3 +123,10 @@ nag_show_callback(void *data)
 {
 	nag_show();
 }
+
+void
+nag_finish(void)
+{
+	nag_reset();
+	buf_reset(&log_buf);
+}

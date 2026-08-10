@@ -57,6 +57,8 @@ string_truncate_at_pattern(char *buf, const char *pattern)
 char *
 strdup_printf(const char *fmt, ...)
 {
+	assert(fmt);
+
 	size_t size = 0;
 	char *p = NULL;
 	va_list ap;

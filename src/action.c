@@ -558,7 +558,7 @@ action_type_from_str(const char *action_name)
 			return i;
 		}
 	}
-	wlr_log(WLR_ERROR, "Invalid action: %s", action_name);
+	nag_log(WLR_ERROR, "Invalid action: %s", action_name);
 	return ACTION_TYPE_INVALID;
 }
 
@@ -566,7 +566,7 @@ struct action *
 action_create(const char *action_name)
 {
 	if (!action_name) {
-		wlr_log(WLR_ERROR, "action name not specified");
+		nag_log(WLR_ERROR, "action name not specified");
 		return NULL;
 	}
 

@@ -1808,7 +1808,7 @@ post_processing(void)
 	if (!rc.error_command) {
 		rc.error_command =
 			xstrdup("labnag "
-				"--message 'Config Error' "
+				"--message 'Config errors detected' "
 				"--button-dismiss 'Close' "
 				"--layer overlay "
 				"--timeout 0 "

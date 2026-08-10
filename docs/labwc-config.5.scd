@@ -326,7 +326,7 @@ this is for compatibility with Openbox.
 	The default error command is:
 	```
 	labnag \\
-		--message 'Config Error' \\
+		--message 'Config errors detected' \\
 		--button-dismiss 'Close' \\
 		--layer overlay \\
 		--timeout 0 \\

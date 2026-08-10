@@ -20,6 +20,8 @@
     <!--
       # See labwc-config(5) for details
       <promptCommand></promptCommand>
+      # See labwc-config(5) for details
+      <errorCommand></errorCommand>
     -->
   </core>
 

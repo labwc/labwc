@@ -14,6 +14,7 @@ void nag_set_error(enum wlr_log_importance importance);
 bool nag_check_pid(pid_t exited_pid);
 void nag_reset(void);
 void nag_show_callback(void *data);
+void nag_finish(void);
 
 #define nag_log(verbosity, fmt, ...) \
 do { \

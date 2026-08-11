@@ -206,7 +206,7 @@ void lab_xml_update_line(xmlNode *node)
 	long line = xmlGetLineNo(node);
 
 	/* When parsing attributes, xmlGetLineNo() returns 0,
-	 * so we keep the previous value if valid.
+	 * so we keep the previous value when this happens.
 	 */
 	if (line == 0) {
 		return;

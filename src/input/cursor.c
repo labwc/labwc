@@ -1676,11 +1676,9 @@ cursor_init(struct seat *seat)
 
 	if (rc.hide_cursor) {
 		server.hide_cursor_timer = wl_event_loop_add_timer(
-			server.wl_event_loop,
-			hide_cursor,
-			seat
-			);
-		wl_event_source_timer_update(server.hide_cursor_timer, rc.hide_cursor_delay);
+			server.wl_event_loop, hide_cursor, seat);
+		wl_event_source_timer_update(server.hide_cursor_timer,
+					     rc.hide_cursor_delay);
 	}
 }
 

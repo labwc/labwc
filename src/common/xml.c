@@ -7,7 +7,7 @@
 #include "common/parse-bool.h"
 
 static long line_number = 0;
-static char line_string[20];
+static char line_string[40];
 
 /*
  * Converts an attribute A.B.C="X" into <C><B><A>X</A></B></C>

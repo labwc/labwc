@@ -1476,7 +1476,7 @@ traverse(xmlNode *node)
 static void
 rcxml_parse_xml(struct buf *b)
 {
-	int options = 0;
+	int options = XML_PARSE_BIG_LINES;
 	xmlDoc *d = xmlReadMemory(b->data, b->len, NULL, NULL, options);
 	if (!d) {
 		nag_log(WLR_ERROR, "error parsing config file");
@@ -2041,7 +2041,7 @@ rcxml_read(const char *filename)
 		if (!b.len) {
 			continue;
 		}
-
+		lab_xml_update_line(NULL); /* reset line to 0 on reconfigure */
 		nag_log(WLR_INFO, "read config file %s", path->string);
 
 		rcxml_parse_xml(&b);

@@ -98,16 +98,16 @@ buf_expand(struct buf *s, int new_alloc)
 }
 
 void
-buf_add_fmt(struct buf *s, const char *fmt, ...)
+buf_add_vfmt(struct buf *s, const char *fmt, va_list args)
 {
 	if (string_null_or_empty(fmt)) {
 		return;
 	}
-	va_list ap;
 
-	va_start(ap, fmt);
-	int n = vsnprintf(NULL, 0, fmt, ap);
-	va_end(ap);
+	va_list start;
+	va_copy(start, args);
+	int n = vsnprintf(NULL, 0, fmt, start);
+	va_end(start);
 
 	if (n < 0) {
 		return;
@@ -115,10 +115,7 @@ buf_add_fmt(struct buf *s, const char *fmt, ...)
 
 	size_t size = (size_t)n + 1;
 	buf_expand(s, s->len + size);
-
-	va_start(ap, fmt);
-	n = vsnprintf(s->data + s->len, size, fmt, ap);
-	va_end(ap);
+	n = vsnprintf(s->data + s->len, size, fmt, args);
 
 	if (n < 0) {
 		return;
@@ -126,6 +123,15 @@ buf_add_fmt(struct buf *s, const char *fmt, ...)
 
 	s->len += n;
 	s->data[s->len] = 0;
+}
+
+void
+buf_add_fmt(struct buf *s, const char *fmt, ...)
+{
+	va_list ap;
+	va_start(ap, fmt);
+	buf_add_vfmt(s, fmt, ap);
+	va_end(ap);
 }
 
 void

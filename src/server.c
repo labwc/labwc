@@ -175,7 +175,7 @@ handle_sigchld(int signal, void *data)
 			 * into an endless loop without giving the wlroots internal
 			 * xwayland startup handler a chance to use its own waitid().
 			 *
-			 * Further queued up child process terminatations will be
+			 * Further queued up child process terminations will be
 			 * dealt with on the next SIGCHLD handler invocation and
 			 * float around as zombies until that point.
 			 */

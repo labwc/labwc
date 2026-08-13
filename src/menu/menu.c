@@ -83,6 +83,7 @@ menu_create(struct menu *parent, const char *id,
 	menu->label = xstrdup(label ? label : id);
 	menu->parent = parent;
 	menu->is_pipemenu_child = waiting_for_pipe_menu;
+	menu->pending_auto_enter = false;
 	return menu;
 }
 
@@ -1325,6 +1326,8 @@ handle_pipemenu_timeout(void *_ctx)
 	return 0;
 }
 
+static struct menu *get_selection_leaf(void);
+
 static int
 handle_pipemenu_readable(int fd, uint32_t mask, void *_ctx)
 {
@@ -1368,7 +1371,25 @@ handle_pipemenu_readable(int fd, uint32_t mask, void *_ctx)
 
 	create_pipe_menu(ctx);
 
+	struct menu *menu = ctx->pipemenu;
+	bool pending_auto_enter = menu->pending_auto_enter;
+	menu->pending_auto_enter = false;
+
+	pipemenu_ctx_destroy(ctx);
+
+	if (pending_auto_enter) {
+		struct menu *active_leaf = get_selection_leaf();
+		if (active_leaf && active_leaf->selection.menu == menu) {
+			menu_submenu_enter();
+		}
+	}
+
+	return 0;
+
 clean_up:
+	if (ctx->pipemenu) {
+		ctx->pipemenu->pending_auto_enter = false;
+	}
 	pipemenu_ctx_destroy(ctx);
 	return 0;
 }
@@ -1623,6 +1644,11 @@ menu_submenu_enter(void)
 {
 	struct menu *menu = get_selection_leaf();
 	if (!menu || !menu->selection.menu) {
+		return;
+	}
+
+	if (waiting_for_pipe_menu) {
+		menu->selection.menu->pending_auto_enter = true;
 		return;
 	}
 

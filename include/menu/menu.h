@@ -56,6 +56,7 @@ struct menu {
 		struct menuitem *item;
 	} selection;
 	struct wlr_scene_tree *scene_tree;
+	bool pending_auto_enter;
 	bool is_pipemenu_child;
 	bool align_left;
 	bool has_icons;

@@ -457,9 +457,7 @@ handle_menu_keys(struct keysyms *syms)
 			if (accelerator == 0) {
 				continue;
 			}
-			if (menu_item_select_by_accelerator(accelerator)) {
-				menu_call_selected_actions();
-			}
+			menu_process_accelerator(accelerator);
 			break;
 		}}
 		break;

@@ -1549,12 +1549,12 @@ menu_item_select_previous(void)
 	menu_item_select(/* forward */ false);
 }
 
-bool
-menu_item_select_by_accelerator(uint32_t accelerator)
+void
+menu_process_accelerator(uint32_t accelerator)
 {
 	struct menu *menu = get_selection_leaf();
 	if (!menu || wl_list_empty(&menu->menuitems)) {
-		return false;
+		return;
 	}
 
 	bool needs_exec = false;
@@ -1590,7 +1590,7 @@ menu_item_select_by_accelerator(uint32_t accelerator)
 	} while (current != start);
 
 	if (!next_selection) {
-		return false;
+		return;
 	}
 
 	menu_process_item_selection(next_selection);
@@ -1598,9 +1598,12 @@ menu_item_select_by_accelerator(uint32_t accelerator)
 		/* Since we can't execute a submenu, enter it */
 		needs_exec = false;
 		menu_submenu_enter();
+		return;
 	}
 
-	return needs_exec;
+	if (needs_exec) {
+		menu_call_selected_actions();
+	}
 }
 
 bool

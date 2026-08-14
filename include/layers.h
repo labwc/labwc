@@ -13,9 +13,16 @@ struct lab_layer_surface {
 	struct wlr_layer_surface_v1 *layer_surface;
 	struct wlr_scene_layer_surface_v1 *scene_layer_surface;
 
+	struct wl_list link; /* layers.c layer_surfaces */
+
 	bool mapped;
 	/* true only inside handle_unmap() */
 	bool being_unmapped;
+	/*
+	 * true while this surface is temporarily elevated above the
+	 * ext-session-lock-v1 lock screen (see allowIMEOnLockScreen).
+	 */
+	bool on_lock_screen;
 
 	struct wl_listener map;
 	struct wl_listener unmap;
@@ -45,5 +52,12 @@ void layers_finish(void);
 void layers_arrange(struct output *output);
 void layer_try_set_focus(struct seat *seat,
 	struct wlr_layer_surface_v1 *layer_surface);
+
+/*
+ * Re-evaluate which layer-shell surfaces should be elevated above the
+ * session-lock screen. Should be called whenever the session-lock state
+ * changes (lock acquired / released).
+ */
+void layers_update_on_lock_screen(void);
 
 #endif /* LABWC_LAYERS_H */

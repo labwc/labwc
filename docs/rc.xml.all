@@ -17,6 +17,7 @@
     <reuseOutputMode>no</reuseOutputMode>
     <xwaylandPersistence>no</xwaylandPersistence>
     <primarySelection>yes</primarySelection>
+    <allowIMEOnLockScreen>no</allowIMEOnLockScreen>
     <!--
       # See labwc-config(5) for details
       <promptCommand></promptCommand>

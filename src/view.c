@@ -1754,10 +1754,10 @@ clear_last_placement(struct view *view)
 }
 
 void
-view_adjust_for_layout_change(struct view *view)
+view_adjust_for_layout_change(struct view *view, bool force)
 {
 	assert(view);
-	if (wlr_box_empty(&view->last_placement.layout_geo)) {
+	if (wlr_box_empty(&view->last_placement.layout_geo) && !force) {
 		/* Not using assert() just in case */
 		wlr_log(WLR_ERROR, "view has no last placement info");
 		return;

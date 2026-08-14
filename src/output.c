@@ -291,6 +291,21 @@ handle_output_destroy(struct wl_listener *listener, void *data)
 	if (seat->overlay.active.output == output) {
 		overlay_finish(seat);
 	}
+
+	/*
+	 * Destroy the scene output before changing the scene graph below.
+	 * Otherwise those changes can send a surface-enter for this output while
+	 * its destroy signal is already being emitted. The new listener then
+	 * misses that signal and makes wlr_output_finish() abort because
+	 * output->events.bind is not empty.
+	 *
+	 * See https://gitlab.freedesktop.org/wlroots/wlroots/-/issues/4096
+	 */
+	if (output->scene_output) {
+		wlr_scene_output_destroy(output->scene_output);
+		output->scene_output = NULL;
+	}
+
 	wl_list_remove(&output->link);
 	wl_list_remove(&output->frame.link);
 	wl_list_remove(&output->destroy.link);
@@ -338,10 +353,6 @@ handle_output_destroy(struct wl_listener *listener, void *data)
 		wl_display_terminate(server.wl_display);
 	}
 
-	/*
-	 * output->scene_output (if still around at this point) is
-	 * destroyed automatically when the wlr_output is destroyed
-	 */
 	free(output);
 }
 

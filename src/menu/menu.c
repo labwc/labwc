@@ -20,6 +20,7 @@
 #include "common/lab-scene-rect.h"
 #include "common/list.h"
 #include "common/mem.h"
+#include "common/nag.h"
 #include "common/scene-helpers.h"
 #include "common/spawn.h"
 #include "common/string-helpers.h"
@@ -755,7 +756,7 @@ parse_buf(struct menu *parent, struct buf *buf)
 	int options = 0;
 	xmlDoc *d = xmlReadMemory(buf->data, buf->len, NULL, NULL, options);
 	if (!d) {
-		wlr_log(WLR_ERROR, "xmlParseMemory()");
+		nag_log(WLR_ERROR, "error parsing menu file");
 		return false;
 	}
 
@@ -783,7 +784,7 @@ parse_xml(const char *filename)
 		if (!buf.len) {
 			continue;
 		}
-		wlr_log(WLR_INFO, "read menu file %s", path->string);
+		nag_log(WLR_INFO, "read menu file %s", path->string);
 		parse_buf(/*parent*/ NULL, &buf);
 		buf_reset(&buf);
 		if (!should_merge_config) {

@@ -685,12 +685,12 @@ substitute_nonzero(int *a, int *b)
 }
 
 static int
-round_to_increment(int val, int base, int inc)
+round_down_to_increment(int val, int base, int inc)
 {
 	if (base < 0 || inc <= 0) {
 		return val;
 	}
-	return base + (val - base + inc / 2) / inc * inc;
+	return base + (val - base) / inc * inc;
 }
 
 void
@@ -712,8 +712,8 @@ view_adjust_size(struct view *view, int *w, int *h)
 	 * terminal is resized to a width/height evenly divisible by the
 	 * cell (character) size.
 	 */
-	*w = round_to_increment(*w, hints.base_width, hints.width_inc);
-	*h = round_to_increment(*h, hints.base_height, hints.height_inc);
+	*w = round_down_to_increment(*w, hints.base_width, hints.width_inc);
+	*h = round_down_to_increment(*h, hints.base_height, hints.height_inc);
 
 	/* If a minimum width/height was not set, then use default */
 	if (hints.min_width < 1) {

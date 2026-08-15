@@ -35,6 +35,7 @@
 #include "resistance.h"
 #include "resize-outlines.h"
 #include "ssd.h"
+#include "ssd-internal.h"
 #include "view.h"
 #include "xwayland.h"
 
@@ -315,6 +316,24 @@ process_cursor_resize(uint32_t time)
 	static struct view *last_resize_view = NULL;
 
 	assert(server.grabbed_view);
+
+	/*
+	 * Transition handle/grip from PRESSED to DRAGGING on
+	 * first resize motion.
+	 */
+	struct ssd *ssd = server.grabbed_view->ssd;
+	if (ssd && ssd->handle.tree) {
+		for (int i = 0; i < SSD_HANDLE_ELEMENT_COUNT; i++) {
+			if (i == SSD_HANDLE_ELEMENT_CENTER) {
+				continue;
+			}
+			if (ssd->handle.element_states[i]
+					== SSD_HANDLE_STATE_PRESSED) {
+				ssd_handle_set_element_state(ssd, i,
+					SSD_HANDLE_STATE_DRAGGING);
+			}
+		}
+	}
 	if (server.grabbed_view == last_resize_view) {
 		int32_t refresh = 0;
 		if (output_is_usable(last_resize_view->output)) {
@@ -544,6 +563,7 @@ cursor_update_common(const struct cursor_context *ctx,
 	struct wlr_seat *wlr_seat = seat->wlr_seat;
 
 	ssd_update_hovered_button(ctx->node);
+	ssd_update_hovered_handle(ctx->node);
 
 	if (server.input_mode != LAB_INPUT_STATE_PASSTHROUGH) {
 		/*
@@ -1150,6 +1170,28 @@ cursor_process_button_press(struct seat *seat, uint32_t button, uint32_t time_ms
 		interactive_set_grab_context(&ctx);
 	}
 
+	/*
+	 * Set pressed visual state on grip elements (not center handle).
+	 * This runs before action processing so the visual
+	 * feedback appears immediately on click.
+	 */
+	if (ctx.view && ctx.view->ssd && ctx.view->ssd->handle.tree) {
+		switch (ctx.type) {
+		case LAB_NODE_GRIP_LEFT:
+			ssd_handle_set_element_state(ctx.view->ssd,
+				SSD_HANDLE_ELEMENT_GRIP_LEFT,
+				SSD_HANDLE_STATE_PRESSED);
+			break;
+		case LAB_NODE_GRIP_RIGHT:
+			ssd_handle_set_element_state(ctx.view->ssd,
+				SSD_HANDLE_ELEMENT_GRIP_RIGHT,
+				SSD_HANDLE_STATE_PRESSED);
+			break;
+		default:
+			break;
+		}
+	}
+
 	if (server.input_mode == LAB_INPUT_STATE_MENU) {
 		/*
 		 * If menu was already opened on press, set a very small value
@@ -1272,11 +1314,21 @@ cursor_finish_button_release(struct seat *seat, uint32_t button)
 		if (resize_outlines_enabled(server.grabbed_view)) {
 			resize_outlines_finish(server.grabbed_view);
 		}
+		/*
+		 * Clear any handle/grip pressed/dragging state
+		 * when finishing interactive resize.
+		 */
+		ssd_handle_clear_all_states(
+			server.grabbed_view ? server.grabbed_view->ssd : NULL);
 		/* Exit interactive move/resize mode */
 		interactive_finish(server.grabbed_view);
 		return true;
 	} else if (server.grabbed_view) {
-		/* Button was released without starting move/resize */
+		/*
+		 * Button was released without starting move/resize.
+		 * Clear any handle/grip pressed state.
+		 */
+		ssd_handle_clear_all_states(server.grabbed_view->ssd);
 		interactive_cancel(server.grabbed_view);
 	}
 

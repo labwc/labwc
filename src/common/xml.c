@@ -6,6 +6,9 @@
 #include "common/xml.h"
 #include "common/parse-bool.h"
 
+static long line_number = 0;
+static char line_string[40];
+
 /*
  * Converts an attribute A.B.C="X" into <C><B><A>X</A></B></C>
  */
@@ -192,4 +195,30 @@ lab_xml_get_bool(xmlNode *node, const char *key, bool *b)
 		}
 	}
 	return false;
+}
+
+void lab_xml_update_line(xmlNode *node)
+{
+	if (!node) {
+		line_number = 0;
+		return;
+	}
+	long line = xmlGetLineNo(node);
+
+	/* When parsing attributes, xmlGetLineNo() returns 0,
+	 * so we keep the previous value when this happens.
+	 */
+	if (line == 0) {
+		return;
+	}
+	line_number = line;
+}
+
+const char *lab_xml_line_string(void)
+{
+	if (line_number > 0) {
+		snprintf(line_string, sizeof(line_string), "Line: %ld - ", line_number);
+		return line_string;
+	}
+	return "";
 }

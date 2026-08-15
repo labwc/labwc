@@ -49,6 +49,9 @@ struct cycle_filter {
 	enum cycle_workspace_filter workspace;
 	enum cycle_output_filter output;
 	enum cycle_app_id_filter app_id;
+	const char *region_names;
+	int window_overlap_percent;
+	int region_overlap_percent;
 };
 
 struct cycle_state {
@@ -61,6 +64,7 @@ struct cycle_state {
 	struct wlr_scene_node *preview_dummy;
 	struct lab_scene_rect *preview_outline;
 	struct cycle_filter filter;
+	char *region_names; /* Owned storage for filter.region_names */
 };
 
 struct cycle_osd_output {
@@ -90,9 +94,12 @@ struct view;
 struct server;
 struct wlr_scene_node;
 
+/* Validate a pipe-separated region expression against configured regions */
+bool cycle_regions_are_valid(const char *region_names);
+
 /* Begin window switcher */
 void cycle_begin(enum lab_cycle_dir direction,
-	struct cycle_filter filter);
+	struct cycle_filter filter, bool topmost_first);
 
 /* Cycle the selected view in the window switcher */
 void cycle_step(enum lab_cycle_dir direction);
@@ -105,7 +112,7 @@ void cycle_reinitialize(void);
 
 /* Immediately cycle to next/previous window */
 void cycle_immediate(enum lab_cycle_dir direction,
-	struct cycle_filter filter);
+	struct cycle_filter filter, bool topmost_first);
 
 /* Focus the clicked window and close OSD */
 void cycle_on_cursor_release(struct wlr_scene_node *node);

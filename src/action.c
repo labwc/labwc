@@ -2,6 +2,7 @@
 #define _POSIX_C_SOURCE 200809L
 #include "action.h"
 #include <assert.h>
+#include <errno.h>
 #include <signal.h>
 #include <string.h>
 #include <strings.h>
@@ -289,6 +290,23 @@ action_get_actionlist(struct action *action, const char *key)
 	return arg ? &arg->value : NULL;
 }
 
+static bool
+parse_percentage(const char *content, int *percentage)
+{
+	assert(content);
+	assert(percentage);
+
+	errno = 0;
+	char *end;
+	long value = strtol(content, &end, 10);
+	if (errno == ERANGE || end == content || *end != '\0'
+			|| value < 0 || value > 100) {
+		return false;
+	}
+	*percentage = value;
+	return true;
+}
+
 void
 action_arg_from_xml_node(struct action *action, const char *nodename, const char *content)
 {
@@ -373,6 +391,26 @@ action_arg_from_xml_node(struct action *action, const char *nodename, const char
 				action_arg_add_int(action, argument, CYCLE_APP_ID_CURRENT);
 			} else {
 				nag_log(WLR_ERROR, "Invalid argument for action %s: '%s' (%s)",
+					action_names[action->type], argument, content);
+			}
+			goto cleanup;
+		}
+		if (!strcasecmp(argument, "topmostFirst")) {
+			action_arg_add_bool(action, argument, parse_bool(content, false));
+			goto cleanup;
+		}
+		if (!strcasecmp(argument, "region")) {
+			action_arg_add_str(action, argument, content);
+			goto cleanup;
+		}
+		if (!strcasecmp(argument, "windowOverlapPercent")
+				|| !strcasecmp(argument, "regionOverlapPercent")) {
+			int percentage;
+			if (parse_percentage(content, &percentage)) {
+				action_arg_add_int(action, argument, percentage);
+			} else {
+				wlr_log(WLR_ERROR, "Invalid argument for action %s: "
+					"'%s' (%s); expected an integer from 0 to 100",
 					action_names[action->type], argument, content);
 			}
 			goto cleanup;
@@ -623,7 +661,7 @@ action_branches_are_valid(struct action *action)
 	return true;
 }
 
-/* Checks for *required* arguments */
+/* Check required arguments and values that need post-parse validation */
 bool
 action_is_valid(struct action *action)
 {
@@ -642,6 +680,12 @@ action_is_valid(struct action *action)
 		arg_name = "direction";
 		arg_type = LAB_ACTION_ARG_INT;
 		break;
+	case ACTION_TYPE_NEXT_WINDOW:
+	case ACTION_TYPE_PREVIOUS_WINDOW:
+	case ACTION_TYPE_NEXT_WINDOW_IMMEDIATE:
+	case ACTION_TYPE_PREVIOUS_WINDOW_IMMEDIATE:
+		return cycle_regions_are_valid(
+			action_get_str(action, "region", NULL));
 	case ACTION_TYPE_SHOW_MENU:
 		arg_name = "menu";
 		break;
@@ -1055,6 +1099,22 @@ warp_cursor(struct view *view, const char *to, const char *x, const char *y)
 	cursor_update_focus();
 }
 
+static struct cycle_filter
+cycle_filter_from_action(struct action *action)
+{
+	return (struct cycle_filter) {
+		.workspace = action_get_int(action, "workspace",
+			rc.window_switcher.workspace_filter),
+		.output = action_get_int(action, "output", CYCLE_OUTPUT_ALL),
+		.app_id = action_get_int(action, "identifier", CYCLE_APP_ID_ALL),
+		.region_names = action_get_str(action, "region", NULL),
+		.window_overlap_percent = CLAMP(
+			action_get_int(action, "windowOverlapPercent", 0), 0, 100),
+		.region_overlap_percent = CLAMP(
+			action_get_int(action, "regionOverlapPercent", 0), 0, 100),
+	};
+}
+
 static void
 run_action(struct view *view, struct action *action,
 	struct cursor_context *ctx)
@@ -1136,18 +1196,12 @@ run_action(struct view *view, struct action *action,
 	case ACTION_TYPE_PREVIOUS_WINDOW: {
 		enum lab_cycle_dir dir = (action->type == ACTION_TYPE_NEXT_WINDOW) ?
 			LAB_CYCLE_DIR_FORWARD : LAB_CYCLE_DIR_BACKWARD;
-		struct cycle_filter filter = {
-			.workspace = action_get_int(action, "workspace",
-				rc.window_switcher.workspace_filter),
-			.output = action_get_int(action, "output",
-				CYCLE_OUTPUT_ALL),
-			.app_id = action_get_int(action, "identifier",
-				CYCLE_APP_ID_ALL),
-		};
+		struct cycle_filter filter = cycle_filter_from_action(action);
 		if (server.input_mode == LAB_INPUT_STATE_CYCLE) {
 			cycle_step(dir);
 		} else {
-			cycle_begin(dir, filter);
+			bool topmost_first = action_get_bool(action, "topmostFirst", false);
+			cycle_begin(dir, filter, topmost_first);
 		}
 		break;
 	}
@@ -1155,15 +1209,9 @@ run_action(struct view *view, struct action *action,
 	case ACTION_TYPE_PREVIOUS_WINDOW_IMMEDIATE: {
 		enum lab_cycle_dir dir = (action->type == ACTION_TYPE_NEXT_WINDOW_IMMEDIATE) ?
 			LAB_CYCLE_DIR_FORWARD : LAB_CYCLE_DIR_BACKWARD;
-		struct cycle_filter filter = {
-			.workspace = action_get_int(action, "workspace",
-				rc.window_switcher.workspace_filter),
-			.output = action_get_int(action, "output",
-				CYCLE_OUTPUT_ALL),
-			.app_id = action_get_int(action, "identifier",
-				CYCLE_APP_ID_ALL),
-		};
-		cycle_immediate(dir, filter);
+		struct cycle_filter filter = cycle_filter_from_action(action);
+		bool topmost_first = action_get_bool(action, "topmostFirst", false);
+		cycle_immediate(dir, filter, topmost_first);
 		break;
 	}
 	case ACTION_TYPE_RECONFIGURE:

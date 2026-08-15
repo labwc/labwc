@@ -50,6 +50,8 @@ node_type_parse(const char *context)
 		return LAB_NODE_ROOT;
 	} else if (!strcasecmp(context, "Root")) {
 		return LAB_NODE_ROOT;
+	} else if (!strcasecmp(context, "WindowSwitcher")) {
+		return LAB_NODE_WINDOW_SWITCHER;
 	} else if (!strcasecmp(context, "All")) {
 		return LAB_NODE_ALL;
 	}

@@ -553,6 +553,10 @@ extending outward from the snapped edge.
 	Show an overlay when snapping a window to an output edge.
 	Default is yes.
 
+*<snapping><overlay><placement>* [above|below]
+	Place the snap-overlay above the currently dragged window
+	instead of below it. Default is below.
+
 *<snapping><overlay><delay><inner>*++
 *<snapping><overlay><delay><outer>*
 	Sets the delay to show an overlay when snapping a window to each type of

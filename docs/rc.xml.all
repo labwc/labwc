@@ -171,6 +171,11 @@
     <cornerRange>50</cornerRange>
     <overlay enabled="yes">
       <delay inner="500" outer="500" />
+      <!--
+        Draw the snap overlay above instead of below the
+        window being dragged.   -->
+        <placement>below</placement>
+   
     </overlay>
     <topMaximize>yes</topMaximize>
     <notifyClient>always</notifyClient>

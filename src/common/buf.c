@@ -11,12 +11,19 @@
 #include "common/mem.h"
 #include "common/string-helpers.h"
 
+/*
+ * Expand ~ if it is at the beginning of line, or following space, tab or ':'
+ * *and* it is followed by space, tab, '/', ':' or '\0' (end of line).
+ * Var=val is split before tilde expansion; hence '=' before ~ is not included.
+ */
 void
 buf_expand_tilde(struct buf *s)
 {
 	struct buf tmp = BUF_INIT;
 	for (int i = 0; i < s->len; i++) {
-		if (s->data[i] == '~') {
+		if (s->data[i] == '~'
+				&& (i == 0 || strchr(" \t:", s->data[i - 1]))
+				&& strchr(" \t/:", s->data[i + 1])) {
 			buf_add(&tmp, getenv("HOME"));
 		} else {
 			buf_add_char(&tmp, s->data[i]);

@@ -1224,6 +1224,10 @@ entry(xmlNode *node, char *nodename, char *content)
 		/* This is deprecated. Show an error message in post_processing() */
 		set_double(content, &mouse_scroll_factor);
 
+	} else if (!strcasecmp(nodename, "hideCursor.mouse")) {
+		set_bool(content, &rc.hide_cursor);
+	} else if (!strcasecmp(nodename, "hideCursorDelay.mouse")) {
+		rc.hide_cursor_delay = atoi(content);
 	} else if (!strcasecmp(nodename, "repeatRate.keyboard")) {
 		rc.repeat_rate = atoi(content);
 	} else if (!strcasecmp(nodename, "repeatDelay.keyboard")) {
@@ -1552,6 +1556,8 @@ rcxml_init(void)
 	rc.raise_on_focus_delay_ms = 0;
 
 	rc.doubleclick_time = 500;
+	rc.hide_cursor = false;
+	rc.hide_cursor_delay = 5000;
 
 	rc.tablet.force_mouse_emulation = false;
 	rc.tablet.output_name = NULL;

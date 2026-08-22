@@ -767,17 +767,12 @@ set_layout(struct wlr_keyboard *kb)
 	static bool fallback_mode;
 
 	struct xkb_rule_names rules = { 0 };
-	enum xkb_context_flags ctx_flags = XKB_CONTEXT_NO_FLAGS;
-#ifdef __ANDROID__
 	/*
-	 * Android's bionic libc implements secure_getenv() as a function
-	 * that always returns NULL (the app process has no AT_SECURE).
-	 * This prevents xkbcommon from reading XKB_DEFAULT_LAYOUT and
-	 * friends via secure_getenv(). Use the flag to fall back to
-	 * regular getenv() which works fine on Android.
+	 * Allow libxkbcommon to read XKB_* env vars even if running with elevated
+	 * privleges (mostly a non-empty permitted capability set or when on Android).
+	 * Internally this causes it to use getenv() rather than secure_getenv().
 	 */
-	ctx_flags |= XKB_CONTEXT_NO_SECURE_GETENV;
-#endif
+	enum xkb_context_flags ctx_flags = XKB_CONTEXT_NO_SECURE_GETENV;
 	struct xkb_context *context = xkb_context_new(ctx_flags);
 	struct xkb_keymap *keymap = xkb_map_new_from_names(context, &rules,
 		XKB_KEYMAP_COMPILE_NO_FLAGS);

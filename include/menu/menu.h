@@ -56,6 +56,7 @@ struct menu {
 		struct menuitem *item;
 	} selection;
 	struct wlr_scene_tree *scene_tree;
+	bool pending_auto_enter;
 	bool is_pipemenu_child;
 	bool align_left;
 	bool has_icons;
@@ -70,7 +71,7 @@ void menu_item_select_next(void);
 void menu_item_select_previous(void);
 
 /**
- * menu_item_select_by_accelerator - selects the next menu item with
+ * menu_process_accelerator - selects the next menu item with
  * a matching accelerator, starting after the current selection
  *
  * @accelerator a shortcut to quickly select/open an item, defined in menu.xml
@@ -79,7 +80,7 @@ void menu_item_select_previous(void);
  * Return: a boolean value that represents whether the newly selected item
  * needs to be executed.
  */
-bool menu_item_select_by_accelerator(uint32_t accelerator);
+void menu_process_accelerator(uint32_t accelerator);
 
 void menu_submenu_enter(void);
 void menu_submenu_leave(void);

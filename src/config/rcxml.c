@@ -1134,6 +1134,10 @@ entry(xmlNode *node, char *nodename, char *content)
 	} else if (!strcasecmp(nodename, "thumbnailLabelFormat.osd.windowSwitcher")) {
 		xstrdup_replace(rc.window_switcher.osd.thumbnail_label_format, content);
 
+	} else if (!strcasecmp(nodename, "privilegedInterfaces")) {
+		rc.allowed_interfaces = 0;
+		return true;
+
 	} else if (!lab_xml_node_is_leaf(node)) {
 		/* parse children of nested nodes other than above */
 		return true;
@@ -1443,8 +1447,6 @@ entry(xmlNode *node, char *nodename, char *content)
 		rc.mag_increment = MAX(0, rc.mag_increment);
 	} else if (!strcasecmp(nodename, "useFilter.magnifier")) {
 		set_bool(content, &rc.mag_filter);
-	} else if (!strcasecmp(nodename, "privilegedInterfaces")) {
-		rc.allowed_interfaces = 0;
 	} else if (!strcasecmp(nodename, "allow.privilegedInterfaces")) {
 		uint32_t iface_id = parse_privileged_interface(content);
 		if (iface_id) {

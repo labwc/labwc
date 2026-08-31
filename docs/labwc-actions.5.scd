@@ -139,6 +139,10 @@ Actions are used in menus and keyboard/mouse bindings.
 	Shift-Alt-Tab. While cycling through windows, the arrow keys move the
 	selected window forwards/backwards and the escape key halts the cycling.
 
+	Other actions are ignored while the Window Switcher is up, except for
+	Close and Kill, which act on the window selected in the OSD rather than
+	the still-focused one.
+
 	NextWindowImmediate and PreviousWindowImmediate skip the Window Switcher
 	and OSD, useful for binding to keys without modifiers.
 

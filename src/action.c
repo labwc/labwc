@@ -818,6 +818,15 @@ view_for_action(struct view *activator, struct action *action, struct cursor_con
 		return ctx->view;
 	}
 	default:
+		/*
+		 * While the window switcher is up, the active view is not the
+		 * one the user is looking at, so act on the view highlighted
+		 * in the OSD instead.
+		 */
+		if (server.input_mode == LAB_INPUT_STATE_CYCLE
+				&& server.cycle.selected_view) {
+			return server.cycle.selected_view;
+		}
 		return server.active_view;
 	}
 }
@@ -1615,6 +1624,29 @@ run_action(struct view *view, struct action *action,
 	}
 }
 
+/*
+ * Actions allowed to run while the window switcher is up. Anything which
+ * changes focus, opens a menu or starts an interactive move/resize would
+ * fight with the switcher's focus override, so keep this list short.
+ *
+ * Iconify is deliberately absent: view_minimize() refuses to run while
+ * input_mode is LAB_INPUT_STATE_CYCLE, so allowing it here would only
+ * produce a log message.
+ */
+static bool
+action_is_allowed_while_cycling(enum action_type type)
+{
+	switch (type) {
+	case ACTION_TYPE_NEXT_WINDOW:
+	case ACTION_TYPE_PREVIOUS_WINDOW:
+	case ACTION_TYPE_CLOSE:
+	case ACTION_TYPE_KILL:
+		return true;
+	default:
+		return false;
+	}
+}
+
 void
 actions_run(struct view *activator, struct wl_list *actions, struct cursor_context *cursor_ctx)
 {
@@ -1634,10 +1666,9 @@ actions_run(struct view *activator, struct wl_list *actions, struct cursor_conte
 	struct action *action;
 	wl_list_for_each(action, actions, link) {
 		if (server.input_mode == LAB_INPUT_STATE_CYCLE
-				&& action->type != ACTION_TYPE_NEXT_WINDOW
-				&& action->type != ACTION_TYPE_PREVIOUS_WINDOW) {
-			wlr_log(WLR_INFO, "Only NextWindow or PreviousWindow "
-				"actions are accepted while window switching.");
+				&& !action_is_allowed_while_cycling(action->type)) {
+			wlr_log(WLR_INFO, "Action %s is not accepted while "
+				"window switching.", action_names[action->type]);
 			continue;
 		}
 

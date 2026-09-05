@@ -1185,6 +1185,7 @@ Note: To rotate touch events with output rotation, use the libinput
     <sendEventsMode></sendEventsMode>
     <calibrationMatrix></calibrationMatrix>
     <scrollFactor>1.0</scrollFactor>
+    <scrollCurve step=""></scrollCurve>
   </device>
 </libinput>
 ```
@@ -1227,6 +1228,15 @@ Note: To rotate touch events with output rotation, use the libinput
 	no acceleration (the pointers velocity is constant), while adaptive
 	changes the pointers speed based the actual speed of your mouse or
 	finger on your touchpad.
+
+*<libinput><device><scrollCurve>* step="FLOAT"
+	Apply a velocity-dependent multiplier to continuous finger scrolling.
+	The space-separated values are multipliers at input speeds separated by
+	*step* axis units per millisecond; values between points use clamped,
+	monotonic cubic interpolation and speeds beyond the last point use its
+	multiplier. This
+	does not alter pointer motion, discrete mouse-wheel events, or synthetic
+	axis events. At least two and at most 32 non-negative values are accepted.
 
 *<libinput><device><tap>* [yes|no]
 	Enable or disable tap-to-click for this category. This is enabled by

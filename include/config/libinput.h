@@ -14,6 +14,14 @@ enum lab_libinput_device_type {
 	LAB_LIBINPUT_DEVICE_NON_TOUCH,
 };
 
+#define LAB_SCROLL_CURVE_MAX_POINTS 32
+
+struct lab_scroll_curve {
+	double step;
+	double points[LAB_SCROLL_CURVE_MAX_POINTS];
+	size_t npoints;
+};
+
 struct libinput_category {
 	enum lab_libinput_device_type type;
 	char *name;
@@ -35,6 +43,7 @@ struct libinput_category {
 	int send_events_mode;           /* -1 or libinput_config_send_events_mode */
 	bool have_calibration_matrix;
 	double scroll_factor;
+	struct lab_scroll_curve scroll_curve;
 	float calibration_matrix[6];
 };
 

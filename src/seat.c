@@ -141,6 +141,7 @@ configure_libinput(struct wlr_input_device *wlr_input_device)
 	/* Set scroll factor to 1.0 for Wayland/X11 backends or virtual pointers */
 	if (!wlr_input_device_is_libinput(wlr_input_device)) {
 		input->scroll_factor = 1.0;
+		input->scroll_curve.npoints = 0;
 		return;
 	}
 #if WLR_HAS_LIBINPUT_BACKEND
@@ -365,6 +366,12 @@ configure_libinput(struct wlr_input_device *wlr_input_device)
 
 	wlr_log(WLR_INFO, "scroll factor configured (%g)", dc->scroll_factor);
 	input->scroll_factor = dc->scroll_factor;
+	input->scroll_curve = dc->scroll_curve;
+	if (input->scroll_curve.npoints) {
+		wlr_log(WLR_INFO, "finger scroll curve configured "
+			"(step=%g, points=%zu)", input->scroll_curve.step,
+			input->scroll_curve.npoints);
+	}
 #endif
 }
 

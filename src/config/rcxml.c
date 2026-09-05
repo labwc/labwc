@@ -4,6 +4,7 @@
 #include <assert.h>
 #include <glib.h>
 #include <libxml/parser.h>
+#include <math.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -718,6 +719,52 @@ get_accel_profile(const char *s)
 	return -1;
 }
 
+static void
+parse_scroll_curve(xmlNode *node, const char *content,
+		struct lab_scroll_curve *curve)
+{
+	char step_string[64];
+	double step;
+	if (!lab_xml_get_string(node, "step", step_string,
+			sizeof(step_string))
+			|| !set_double(step_string, &step)
+			|| !isfinite(step) || step <= 0) {
+		wlr_log(WLR_ERROR,
+			"<scrollCurve> requires a finite step greater than zero");
+		return;
+	}
+
+	char *copy = xstrdup(content);
+	char *saveptr = NULL;
+	char *token = strtok_r(copy, " \t\r\n", &saveptr);
+	size_t count = 0;
+	while (token && count < LAB_SCROLL_CURVE_MAX_POINTS) {
+		double point;
+		if (!set_double(token, &point) || !isfinite(point) || point < 0) {
+			wlr_log(WLR_ERROR, "<scrollCurve> factors must be finite "
+				"and non-negative");
+			count = 0;
+			break;
+		}
+		curve->points[count++] = point;
+		token = strtok_r(NULL, " \t\r\n", &saveptr);
+	}
+	if (token) {
+		wlr_log(WLR_ERROR, "<scrollCurve> supports at most %d points",
+			LAB_SCROLL_CURVE_MAX_POINTS);
+		count = 0;
+	}
+	free(copy);
+
+	if (count < 2) {
+		wlr_log(WLR_ERROR, "<scrollCurve> requires at least two factors");
+		curve->npoints = 0;
+		return;
+	}
+	curve->step = step;
+	curve->npoints = count;
+}
+
 static int
 get_send_events_mode(const char *s)
 {
@@ -853,6 +900,8 @@ fill_libinput_category(xmlNode *node)
 		} else if (!strcasecmp(key, "accelProfile")) {
 			category->accel_profile =
 				get_accel_profile(content);
+		} else if (!strcasecmp(key, "scrollCurve")) {
+			parse_scroll_curve(child, content, &category->scroll_curve);
 		} else if (!strcasecmp(key, "middleEmulation")) {
 			int ret = parse_bool(content, -1);
 			if (ret < 0) {

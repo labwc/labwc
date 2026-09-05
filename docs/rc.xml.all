@@ -604,6 +604,7 @@
       - sendEventsMode [yes|no|disabledOnExternalMouse]
       - calibrationMatrix [six float values split by space]
       - scrollFactor [float]
+      - scrollCurve [space-separated non-negative factors; step attribute]
 
     The following <libinput>...</libinput> block may not be complete for
     your requirements. Default values are device specific. Only set an option
@@ -630,6 +631,12 @@
       <!-- <sendEventsMode>yes</sendEventsMode> -->
       <!-- <calibrationMatrix>1 0 0 0 1 0</calibrationMatrix> -->
       <scrollFactor>1.0</scrollFactor>
+      <!--
+        Example which preserves fast scrolling while progressively reducing
+        low-speed finger scrolling. This was tuned on a Dell XPS 15 9520;
+        suitable curve values are device- and user-specific.
+        <scrollCurve step="0.10">0.10 0.15 0.20 0.25 0.30 0.42 0.58 0.78 1.00 1.10</scrollCurve>
+      -->
     </device>
   </libinput>
 

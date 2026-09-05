@@ -166,10 +166,6 @@ example: *LABWC_DEBUG_FOO=1 labwc*.
 	for *<placement><policy>Cascade</policy></placement>*) for config and
 	menu files respectively.
 
-*LABWC_DEBUG_KEY_STATE*
-	Enable logging of press and release events for bound keys (generally
-	key-combinations like *Ctrl-Alt-t*).
-
 # SEE ALSO
 
 labwc-actions(5), labwc-config(5), labwc-menu(5), labwc-theme(5)

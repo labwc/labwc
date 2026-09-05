@@ -25,7 +25,7 @@
 #include "input/tablet-pad.h"
 #include "input/input.h"
 #include "input/keyboard.h"
-#include "input/key-state.h"
+#include "input/key-state-indicator.h"
 #include "labwc.h"
 #include "output.h"
 #include "session-lock.h"
@@ -782,12 +782,11 @@ seat_force_focus_surface(struct seat *seat, struct wlr_surface *surface)
 	if (server.session_lock_manager->locked) {
 		return;
 	}
-	uint32_t *pressed_sent_keycodes = key_state_pressed_sent_keycodes();
-	int nr_pressed_sent_keycodes = key_state_nr_pressed_sent_keycodes();
 	struct wlr_keyboard *kb = &seat->keyboard_group->keyboard;
 
 	wlr_seat_keyboard_enter(seat->wlr_seat, surface,
-		pressed_sent_keycodes, nr_pressed_sent_keycodes, &kb->modifiers);
+		seat->pressed_sent_keys.values, seat->pressed_sent_keys.size,
+		&kb->modifiers);
 }
 
 static void
@@ -832,12 +831,10 @@ seat_focus(struct seat *seat, struct wlr_surface *surface,
 	 * those that were actually _sent_ to clients (that is, those that were
 	 * not bound).
 	 */
-	uint32_t *pressed_sent_keycodes = key_state_pressed_sent_keycodes();
-	int nr_pressed_sent_keycodes = key_state_nr_pressed_sent_keycodes();
-
 	struct wlr_keyboard *kb = &seat->keyboard_group->keyboard;
 	wlr_seat_keyboard_notify_enter(seat->wlr_seat, surface,
-		pressed_sent_keycodes, nr_pressed_sent_keycodes, &kb->modifiers);
+		seat->pressed_sent_keys.values, seat->pressed_sent_keys.size,
+		&kb->modifiers);
 
 	input_method_relay_set_focus(seat->input_method_relay, surface);
 

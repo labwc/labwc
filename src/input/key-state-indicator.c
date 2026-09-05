@@ -1,9 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
-#include "input/key-state.h"
+#include "input/key-state-indicator.h"
 #include <stdbool.h>
 #include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <wlr/types/wlr_keyboard.h>
 #include <wlr/types/wlr_scene.h>
 #include <xkbcommon/xkbcommon.h>
@@ -13,8 +11,6 @@
 #include "input/keyboard.h"
 #include "labwc.h"
 #include "scaled-buffer/scaled-font-buffer.h"
-
-static struct lab_set pressed, bound, pressed_sent;
 
 static bool show_debug_indicator;
 static struct indicator_state {
@@ -109,31 +105,12 @@ update_key_indicator_callback(void *data)
 
 	struct buf buf = BUF_INIT;
 
-	buf_add(&buf, "pressed=");
-	for (int i = 0; i < pressed.size; i++) {
-		const char *keyname = keycode_to_keyname(indicator_state.keymap,
-					pressed.values[i]);
-		buf_add_fmt(&buf, "%s (%d), ", keyname, pressed.values[i]);
-	}
-	scaled_font_buffer_update(indicator_state.sfb_pressed, buf.data,
-		-1, &rc.font_osd, black, white);
-
-	buf_clear(&buf);
-	buf_add(&buf, "bound=");
-	for (int i = 0; i < bound.size; i++) {
-		const char *keyname = keycode_to_keyname(indicator_state.keymap,
-					bound.values[i]);
-		buf_add_fmt(&buf, "%s (%d), ", keyname, bound.values[i]);
-	}
-	scaled_font_buffer_update(indicator_state.sfb_bound, buf.data,
-		-1, &rc.font_osd, black, white);
-
-	buf_clear(&buf);
+	struct lab_set *pressed_sent = &server.seat.pressed_sent_keys;
 	buf_add(&buf, "pressed_sent=");
-	for (int i = 0; i < pressed_sent.size; i++) {
+	for (int i = 0; i < pressed_sent->size; i++) {
 		const char *keyname = keycode_to_keyname(indicator_state.keymap,
-					pressed_sent.values[i]);
-		buf_add_fmt(&buf, "%s (%d), ", keyname, pressed_sent.values[i]);
+					pressed_sent->values[i]);
+		buf_add_fmt(&buf, "%s (%d), ", keyname, pressed_sent->values[i]);
 	}
 	scaled_font_buffer_update(indicator_state.sfb_pressed_sent, buf.data, -1,
 		&rc.font_osd, black, white);
@@ -167,81 +144,4 @@ void
 key_state_indicator_toggle(void)
 {
 	show_debug_indicator = !show_debug_indicator;
-}
-
-static void
-report(struct lab_set *key_set, const char *msg)
-{
-	static char *should_print;
-	static bool has_run;
-
-	if (!has_run) {
-		should_print = getenv("LABWC_DEBUG_KEY_STATE");
-		has_run = true;
-	}
-	if (!should_print) {
-		return;
-	}
-	printf("%s", msg);
-	for (int i = 0; i < key_set->size; ++i) {
-		printf("%d,", key_set->values[i]);
-	}
-	printf("\n");
-}
-
-uint32_t *
-key_state_pressed_sent_keycodes(void)
-{
-	report(&pressed, "before - pressed:");
-	report(&bound, "before - bound:");
-
-	/* pressed_sent = pressed - bound */
-	pressed_sent = pressed;
-	for (int i = 0; i < bound.size; ++i) {
-		lab_set_remove(&pressed_sent, bound.values[i]);
-	}
-
-	report(&pressed_sent, "after - pressed_sent:");
-
-	return pressed_sent.values;
-}
-
-int
-key_state_nr_pressed_sent_keycodes(void)
-{
-	return pressed_sent.size;
-}
-
-void
-key_state_set_pressed(uint32_t keycode, bool is_pressed)
-{
-	if (is_pressed) {
-		lab_set_add(&pressed, keycode);
-	} else {
-		lab_set_remove(&pressed, keycode);
-	}
-}
-
-void
-key_state_store_pressed_key_as_bound(uint32_t keycode)
-{
-	lab_set_add(&bound, keycode);
-}
-
-bool
-key_state_corresponding_press_event_was_bound(uint32_t keycode)
-{
-	return lab_set_contains(&bound, keycode);
-}
-
-void
-key_state_bound_key_remove(uint32_t keycode)
-{
-	lab_set_remove(&bound, keycode);
-}
-
-int
-key_state_nr_bound_keys(void)
-{
-	return bound.size;
 }

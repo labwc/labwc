@@ -5,7 +5,7 @@ labwc_sources += files(
   'gestures.c',
   'input.c',
   'keyboard.c',
-  'key-state.c',
+  'key-state-indicator.c',
   'touch.c',
   'ime.c',
 )

@@ -2,7 +2,6 @@
 #define _POSIX_C_SOURCE 200809L
 #include "input/cursor.h"
 #include <assert.h>
-#include <math.h>
 #include <time.h>
 #include <wlr/config.h>
 #include <wlr/types/wlr_cursor.h>
@@ -1431,50 +1430,6 @@ process_cursor_axis(enum wl_pointer_axis orientation,
 }
 
 static void
-scroll_curve_tangent(double before, double after, double *tangent)
-{
-	if (before * after <= 0) {
-		*tangent = 0;
-		return;
-	}
-	*tangent = 2 * before * after / (before + after);
-}
-
-static double
-scroll_curve_factor(const struct lab_scroll_curve *curve, double position)
-{
-	if (position >= curve->npoints - 1) {
-		return curve->points[curve->npoints - 1];
-	}
-
-	size_t lower = (size_t)position;
-	double fraction = position - lower;
-	double delta = curve->points[lower + 1] - curve->points[lower];
-	double lower_tangent = delta;
-	double upper_tangent = delta;
-	if (lower > 0) {
-		scroll_curve_tangent(
-			curve->points[lower] - curve->points[lower - 1],
-			delta, &lower_tangent);
-	}
-	if (lower + 2 < curve->npoints) {
-		scroll_curve_tangent(delta,
-			curve->points[lower + 2] - curve->points[lower + 1],
-			&upper_tangent);
-	}
-
-	double squared = fraction * fraction;
-	double cubed = squared * fraction;
-	double factor = (2 * cubed - 3 * squared + 1) * curve->points[lower]
-		+ (cubed - 2 * squared + fraction) * lower_tangent
-		+ (-2 * cubed + 3 * squared) * curve->points[lower + 1]
-		+ (cubed - squared) * upper_tangent;
-	return fmin(fmax(factor,
-		fmin(curve->points[lower], curve->points[lower + 1])),
-		fmax(curve->points[lower], curve->points[lower + 1]));
-}
-
-static void
 handle_axis(struct wl_listener *listener, void *data)
 {
 	/*
@@ -1491,36 +1446,6 @@ handle_axis(struct wl_listener *listener, void *data)
 		|| event->pointer->base.type == WLR_INPUT_DEVICE_TOUCH);
 	struct input *input = event->pointer->base.data;
 	double scroll_factor = input->scroll_factor;
-	if (event->source == WL_POINTER_AXIS_SOURCE_FINGER
-			&& input->scroll_curve.npoints >= 2) {
-		/*
-		 * A finger axis has no discrete steps, so it is safe to shape here
-		 * without changing wheel behavior. Keep independent timestamps for
-		 * horizontal and vertical events because both can share one frame.
-		 */
-		size_t axis = event->orientation == WL_POINTER_AXIS_HORIZONTAL_SCROLL;
-		if (!event->delta) {
-			/* libinput uses a zero delta to terminate finger scrolling. */
-			input->scroll_curve_time_msec[axis] = 0;
-		} else {
-			uint32_t last = input->scroll_curve_time_msec[axis];
-			uint32_t elapsed = event->time_msec - last;
-			if (!last || !elapsed || elapsed > 100) {
-				/* Approximate one normal input frame at gesture start. */
-				elapsed = 8;
-			}
-			input->scroll_curve_time_msec[axis] = event->time_msec;
-
-			double speed = fabs(event->delta) / elapsed;
-			double position = speed / input->scroll_curve.step;
-			double curve_factor = scroll_curve_factor(
-				&input->scroll_curve, position);
-			scroll_factor *= curve_factor;
-			wlr_log(WLR_DEBUG,
-				"finger scroll: speed=%g factor=%g delta=%g",
-				speed, curve_factor, event->delta);
-		}
-	}
 
 	bool notify = process_cursor_axis(event->orientation,
 		event->delta, event->delta_discrete);

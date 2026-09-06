@@ -1172,6 +1172,9 @@ Note: To rotate touch events with output rotation, use the libinput
     <leftHanded></leftHanded>
     <pointerSpeed></pointerSpeed>
     <accelProfile></accelProfile>
+    <motionCurve step="" points="" />
+    <scrollCurve step="" points="" />
+    <fallbackCurve step="" points="" />
     <tap>yes</tap>
     <tapButtonMap></tapButtonMap>
     <tapAndDrag></tapAndDrag>
@@ -1185,7 +1188,6 @@ Note: To rotate touch events with output rotation, use the libinput
     <sendEventsMode></sendEventsMode>
     <calibrationMatrix></calibrationMatrix>
     <scrollFactor>1.0</scrollFactor>
-    <scrollCurve step=""></scrollCurve>
   </device>
 </libinput>
 ```
@@ -1223,20 +1225,56 @@ Note: To rotate touch events with output rotation, use the libinput
 	\-1.0 and 1.0, with 0.0 being the default in most cases, and 1.0 being
 	the fastest.
 
-*<libinput><device><accelProfile>* [flat|adaptive]
+*<libinput><device><accelProfile>* [flat|adaptive|custom]
 	Set the pointer's acceleration profile for this category. Flat applies
 	no acceleration (the pointers velocity is constant), while adaptive
 	changes the pointers speed based the actual speed of your mouse or
 	finger on your touchpad.
 
-*<libinput><device><scrollCurve>* step="FLOAT"
-	Apply a velocity-dependent multiplier to continuous finger scrolling.
-	The space-separated values are multipliers at input speeds separated by
-	*step* axis units per millisecond; values between points use clamped,
-	monotonic cubic interpolation and speeds beyond the last point use its
-	multiplier. This
-	does not alter pointer motion, discrete mouse-wheel events, or synthetic
-	axis events. At least two and at most 32 non-negative values are accepted.
+	The *custom* profile explicitly opts this category into libinput's native
+	custom acceleration. Without this selection, custom curves are ignored
+	and existing acceleration behavior is unchanged. Custom applies to the
+	whole device, replacing adaptive or flat acceleration. *pointerSpeed*
+	has no effect while custom is active. Removing the custom selection and
+	reloading restores the configured profile (or the device default).
+
+*<libinput><device><motionCurve>* step="FLOAT" points="FLOAT FLOAT ..."
+
+*<libinput><device><scrollCurve>* step="FLOAT" points="FLOAT FLOAT ..."
+
+*<libinput><device><fallbackCurve>* step="FLOAT" points="FLOAT FLOAT ..."
+	Configure libinput's custom Motion, Scroll and Fallback functions.
+	These require *accelProfile* to be *custom*. Motion controls pointer
+	movement; Scroll controls scrolling supported by libinput for the device.
+	Fallback covers unspecified functions and other movement types, including
+	pinch gesture movement; it is not a dedicated pinch-scale control.
+
+	*step* must be finite and greater than zero. *points* must contain 2 to
+	32 finite, non-negative output speeds, separated by whitespace. Input
+	speeds are 0, step, 2 times step, and so on, in device units per
+	millisecond. These values are output speeds, not multipliers. Libinput
+	interpolates linearly between points and extrapolates beyond the last
+	point. For example, step="1" points="0 1" gives a factor of one.
+	The same fields may be written as child elements:
+
+```
+<motionCurve>
+  <step>1</step>
+  <points>0 1</points>
+</motionCurve>
+```
+
+	Unspecified Motion and Scroll functions use Fallback. Unspecified Fallback
+	uses libinput's unaccelerated default. A scroll-only configuration thus
+	does not preserve adaptive pointer motion. *scrollFactor* still scales
+	the resulting scroll events. Curves depend on the device and require
+	tuning; they are not equivalent to an adaptive profile.
+
+	A malformed curve or a configuration rejected by libinput is logged
+	and the custom configuration is not applied. On reload, a fresh custom
+	configuration is created so omitted curves return to their defaults.
+	If the device does not support custom acceleration, its default profile
+	is retained.
 
 *<libinput><device><tap>* [yes|no]
 	Enable or disable tap-to-click for this category. This is enabled by

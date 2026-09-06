@@ -3,6 +3,7 @@
 #define LABWC_LIBINPUT_H
 
 #include <libinput.h>
+#include <libxml/tree.h>
 #include <string.h>
 #include <wayland-server-core.h>
 
@@ -14,12 +15,12 @@ enum lab_libinput_device_type {
 	LAB_LIBINPUT_DEVICE_NON_TOUCH,
 };
 
-#define LAB_SCROLL_CURVE_MAX_POINTS 32
+#define LAB_ACCEL_CURVE_MAX_POINTS 32
 
-struct lab_scroll_curve {
+struct lab_accel_curve {
 	double step;
-	double points[LAB_SCROLL_CURVE_MAX_POINTS];
-	size_t npoints;
+	double points[LAB_ACCEL_CURVE_MAX_POINTS];
+	size_t nr_points;
 };
 
 struct libinput_category {
@@ -43,13 +44,20 @@ struct libinput_category {
 	int send_events_mode;           /* -1 or libinput_config_send_events_mode */
 	bool have_calibration_matrix;
 	double scroll_factor;
-	struct lab_scroll_curve scroll_curve;
 	float calibration_matrix[6];
+	struct lab_accel_curve accel_curves[LIBINPUT_ACCEL_TYPE_SCROLL + 1];
+	bool accel_curve_invalid;
 };
 
 enum lab_libinput_device_type get_device_type(const char *s);
 const char *libinput_device_type_name(enum lab_libinput_device_type type);
 struct libinput_category *libinput_category_create(void);
 struct libinput_category *libinput_category_get_default(void);
+
+/* Parse after XML attribute expansion; leave curve unchanged on failure. */
+bool libinput_curve_parse(xmlNode *node, struct lab_accel_curve *curve);
+/* Returns a fresh config owned by the caller, or NULL if any curve is invalid. */
+struct libinput_config_accel *libinput_custom_accel_create(
+	const struct libinput_category *category);
 
 #endif /* LABWC_LIBINPUT_H */

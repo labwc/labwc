@@ -597,14 +597,13 @@
 
     All values are [yes|no] except for:
       - pointerSpeed [-1.0 to 1.0]
-      - accelProfile [flat|adaptive]
+      - accelProfile [flat|adaptive|custom]
       - tapButtonMap [lrm|lmr]
       - clickMethod [none|buttonAreas|clickfinger]
       - scrollMethod [twoFinger|edge|onbutton|none]
       - sendEventsMode [yes|no|disabledOnExternalMouse]
       - calibrationMatrix [six float values split by space]
       - scrollFactor [float]
-      - scrollCurve [space-separated non-negative factors; step attribute]
 
     The following <libinput>...</libinput> block may not be complete for
     your requirements. Default values are device specific. Only set an option
@@ -632,10 +631,16 @@
       <!-- <calibrationMatrix>1 0 0 0 1 0</calibrationMatrix> -->
       <scrollFactor>1.0</scrollFactor>
       <!--
-        Example which preserves fast scrolling while progressively reducing
-        low-speed finger scrolling. This was tuned on a Dell XPS 15 9520;
-        suitable curve values are device- and user-specific.
-        <scrollCurve step="0.10">0.10 0.15 0.20 0.25 0.30 0.42 0.58 0.78 1.00 1.10</scrollCurve>
+        Opt-in native libinput acceleration example. These identity curves
+        are a starting point for tuning, not an adaptive-profile equivalent.
+        Points specify output speed; step specifies input-speed spacing in
+        device units/ms. Curves are ignored unless accelProfile is custom.
+        pointerSpeed has no effect with custom. Missing Motion/Scroll uses
+        Fallback; missing Fallback means no acceleration.
+        <accelProfile>custom</accelProfile>
+        <motionCurve step="1" points="0 1" />
+        <scrollCurve step="1" points="0 1" />
+        <fallbackCurve step="1" points="0 1" />
       -->
     </device>
   </libinput>

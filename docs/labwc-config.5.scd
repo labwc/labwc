@@ -1252,9 +1252,15 @@ Note: To rotate touch events with output rotation, use the libinput
 	*step* must be finite and greater than zero. *points* must contain 2 to
 	32 finite, non-negative output speeds, separated by whitespace. Input
 	speeds are 0, step, 2 times step, and so on, in device units per
-	millisecond. These values are output speeds, not multipliers. Libinput
-	interpolates linearly between points and extrapolates beyond the last
-	point. For example, step="1" points="0 1" gives a factor of one.
+	millisecond. With nr_points values, the explicitly defined input-speed
+	samples run from 0.0 through step times (nr_points - 1). Libinput
+	linearly interpolates between these samples and linearly extrapolates
+	above the final sample using the final two points; it does not clamp
+	the input speed to the explicitly defined sample range.
+	These values are output speeds, not multipliers. At a non-zero input
+	speed, the effective acceleration factor is output_speed / input_speed.
+	For example, input 0.20 and output 0.040 give a factor of 0.20.
+	The identity curve step="1" points="0 1" gives a factor of one.
 	The same fields may be written as child elements:
 
 ```
@@ -1269,6 +1275,18 @@ Note: To rotate touch events with output rotation, use the libinput
 	does not preserve adaptive pointer motion. *scrollFactor* still scales
 	the resulting scroll events. Curves depend on the device and require
 	tuning; they are not equivalent to an adaptive profile.
+
+	Example tuned on a Dell XPS 15 9520 for precise low-speed two-finger
+	scrolling while retaining responsive faster scrolling. These values are
+	device- and user-specific, not universal defaults. Only Scroll is tuned;
+	Motion and Fallback are custom 1:1 functions, not adaptive acceleration.
+
+```
+<accelProfile>custom</accelProfile>
+<motionCurve step="1" points="0 1" />
+<fallbackCurve step="1" points="0 1" />
+<scrollCurve step="0.10" points="0 0.015 0.040 0.075 0.120 0.210 0.348 0.546 0.800 0.990 1.100" />
+```
 
 	A malformed curve or a configuration rejected by libinput is logged
 	and the custom configuration is not applied. On reload, a fresh custom

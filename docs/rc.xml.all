@@ -631,15 +631,17 @@
       <!-- <calibrationMatrix>1 0 0 0 1 0</calibrationMatrix> -->
       <scrollFactor>1.0</scrollFactor>
       <!--
-        Opt-in native libinput acceleration example. These identity curves
-        are a starting point for tuning, not an adaptive-profile equivalent.
+        Opt-in example tuned on a Dell XPS 15 9520 for precise low-speed
+        two-finger scrolling while retaining responsive faster scrolling.
+        Values are device- and user-specific, not universal defaults.
+        Motion and Fallback remain 1:1, not adaptive-profile equivalents.
         Points specify output speed; step specifies input-speed spacing in
         device units/ms. Curves are ignored unless accelProfile is custom.
         pointerSpeed has no effect with custom. Missing Motion/Scroll uses
         Fallback; missing Fallback means no acceleration.
         <accelProfile>custom</accelProfile>
         <motionCurve step="1" points="0 1" />
-        <scrollCurve step="1" points="0 1" />
+        <scrollCurve step="0.10" points="0 0.015 0.040 0.075 0.120 0.210 0.348 0.546 0.800 0.990 1.100" />
         <fallbackCurve step="1" points="0 1" />
       -->
     </device>

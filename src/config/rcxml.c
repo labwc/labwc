@@ -900,6 +900,16 @@ fill_libinput_category(xmlNode *node)
 			} else {
 				wlr_log(WLR_ERROR, "invalid clickMethod");
 			}
+		} else if (!strcasecmp(key, "clickfingerButtonMap")) {
+			if (!strcasecmp(content, "lrm")) {
+				category->clickfinger_button_map =
+					LIBINPUT_CONFIG_CLICKFINGER_MAP_LRM;
+			} else if (!strcasecmp(content, "lmr")) {
+				category->clickfinger_button_map =
+					LIBINPUT_CONFIG_CLICKFINGER_MAP_LMR;
+			} else {
+				wlr_log(WLR_ERROR, "invalid clickfingerButtonMap");
+			}
 		} else if (!strcasecmp(key, "scrollMethod")) {
 			if (!strcasecmp(content, "none")) {
 				category->scroll_method =

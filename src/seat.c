@@ -331,6 +331,20 @@ configure_libinput(struct wlr_input_device *wlr_input_device)
 		libinput_device_config_click_set_method(libinput_dev, dc->click_method);
 	}
 
+	libinput_device_config_click_set_clickfinger_button_map(libinput_dev,
+		libinput_device_config_click_get_default_clickfinger_button_map(
+			libinput_dev));
+	if ((libinput_device_config_click_get_methods(libinput_dev)
+			& LIBINPUT_CONFIG_CLICK_METHOD_CLICKFINGER) == 0
+			|| dc->clickfinger_button_map < 0) {
+		wlr_log(WLR_INFO, "clickfinger button map not configured");
+	} else {
+		wlr_log(WLR_INFO, "clickfinger button map configured (%d)",
+			dc->clickfinger_button_map);
+		libinput_device_config_click_set_clickfinger_button_map(
+			libinput_dev, dc->clickfinger_button_map);
+	}
+
 	libinput_device_config_scroll_set_method(libinput_dev,
 		libinput_device_config_scroll_get_default_method(libinput_dev));
 	if (dc->scroll_method < 0) {

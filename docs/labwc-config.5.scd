@@ -1187,6 +1187,7 @@ Note: To rotate touch events with output rotation, use the libinput
     <middleEmulation></middleEmulation>
     <disableWhileTyping></disableWhileTyping>
     <clickMethod></clickMethod>
+    <clickfingerButtonMap></clickfingerButtonMap>
     <scrollMethod></scrollMethod>
     <scrollButton></scrollButton>
     <sendEventsMode></sendEventsMode>
@@ -1355,6 +1356,17 @@ Note: To rotate touch events with output rotation, use the libinput
 	- *none* - Physical clicks will not produce button events.
 
 	The default method depends on the touchpad hardware.
+
+*<libinput><device><clickfingerButtonMap>* [lrm|lmr]
+	When the *clickfinger* click method is in use, set the buttons mapped
+	to one-, two-, and three-finger clicks to the left button, right
+	button, and middle button, respectively (lrm), or to left button,
+	middle button, and right button (lmr).
+
+	The default mapping depends on the touchpad hardware.
+
+	This has no effect on devices which do not support the *clickfinger*
+	click method.
 
 *<libinput><device><scrollMethod>* [none|twofinger|edge|onbutton]
 	Configure the method by which physical movements are mapped to scroll

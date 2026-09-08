@@ -39,6 +39,7 @@ struct libinput_category {
 	int middle_emu;                 /* -1 or libinput_config_middle_emulation_state */
 	int dwt;                        /* -1 or libinput_config_dwt_state */
 	int click_method;               /* -1 or libinput_config_click_method */
+	int clickfinger_button_map;     /* -1 or libinput_config_clickfinger_button_map */
 	int scroll_method;              /* -1 or libinput_config_scroll_method */
 	int scroll_button;              /* -1 or a button from linux/input_event_codes.h */
 	int send_events_mode;           /* -1 or libinput_config_send_events_mode */

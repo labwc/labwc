@@ -24,6 +24,7 @@ libinput_category_init(struct libinput_category *l)
 	l->middle_emu = -1;
 	l->dwt = -1;
 	l->click_method = -1;
+	l->clickfinger_button_map = -1;
 	l->scroll_method = -1;
 	l->scroll_button = -1;
 	l->send_events_mode = -1;

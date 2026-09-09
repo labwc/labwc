@@ -961,6 +961,15 @@ fill_libinput_category(xmlNode *node)
 				category->have_calibration_matrix = false;
 			}
 			g_strfreev(elements);
+		} else if (!strcasecmp(key, "rotationAngle")) {
+			char *end_str = NULL;
+			long angle = strtol(content, &end_str, 10);
+			if (*end_str != '\0' || angle < 0 || angle > 359) {
+				wlr_log(WLR_ERROR, "invalid rotationAngle %s, "
+					"expect 0-359", content);
+			} else {
+				category->rotation_angle = angle;
+			}
 		} else if (!strcasecmp(key, "scrollFactor")) {
 			set_double(content, &category->scroll_factor);
 		}

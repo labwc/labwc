@@ -1192,6 +1192,7 @@ Note: To rotate touch events with output rotation, use the libinput
     <scrollButton></scrollButton>
     <sendEventsMode></sendEventsMode>
     <calibrationMatrix></calibrationMatrix>
+    <rotationAngle></rotationAngle>
     <scrollFactor>1.0</scrollFactor>
   </device>
 </libinput>
@@ -1421,6 +1422,16 @@ The most common matrices are:
 
 	visit https://wayland.freedesktop.org/libinput/doc/latest/absolute-axes.html#calibration-of-absolute-devices
 	for more information.
+
+*<libinput><device><rotationAngle>* [0-359]
+	Rotate the device by the given angle in degrees clockwise. Motion events
+	are adjusted accordingly, which also rotates the direction of scrolling
+	and gestures. This is meant for devices which are physically mounted at
+	an angle, such as a trackball turned on its side.
+
+	This has no effect on devices for which libinput reports no rotation
+	support. It adjusts relative motion only; use *calibrationMatrix* to
+	rotate an absolute device such as a touchscreen.
 
 *<libinput><scrollFactor>*
 	Set scroll factor. Default is 1.0.

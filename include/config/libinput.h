@@ -43,6 +43,7 @@ struct libinput_category {
 	int scroll_method;              /* -1 or libinput_config_scroll_method */
 	int scroll_button;              /* -1 or a button from linux/input_event_codes.h */
 	int send_events_mode;           /* -1 or libinput_config_send_events_mode */
+	int rotation_angle;             /* -1 or 0-359 degrees clockwise */
 	bool have_calibration_matrix;
 	double scroll_factor;
 	float calibration_matrix[6];

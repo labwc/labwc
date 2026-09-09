@@ -394,6 +394,18 @@ configure_libinput(struct wlr_input_device *wlr_input_device)
 		libinput_device_config_calibration_set_matrix(libinput_dev, dc->calibration_matrix);
 	}
 
+	libinput_device_config_rotation_set_angle(libinput_dev,
+		libinput_device_config_rotation_get_default_angle(libinput_dev));
+	if (libinput_device_config_rotation_is_available(libinput_dev) == 0
+			|| dc->rotation_angle < 0) {
+		wlr_log(WLR_INFO, "rotation angle not configured");
+	} else {
+		wlr_log(WLR_INFO, "rotation angle configured (%d)",
+			dc->rotation_angle);
+		libinput_device_config_rotation_set_angle(libinput_dev,
+			dc->rotation_angle);
+	}
+
 	wlr_log(WLR_INFO, "scroll factor configured (%g)", dc->scroll_factor);
 	input->scroll_factor = dc->scroll_factor;
 #endif

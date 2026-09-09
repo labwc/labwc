@@ -606,6 +606,7 @@
       - scrollMethod [twoFinger|edge|onbutton|none]
       - sendEventsMode [yes|no|disabledOnExternalMouse]
       - calibrationMatrix [six float values split by space]
+      - rotationAngle [0-359]
       - scrollFactor [float]
 
     The following <libinput>...</libinput> block may not be complete for
@@ -633,6 +634,7 @@
       <!-- <scrollButton>274</scrollButton> -->
       <!-- <sendEventsMode>yes</sendEventsMode> -->
       <!-- <calibrationMatrix>1 0 0 0 1 0</calibrationMatrix> -->
+      <!-- <rotationAngle>0</rotationAngle> -->
       <scrollFactor>1.0</scrollFactor>
       <!--
         Opt-in example tuned on a Dell XPS 15 9520 for precise low-speed

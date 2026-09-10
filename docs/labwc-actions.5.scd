@@ -94,7 +94,7 @@ Actions are used in menus and keyboard/mouse bindings.
 	This action is deprecated from v0.7.3. To ensure your config works in
 	future labwc releases, please use:
 
-	*<action name="AutoPlace" policy="cursor">*
+	*<action name="AutoPlace" policy="cursor" />*
 
 *<action name="MoveRelative" x="" y="" />*
 	Move window relative to its current position. Positive value of x moves

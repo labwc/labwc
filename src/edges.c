@@ -14,6 +14,7 @@
 #include "node.h"
 #include "output.h"
 #include "ssd.h"
+#include "theme.h"
 #include "view.h"
 
 static void
@@ -506,16 +507,16 @@ edges_adjust_move_coords(struct view *view, struct border edges,
 	/* When moving, limit motion to the best valid, intervening edge */
 
 	if (view_geom->x != *x) {
-		int lshift = border.left + rc.gap;
-		int rshift = border.right + rc.gap + view_geom->width;
+		int lshift = border.left + rc.gap - rc.theme->border_width;
+		int rshift = border.right + rc.gap - rc.theme->border_width + view_geom->width;
 
 		adjust_move_coords_1d(x, edges.left, lshift,
 			edges.right, rshift, *x < view_geom->x);
 	}
 
 	if (view_geom->y != *y) {
-		int tshift = border.top + rc.gap;
-		int bshift = border.bottom + rc.gap
+		int tshift = border.top + rc.gap - rc.theme->border_width;
+		int bshift = border.bottom + rc.gap - rc.theme->border_width
 			+ view_effective_height(view, use_pending);
 
 		adjust_move_coords_1d(y, edges.top, tshift,

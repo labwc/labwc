@@ -13,10 +13,13 @@
 #include <wlr/types/wlr_xdg_shell.h>
 #include "common/mem.h"
 #include "common/scene-helpers.h"
+#include "config/rcxml.h"
 #include "input/keyboard.h"
 #include "labwc.h"
+#include "layers.h"
 #include "node.h"
 #include "output.h"
+#include "session-lock.h"
 
 #define SAME_CLIENT(wlr_obj1, wlr_obj2) \
 	(wl_resource_get_client((wlr_obj1)->resource) \
@@ -427,6 +430,15 @@ handle_new_input_method(struct wl_listener *listener, void *data)
 	}
 
 	relay->input_method = input_method;
+	wlr_log(WLR_INFO, "IME-on-lock: input-method bound by client %p",
+		(void *)wl_resource_get_client(input_method->resource));
+
+	/*
+	 * If the session is already locked when the input-method binds (e.g.
+	 * the OSK started/registered after the lock screen appeared), this
+	 * gives its layer surface a chance to be elevated above the lock.
+	 */
+	layers_update_on_lock_screen();
 
 	relay->input_method_commit.notify = handle_input_method_commit;
 	wl_signal_add(&relay->input_method->events.commit,

@@ -542,25 +542,25 @@ edges_adjust_resize_geom(struct view *view, struct border edges,
 
 	if (resize_edges & LAB_EDGE_LEFT) {
 		if (BOUNDED_INT(edges.left)) {
-			geom->x = edges.left + border.left + rc.gap;
+			geom->x = edges.left + border.left + rc.gap - rc.theme->border_width;
 			geom->width = view_geom->width + view_geom->x - geom->x;
 		}
 	} else if (resize_edges & LAB_EDGE_RIGHT) {
 		if (BOUNDED_INT(edges.right)) {
 			geom->width = edges.right
-				- view_geom->x - border.right - rc.gap;
+				- view_geom->x - border.right - rc.gap + rc.theme->border_width;
 		}
 	}
 
 	if (resize_edges & LAB_EDGE_TOP) {
 		if (BOUNDED_INT(edges.top)) {
-			geom->y = edges.top + border.top + rc.gap;
+			geom->y = edges.top + border.top + rc.gap - rc.theme->border_width;;
 			geom->height = view_geom->height + view_geom->y - geom->y;
 		}
 	} else if (resize_edges & LAB_EDGE_BOTTOM) {
 		if (BOUNDED_INT(edges.bottom)) {
 			geom->height = edges.bottom
-				- view_geom->y - border.bottom - rc.gap;
+				- view_geom->y - border.bottom - rc.gap + rc.theme->border_width;;
 		}
 	}
 }

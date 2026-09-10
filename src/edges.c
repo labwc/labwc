@@ -554,13 +554,13 @@ edges_adjust_resize_geom(struct view *view, struct border edges,
 
 	if (resize_edges & LAB_EDGE_TOP) {
 		if (BOUNDED_INT(edges.top)) {
-			geom->y = edges.top + border.top + rc.gap - rc.theme->border_width;;
+			geom->y = edges.top + border.top + rc.gap - rc.theme->border_width;
 			geom->height = view_geom->height + view_geom->y - geom->y;
 		}
 	} else if (resize_edges & LAB_EDGE_BOTTOM) {
 		if (BOUNDED_INT(edges.bottom)) {
 			geom->height = edges.bottom
-				- view_geom->y - border.bottom - rc.gap + rc.theme->border_width;;
+				- view_geom->y - border.bottom - rc.gap + rc.theme->border_width;
 		}
 	}
 }

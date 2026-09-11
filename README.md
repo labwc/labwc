@@ -153,8 +153,6 @@ Build dependencies include:
 - meson, ninja, gcc/clang
 - wayland-protocols
 
-Disable xwayland with `meson setup -Dxwayland=disabled build/`
-
 For OS/distribution specific details see [wiki].
 
 If the right version of `wlroots` is not found on the system, the build setup
@@ -171,6 +169,33 @@ If installing after using the wlroots.wrap file, use the following to
 prevent installing the wlroots headers:
 
     meson install --skip-subprojects -C build/
+
+### 2.1 Compilation variants
+
+#### 2.1.1 Enforce wlroots backends
+
+Automatically fetching and building wlroots as subproject will use the `auto`
+flag for its backends. If any dependency for the drm backend is missing it will
+not be enabled, causing labwc being unable to run as system compositor. You can
+enforce the drm backend by adding `-Dwlroots:backends=drm,libinput,x11` to the
+original ´meson setup` call or configure it afterwards with `meson configure
+build -Dwlroots:backends=drm,libinput,x11`. This causes the wlroots compilation
+to fail when missing any dependency for the relevant backends rather than
+silently disabling it.
+
+#### 2.1.2 Minimal
+
+If you don't intend to run any X11 applications and want the most minimal labwc
+you can disable xwayland with
+`meson setup -Dxwayland=disabled -Dwlroots:xwayland=disabled build/`.
+
+To additionally disable the X11 backend of wlroots (allowing labwc to run as
+usual X11 client) you can add `-Dwlroots:backends=drm,libinput`.
+
+Application icons can be disabled with `-Dicon=disabled` and SVG button icons
+can be disabled with `-Dsvg=disabled`.
+
+See `meson configure build` for a full list of compile options.
 
 ## 3. Configuration
 

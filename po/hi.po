@@ -1,5 +1,5 @@
 # Labwc pot file
-# Copyright (C) 2023
+# Copyright (C) 2024
 # This file is distributed under the same license as the labwc package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
@@ -10,9 +10,9 @@ msgstr ""
 "POT-Creation-Date: 2024-09-19 21:09+1000\n"
 "PO-Revision-Date: 2026-09-14 05:29+0000\n"
 "Last-Translator: tejasdarsh12-collab <tejasdarsh12@gmail.com>\n"
-"Language-Team: Punjabi <https://translate.lxqt-project.org/projects/labwc/"
-"labwc/pa/>\n"
-"Language: pa\n"
+"Language-Team: Hindi <https://translate.lxqt-project.org/projects/labwc/"
+"labwc/hi/>\n"
+"Language: hi\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -21,60 +21,60 @@ msgstr ""
 
 #: src/menu/menu.c:1016
 msgid "Go there..."
-msgstr "ਉੱਥੇ ਜਾਓ..."
+msgstr "वहाँ जाएँ..."
 
 #: src/menu/menu.c:1034
 msgid "Terminal"
-msgstr "ਅਖੀਰੀ ਸਟੇਸ਼ਨ"
+msgstr "टर्मिनल"
 
 #: src/menu/menu.c:1040
 msgid "Reconfigure"
-msgstr "ਮੁੜ-ਸੰਰਚਨਾ ਕਰੋ"
+msgstr "पुनः कॉन्फ़िगर"
 
 #: src/menu/menu.c:1042
 msgid "Exit"
-msgstr "ਬਾਹਰ"
+msgstr "बाहर"
 
 #: src/menu/menu.c:1056
 msgid "Minimize"
-msgstr "ਘੱਟੋ-ਘੱਟ"
+msgstr "कम करना"
 
 #: src/menu/menu.c:1058
 msgid "Maximize"
-msgstr "ਵੱਧ ਤੋਂ ਵੱਧ"
+msgstr "अधिकतम"
 
 #: src/menu/menu.c:1060
 msgid "Fullscreen"
-msgstr "ਪੂਰੀ ਸਕਰੀਨ"
+msgstr "पूर्ण स्क्रीन"
 
 #: src/menu/menu.c:1062
 msgid "Roll Up/Down"
-msgstr "ਉੱਤੇ/ਹੇਠਾਂ ਸਕਰਾਓ"
+msgstr "ऊपर/नीचे करें"
 
 #: src/menu/menu.c:1064
 msgid "Decorations"
-msgstr "ਸਜਾਵਟ"
+msgstr "शीर्षक टाईटल"
 
 #: src/menu/menu.c:1066
 msgid "Always on Top"
-msgstr "ਹਮੇਸ਼ਾਂ ਉੱਤੇ ਰੱਖੋ"
+msgstr "हमेशा से ज़्यादा"
 
 #: src/menu/menu.c:1071
 msgid "Move Left"
-msgstr "ਖੱਬੇ ਭੇਜੋ"
+msgstr "बाएं खिसको"
 
 #: src/menu/menu.c:1078
 msgid "Move Right"
-msgstr "ਸੱਜੇ ਭੇਜੋ"
+msgstr "दाईं ओर जाएँ"
 
 #: src/menu/menu.c:1083
 msgid "Always on Visible Workspace"
-msgstr "ਹਮੇਸ਼ਾਂ ਦਿੱਖ ਵਰਕਸਪੇਸ ਉੱਤੇ"
+msgstr "हमेशा विज़िबल वर्कस्पेस पर"
 
 #: src/menu/menu.c:1086
 msgid "Workspace"
-msgstr "ਵਰਕਸਪੇਸ"
+msgstr "कार्यस्थान"
 
 #: src/menu/menu.c:1089
 msgid "Close"
-msgstr "ਬੰਦ ਕਰੋ"
+msgstr "बंद"

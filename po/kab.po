@@ -8,8 +8,8 @@ msgstr ""
 "Project-Id-Version: labwc\n"
 "Report-Msgid-Bugs-To: https://github.com/labwc/labwc/issues\n"
 "POT-Creation-Date: 2024-09-19 21:09+1000\n"
-"PO-Revision-Date: 2026-03-31 08:01+0000\n"
-"Last-Translator: ButterflyOfFire <butterflyoffire@protonmail.com>\n"
+"PO-Revision-Date: 2026-09-14 05:29+0000\n"
+"Last-Translator: tejasdarsh12-collab <tejasdarsh12@gmail.com>\n"
 "Language-Team: Kabyle <https://translate.lxqt-project.org/projects/labwc/"
 "labwc/kab/>\n"
 "Language: kab\n"
@@ -21,7 +21,7 @@ msgstr ""
 
 #: src/menu/menu.c:1016
 msgid "Go there..."
-msgstr ""
+msgstr "Ruḥ ɣer din..."
 
 #: src/menu/menu.c:1034
 msgid "Terminal"
@@ -29,7 +29,7 @@ msgstr "Ixf"
 
 #: src/menu/menu.c:1040
 msgid "Reconfigure"
-msgstr ""
+msgstr "Snulfu-d tikelt nniḍen"
 
 #: src/menu/menu.c:1042
 msgid "Exit"
@@ -37,11 +37,11 @@ msgstr "Ffeɣ"
 
 #: src/menu/menu.c:1056
 msgid "Minimize"
-msgstr ""
+msgstr "Sneqqulet"
 
 #: src/menu/menu.c:1058
 msgid "Maximize"
-msgstr ""
+msgstr "Ssemɣur"
 
 #: src/menu/menu.c:1060
 msgid "Fullscreen"
@@ -49,31 +49,31 @@ msgstr "Agdil aččuran"
 
 #: src/menu/menu.c:1062
 msgid "Roll Up/Down"
-msgstr ""
+msgstr "Rnu ɣer sdat neɣ ɣer sdat"
 
 #: src/menu/menu.c:1064
 msgid "Decorations"
-msgstr ""
+msgstr "Tiɣawsiwin"
 
 #: src/menu/menu.c:1066
 msgid "Always on Top"
-msgstr ""
+msgstr "Yal ass deg ufella"
 
 #: src/menu/menu.c:1071
 msgid "Move Left"
-msgstr ""
+msgstr "Zzi ɣer uzelmaḍ"
 
 #: src/menu/menu.c:1078
 msgid "Move Right"
-msgstr ""
+msgstr "Err ɣer tama tayeffust"
 
 #: src/menu/menu.c:1083
 msgid "Always on Visible Workspace"
-msgstr ""
+msgstr "Yal ass deg usebter n uxeddim yettwalin"
 
 #: src/menu/menu.c:1086
 msgid "Workspace"
-msgstr ""
+msgstr "Amkan n uxeddim"
 
 #: src/menu/menu.c:1089
 msgid "Close"

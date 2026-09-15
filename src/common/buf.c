@@ -47,7 +47,7 @@ strip_curly_braces(char *s)
 static bool
 isvalid(char p)
 {
-	return isalnum(p) || p == '_' || p == '{' || p == '}';
+	return isalnum((unsigned char)p) || p == '_' || p == '{' || p == '}';
 }
 
 void

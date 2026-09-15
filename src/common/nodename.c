@@ -21,7 +21,7 @@ nodename(xmlNode *node, char *buf, int len)
 		const char *name = (char *)node->name;
 		char c;
 		while ((c = *name++) != 0) {
-			*p++ = tolower(c);
+			*p++ = tolower((unsigned char)c);
 			if (!--len) {
 				return buf;
 			}

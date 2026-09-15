@@ -242,7 +242,7 @@ cycle_osd_field_set_custom(struct buf *buf, struct view *view, const char *forma
 		 * change (*p >= '0' && *p <= '9') to isdigit(*p)
 		 * changes by droc12345
 		 */
-		if (*p == '-' || isdigit(*p)) {
+		if (*p == '-' || isdigit((unsigned char)*p)) {
 			if (fmt_position >= LAB_FIELD_SINGLE_FMT_MAX_LEN - 2) {
 				/* Leave space for terminating 's' and NULL byte */
 				wlr_log(WLR_ERROR,

@@ -106,8 +106,7 @@ enum lab_edge cursor_get_resize_edges(struct wlr_cursor *cursor,
 enum lab_cursors cursor_get_from_edge(enum lab_edge resize_edges);
 
 /**
- * cursor_update_focus - update cursor focus, may update the cursor icon
- * @server - server
+ * cursor_update_focus - update keyboard focus, may update the cursor icon
  *
  * This can be used to give the mouse focus to the surface under the cursor
  * or to force an update of the cursor icon by sending an exit and enter

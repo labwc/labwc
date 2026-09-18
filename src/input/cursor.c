@@ -1366,6 +1366,55 @@ compare_delta(double delta, double delta_discrete, struct accumulated_scroll *ac
 	return info;
 }
 
+/*
+ * Cycle mode: scroll wheel cycles through windows using the
+ * WindowSwitcher mousebind context. Returns true if consumed.
+ */
+static bool
+process_cycle_axis(enum wl_pointer_axis orientation,
+		double delta, double delta_discrete)
+{
+	struct cursor_context ctx = {
+		.type = LAB_NODE_WINDOW_SWITCHER,
+	};
+	uint32_t modifiers = keyboard_get_all_modifiers(&server.seat);
+
+	enum direction direction = LAB_DIRECTION_INVALID;
+	struct scroll_info info = compare_delta(delta, delta_discrete,
+		&server.seat.accumulated_scrolls[orientation]);
+
+	if (orientation == WL_POINTER_AXIS_HORIZONTAL_SCROLL) {
+		if (info.direction < 0) {
+			direction = LAB_DIRECTION_LEFT;
+		} else if (info.direction > 0) {
+			direction = LAB_DIRECTION_RIGHT;
+		}
+	} else if (orientation == WL_POINTER_AXIS_VERTICAL_SCROLL) {
+		if (info.direction < 0) {
+			direction = LAB_DIRECTION_UP;
+		} else if (info.direction > 0) {
+			direction = LAB_DIRECTION_DOWN;
+		}
+	}
+
+	bool consumed = false;
+	if (direction != LAB_DIRECTION_INVALID) {
+		struct mousebind *mousebind;
+		wl_list_for_each(mousebind, &rc.mousebinds, link) {
+			if (node_type_contains(mousebind->context, ctx.type)
+					&& mousebind->direction == direction
+					&& modifiers == mousebind->modifiers
+					&& mousebind->mouse_event == MOUSE_ACTION_SCROLL) {
+				consumed = true;
+				if (info.run_action) {
+					actions_run(ctx.view, &mousebind->actions, &ctx);
+				}
+			}
+		}
+	}
+	return consumed;
+}
+
 static bool
 process_cursor_axis(enum wl_pointer_axis orientation,
 		double delta, double delta_discrete)
@@ -1440,6 +1489,13 @@ handle_axis(struct wl_listener *listener, void *data)
 	struct wlr_pointer_axis_event *event = data;
 	idle_manager_notify_activity(seat->wlr_seat);
 	cursor_set_visible(seat, /* visible */ true);
+
+	/* Cycle mode: scroll wheel cycles through windows */
+	if (server.input_mode == LAB_INPUT_STATE_CYCLE) {
+		process_cycle_axis(event->orientation,
+			event->delta, event->delta_discrete);
+		return;
+	}
 
 	/* input->scroll_factor is set for pointer/touch devices */
 	assert(event->pointer->base.type == WLR_INPUT_DEVICE_POINTER

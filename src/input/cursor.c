@@ -42,7 +42,7 @@
 	#include <wlr/backend/libinput.h>
 #endif
 
-#define LAB_CURSOR_SHAPE_V1_VERSION 1
+#define LAB_CURSOR_SHAPE_V1_VERSION 2
 
 struct constraint {
 	struct seat *seat;

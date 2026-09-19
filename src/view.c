@@ -397,6 +397,79 @@ view_offer_focus(struct view *view)
  * They may be called repeatably during output layout changes.
  */
 
+static struct view *
+find_opposite_tiled_view(struct view *view, struct output *output,
+		enum lab_edge target)
+{
+	/*
+	 * The overlay preview calls this with view == NULL. Fall back to
+	 * the grabbed view so that the window being dragged is excluded
+	 * from the search.
+	 */
+	struct view *ref_view = view ? view : server.grabbed_view;
+	struct view *best = NULL;
+	struct view *neighbor;
+	bool horizontal = target & (LAB_EDGE_LEFT | LAB_EDGE_RIGHT);
+
+	/*
+	 * Only consider views on the current workspace, matching the
+	 * interactive snap/overlay paths that call this. Note that
+	 * view_get_edge_snap_box() is also used to re-apply tiled
+	 * geometry on output-layout changes (desktop.c iterates all
+	 * views): tiled views on inactive workspaces will therefore
+	 * fall back to the classic 50/50 split, losing custom resized
+	 * dimensions. This is an accepted trade-off to keep the search
+	 * simple.
+	 */
+	for_each_view(neighbor, &server.views, LAB_VIEW_CRITERIA_CURRENT_WORKSPACE) {
+		if (neighbor == ref_view || !(neighbor->tiled & target)
+				|| neighbor->minimized || neighbor->fullscreen
+				|| neighbor->maximized != VIEW_AXIS_NONE) {
+			continue;
+		}
+		if (!neighbor->output || !output_is_usable(neighbor->output)
+				|| neighbor->output != output) {
+			continue;
+		}
+
+		/*
+		 * Use tiled state (set at snap time, never changes) to pick
+		 * the half; geometry below only disambiguates between
+		 * candidates sharing the same tiled bits.
+		 */
+		if (!best) {
+			best = neighbor;
+			continue;
+		}
+
+		if (target == LAB_EDGE_LEFT || target == LAB_EDGE_TOP) {
+			/* Prefer the one whose far edge is furthest out */
+			int neighbor_far = horizontal
+				? neighbor->pending.x + neighbor->pending.width
+				: neighbor->pending.y + neighbor->pending.height;
+			int best_far = horizontal
+				? best->pending.x + best->pending.width
+				: best->pending.y + best->pending.height;
+			if (neighbor_far > best_far) {
+				best = neighbor;
+			}
+		} else {
+			/* Prefer the one whose near edge is closest to the midline */
+			int neighbor_near = horizontal
+				? neighbor->pending.x
+				: neighbor->pending.y;
+			int best_near = horizontal
+				? best->pending.x
+				: best->pending.y;
+			if (neighbor_near < best_near) {
+				best = neighbor;
+			}
+		}
+	}
+
+	return best;
+}
+
 struct wlr_box
 view_get_edge_snap_box(struct view *view, struct output *output,
 		enum lab_edge edge)
@@ -407,17 +480,124 @@ view_get_edge_snap_box(struct view *view, struct output *output,
 	int x2 = usable.width - rc.gap;
 	int y2 = usable.height - rc.gap;
 
-	if (edge & LAB_EDGE_RIGHT) {
-		x1 = (usable.width + rc.gap) / 2;
+	/* Dynamic horizontal snap: fill remaining space around a neighbor */
+	if (edge & (LAB_EDGE_LEFT | LAB_EDGE_RIGHT)) {
+		enum lab_edge horiz = edge & (LAB_EDGE_LEFT | LAB_EDGE_RIGHT);
+		struct view *opposite_view = rc.resize_adjust_tiled_neighbors
+			? find_opposite_tiled_view(view, output, lab_edge_invert(horiz))
+			: NULL;
+
+		if (opposite_view) {
+			const struct border neighbor_border = ssd_thickness(opposite_view);
+			if (edge & LAB_EDGE_RIGHT) {
+				x1 = opposite_view->pending.x + opposite_view->pending.width
+					+ rc.gap + neighbor_border.right - usable.x;
+				x2 = usable.width - rc.gap;
+			} else {
+				x1 = rc.gap;
+				x2 = opposite_view->pending.x - rc.gap
+					- neighbor_border.left - usable.x;
+			}
+		} else {
+			/*
+			 * Snap with an empty opposite column: match the width
+			 * of a window in the same column instead of falling
+			 * back to a 50/50 split, e.g. snapping B on top of A
+			 * in "empty | A" gives B the width of A.
+			 */
+			struct view *same_half_view = rc.resize_adjust_tiled_neighbors
+				? find_opposite_tiled_view(view, output, horiz) : NULL;
+
+			if (same_half_view) {
+				/*
+				 * The snap box is the outer geometry while the
+				 * width of same_half_view excludes its own SSD
+				 * margin, so extend the outer width by that
+				 * margin, which is subtracted below. Using the
+				 * neighbor's margin keeps CSD windows stacked
+				 * below an SSD window matching its visual width.
+				 */
+				const struct border neighbor_margin =
+					ssd_thickness(same_half_view);
+				if (edge & LAB_EDGE_RIGHT) {
+					x2 = usable.width - rc.gap;
+					x1 = x2 - same_half_view->pending.width
+						- neighbor_margin.left
+						- neighbor_margin.right;
+				} else {
+					x1 = rc.gap;
+					x2 = x1 + same_half_view->pending.width
+						+ neighbor_margin.left
+						+ neighbor_margin.right;
+				}
+			} else {
+				if (edge & LAB_EDGE_RIGHT) {
+					x1 = (usable.width + rc.gap) / 2;
+				}
+				if (edge & LAB_EDGE_LEFT) {
+					x2 = (usable.width - rc.gap) / 2;
+				}
+			}
+		}
 	}
-	if (edge & LAB_EDGE_LEFT) {
-		x2 = (usable.width - rc.gap) / 2;
-	}
-	if (edge & LAB_EDGE_BOTTOM) {
-		y1 = (usable.height + rc.gap) / 2;
-	}
-	if (edge & LAB_EDGE_TOP) {
-		y2 = (usable.height - rc.gap) / 2;
+
+	/* Dynamic vertical snap: same logic on Y axis */
+	if (edge & (LAB_EDGE_TOP | LAB_EDGE_BOTTOM)) {
+		enum lab_edge vert = edge & (LAB_EDGE_TOP | LAB_EDGE_BOTTOM);
+		struct view *opposite_view = rc.resize_adjust_tiled_neighbors
+			? find_opposite_tiled_view(view, output, lab_edge_invert(vert))
+			: NULL;
+
+		if (opposite_view) {
+			const struct border neighbor_border = ssd_thickness(opposite_view);
+			if (edge & LAB_EDGE_BOTTOM) {
+				y1 = opposite_view->pending.y + opposite_view->pending.height
+					+ rc.gap + neighbor_border.bottom - usable.y;
+				y2 = usable.height - rc.gap;
+			} else {
+				y1 = rc.gap;
+				y2 = opposite_view->pending.y - rc.gap
+					- neighbor_border.top - usable.y;
+			}
+		} else {
+			/*
+			 * Snap with an empty opposite row: match the height
+			 * of a window in the same row instead of falling
+			 * back to a 50/50 split, e.g. snapping B next to A
+			 * in "A | empty" gives B the height of A.
+			 */
+			struct view *same_half_view = rc.resize_adjust_tiled_neighbors
+				? find_opposite_tiled_view(view, output, vert) : NULL;
+
+			if (same_half_view) {
+				/*
+				 * The snap box is the outer geometry while the
+				 * height of same_half_view excludes its own SSD
+				 * margin, so extend the outer height by that
+				 * margin, which is subtracted below.
+				 */
+				const struct border neighbor_margin =
+					ssd_thickness(same_half_view);
+				if (edge & LAB_EDGE_BOTTOM) {
+					y2 = usable.height - rc.gap;
+					y1 = y2 - same_half_view->pending.height
+						- neighbor_margin.top
+						- neighbor_margin.bottom;
+				} else {
+					y1 = rc.gap;
+					y2 = y1 + same_half_view->pending.height
+						+ neighbor_margin.top
+						+ neighbor_margin.bottom;
+				}
+			} else {
+				if (edge & LAB_EDGE_BOTTOM) {
+					y1 = (usable.height + rc.gap) / 2;
+				}
+				if (edge & LAB_EDGE_TOP) {
+					y2 = (usable.height - rc.gap) / 2;
+				}
+			}
+		}
 	}
 
 	struct wlr_box dst = {
@@ -434,6 +614,38 @@ view_get_edge_snap_box(struct view *view, struct output *output,
 		dst.width -= margin.left + margin.right;
 		dst.height -= margin.top + margin.bottom;
 	}
+
+	/* Clamp to usable area to prevent floating windows pushing snap off-screen */
+	if (dst.x < usable.x) {
+		dst.width -= usable.x - dst.x;
+		dst.x = usable.x;
+	}
+	if (dst.y < usable.y) {
+		dst.height -= usable.y - dst.y;
+		dst.y = usable.y;
+	}
+	if (dst.x + dst.width > usable.x + usable.width) {
+		dst.width = usable.x + usable.width - dst.x;
+	}
+	if (dst.y + dst.height > usable.y + usable.height) {
+		dst.height = usable.y + usable.height - dst.y;
+	}
+	/*
+	 * If the box is still fully outside the usable area, pin it back
+	 * inside so the overlay is never drawn off-screen.
+	 */
+	if (dst.x + dst.width <= usable.x || dst.x >= usable.x + usable.width) {
+		dst.x = usable.x;
+		dst.width = usable.width;
+	}
+	if (dst.y + dst.height <= usable.y || dst.y >= usable.y + usable.height) {
+		dst.y = usable.y;
+		dst.height = usable.height;
+	}
+
+	/* Ensure non-negative dimensions for overlay scene rect */
+	dst.width = MAX(1, dst.width);
+	dst.height = MAX(1, dst.height);
 
 	return dst;
 }
@@ -1711,6 +1923,7 @@ view_set_fullscreen(struct view *view, bool fullscreen)
 	}
 
 	set_fullscreen(view, fullscreen);
+
 	if (view_is_floating(view)) {
 		view_apply_natural_geometry(view);
 	} else {
@@ -1980,6 +2193,185 @@ view_shrink_to_edge(struct view *view, enum lab_edge direction)
 	view_move_resize(view, geo);
 }
 
+static bool
+adjust_horizontal_neighbor(struct view *view, struct view *neighbor,
+		enum lab_edge edges,
+		const struct wlr_box *old, const struct wlr_box *cur,
+		struct wlr_box *new_geometry)
+{
+	enum lab_edge view_col = view->tiled & LAB_EDGES_LEFT_RIGHT;
+	enum lab_edge neighbor_col = neighbor->tiled & LAB_EDGES_LEFT_RIGHT;
+
+	/* Full-width windows span both columns and keep their width */
+	if (view_col == LAB_EDGE_NONE || neighbor_col == LAB_EDGE_NONE) {
+		return false;
+	}
+
+	bool changed = false;
+
+	/* Neighbor to the right */
+	if ((edges & LAB_EDGE_RIGHT) && view_col == LAB_EDGE_LEFT
+			&& neighbor_col == LAB_EDGE_RIGHT) {
+		int delta = (cur->x + cur->width) - (old->x + old->width);
+		new_geometry->x += delta;
+		new_geometry->width -= delta;
+		changed = true;
+	}
+	/* Neighbor to the left */
+	if ((edges & LAB_EDGE_LEFT) && view_col == LAB_EDGE_RIGHT
+			&& neighbor_col == LAB_EDGE_LEFT) {
+		int delta = cur->x - old->x;
+		new_geometry->width += delta;
+		changed = true;
+	}
+
+	/* Same column: sync total width — right edges must match */
+	if ((edges & (LAB_EDGE_LEFT | LAB_EDGE_RIGHT))
+			&& neighbor_col == view_col) {
+		/*
+		 * Align visual right edges, compensating for the SSD border
+		 * difference so a CSD window matches an SSD sibling.
+		 */
+		new_geometry->x = neighbor->pending.x + (cur->x - old->x);
+		new_geometry->width = cur->x + cur->width - new_geometry->x
+			+ ssd_thickness(view).right
+			- ssd_thickness(neighbor).right;
+		changed = true;
+	}
+
+	return changed;
+}
+
+static bool
+adjust_vertical_neighbor(struct view *view, struct view *neighbor,
+		enum lab_edge edges,
+		const struct wlr_box *old, const struct wlr_box *cur,
+		struct wlr_box *new_geometry)
+{
+	enum lab_edge view_row = view->tiled & LAB_EDGES_TOP_BOTTOM;
+	enum lab_edge neighbor_row = neighbor->tiled & LAB_EDGES_TOP_BOTTOM;
+
+	/* Full-height windows span both rows and keep their height */
+	if (view_row == LAB_EDGE_NONE || neighbor_row == LAB_EDGE_NONE) {
+		return false;
+	}
+
+	bool changed = false;
+
+	/* Neighbor below */
+	if ((edges & LAB_EDGE_BOTTOM) && view_row == LAB_EDGE_TOP
+			&& neighbor_row == LAB_EDGE_BOTTOM) {
+		int delta = (cur->y + cur->height) - (old->y + old->height);
+		new_geometry->y += delta;
+		new_geometry->height -= delta;
+		changed = true;
+	}
+	/* Neighbor above */
+	if ((edges & LAB_EDGE_TOP) && view_row == LAB_EDGE_BOTTOM
+			&& neighbor_row == LAB_EDGE_TOP) {
+		int delta = cur->y - old->y;
+		new_geometry->height += delta;
+		changed = true;
+	}
+
+	/* Same row: sync total height — bottom edges must match */
+	if ((edges & (LAB_EDGE_TOP | LAB_EDGE_BOTTOM))
+			&& neighbor_row == view_row) {
+		/*
+		 * Align visual bottom edges, compensating for the SSD border
+		 * difference so a CSD window matches an SSD sibling.
+		 */
+		new_geometry->y = neighbor->pending.y + (cur->y - old->y);
+		new_geometry->height = cur->y + cur->height - new_geometry->y
+			+ ssd_thickness(view).bottom
+			- ssd_thickness(neighbor).bottom;
+		changed = true;
+	}
+
+	return changed;
+}
+
+void
+view_adjust_neighbors(struct view *view)
+{
+	/*
+	 * Client minimum size hints are enforced via view_adjust_size()
+	 * below. A neighbor will not be shrunk below its declared minimum
+	 * width/height, which in edge cases can cause grid-aligned edges
+	 * to fall out of sync. This is intentional — we prioritize client
+	 * size constraints over perfect layout alignment.
+	 */
+
+	if (!view || view->fullscreen || view->maximized != VIEW_AXIS_NONE) {
+		return;
+	}
+	if (!output_is_usable(view->output)) {
+		return;
+	}
+	if (!rc.resize_adjust_tiled_neighbors) {
+		return;
+	}
+
+	const enum lab_edge edges = server.resize_edges;
+	if (edges == LAB_EDGE_NONE) {
+		return;
+	}
+	/*
+	 * Tile neighbor management intentionally limits layouts to a
+	 * maximum of 2 columns x 2 rows, e.g.:
+	 *
+	 *   A | B      A | B/C      A/B | C      A/B | C/D
+	 *   [empty]|A/B      A|B/[empty]        A|B /C
+	 *
+	 * where | separates columns and / separates vertically stacked
+	 * windows. More complex arrangements are left to dedicated tiling
+	 * WMs.
+	 */
+	if (!(view->tiled & LAB_EDGES_ALL)) {
+		return;
+	}
+
+	const struct wlr_box old = server.grab_box;
+	const struct wlr_box cur = view->pending;
+
+	wlr_log(WLR_DEBUG, "adjusting neighbors for %s (edges=%u)",
+		view->app_id, edges);
+
+	struct view *neighbor;
+	for_each_view(neighbor, &server.views, LAB_VIEW_CRITERIA_CURRENT_WORKSPACE) {
+		if (neighbor == view || !(neighbor->tiled & LAB_EDGES_ALL)
+				|| neighbor->minimized
+				|| neighbor->maximized != VIEW_AXIS_NONE
+				|| neighbor->fullscreen) {
+			continue;
+		}
+		if (neighbor->output != view->output) {
+			continue;
+		}
+
+		struct wlr_box new_geometry = neighbor->pending;
+		bool changed = false;
+
+		changed |= adjust_horizontal_neighbor(view, neighbor,
+			edges, &old, &cur, &new_geometry);
+		changed |= adjust_vertical_neighbor(view, neighbor,
+			edges, &old, &cur, &new_geometry);
+
+		if (changed) {
+			wlr_log(WLR_DEBUG, "adjusting neighbor %s (tiled=%u)",
+				neighbor->app_id, neighbor->tiled);
+
+			/* Ensure minimum reasonable dimensions */
+			new_geometry.width = MAX(1, new_geometry.width);
+			new_geometry.height = MAX(1, new_geometry.height);
+
+			view_adjust_size(neighbor, &new_geometry.width,
+				&new_geometry.height);
+			view_move_resize(neighbor, new_geometry);
+		}
+	}
+}
+
 enum view_axis
 view_axis_parse(const char *direction)
 {
@@ -2091,6 +2483,7 @@ view_snap_to_edge(struct view *view, enum lab_edge edge,
 	view_set_output(view, output);
 	view->tiled = edge;
 	view_notify_tiled(view);
+
 	view_apply_tiled_geometry(view);
 }
 

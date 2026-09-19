@@ -14,6 +14,7 @@
 #include "node.h"
 #include "output.h"
 #include "ssd.h"
+#include "theme.h"
 #include "view.h"
 
 static void
@@ -506,16 +507,16 @@ edges_adjust_move_coords(struct view *view, struct border edges,
 	/* When moving, limit motion to the best valid, intervening edge */
 
 	if (view_geom->x != *x) {
-		int lshift = border.left + rc.gap;
-		int rshift = border.right + rc.gap + view_geom->width;
+		int lshift = border.left + rc.gap - rc.theme->border_width;
+		int rshift = border.right + rc.gap - rc.theme->border_width + view_geom->width;
 
 		adjust_move_coords_1d(x, edges.left, lshift,
 			edges.right, rshift, *x < view_geom->x);
 	}
 
 	if (view_geom->y != *y) {
-		int tshift = border.top + rc.gap;
-		int bshift = border.bottom + rc.gap
+		int tshift = border.top + rc.gap - rc.theme->border_width;
+		int bshift = border.bottom + rc.gap - rc.theme->border_width
 			+ view_effective_height(view, use_pending);
 
 		adjust_move_coords_1d(y, edges.top, tshift,
@@ -541,25 +542,25 @@ edges_adjust_resize_geom(struct view *view, struct border edges,
 
 	if (resize_edges & LAB_EDGE_LEFT) {
 		if (BOUNDED_INT(edges.left)) {
-			geom->x = edges.left + border.left + rc.gap;
+			geom->x = edges.left + border.left + rc.gap - rc.theme->border_width;
 			geom->width = view_geom->width + view_geom->x - geom->x;
 		}
 	} else if (resize_edges & LAB_EDGE_RIGHT) {
 		if (BOUNDED_INT(edges.right)) {
 			geom->width = edges.right
-				- view_geom->x - border.right - rc.gap;
+				- view_geom->x - border.right - rc.gap + rc.theme->border_width;
 		}
 	}
 
 	if (resize_edges & LAB_EDGE_TOP) {
 		if (BOUNDED_INT(edges.top)) {
-			geom->y = edges.top + border.top + rc.gap;
+			geom->y = edges.top + border.top + rc.gap - rc.theme->border_width;
 			geom->height = view_geom->height + view_geom->y - geom->y;
 		}
 	} else if (resize_edges & LAB_EDGE_BOTTOM) {
 		if (BOUNDED_INT(edges.bottom)) {
 			geom->height = edges.bottom
-				- view_geom->y - border.bottom - rc.gap;
+				- view_geom->y - border.bottom - rc.gap + rc.theme->border_width;
 		}
 	}
 }

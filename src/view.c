@@ -431,8 +431,8 @@ view_get_edge_snap_box(struct view *view, struct output *output,
 		struct border margin = ssd_get_margin(view->ssd);
 		dst.x += margin.left;
 		dst.y += margin.top;
-		dst.width -= margin.left + margin.right;
-		dst.height -= margin.top + margin.bottom;
+		dst.width -= margin.left + margin.right - rc.theme->border_width;
+		dst.height -= margin.top + margin.bottom - rc.theme->border_width;
 	}
 
 	return dst;

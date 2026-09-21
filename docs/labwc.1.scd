@@ -42,6 +42,17 @@ the `--exit` and `--reconfigure` options use.
 	Enable full logging, including debug information. See *ENVIRONMENT
 	VARIABLES* section below for further options.
 
+*--daemonize-apply*
+	Apply the `<daemonize>` setting from `rc.xml`: create or remove the
+	user-local systemd units and quit without starting the compositor.
+
+	- `labwc.service`
+	- `labwc-session.target`
+	- `labwc-shutdown.target`
+
+	This is used by `labwc-session` to apply the setting on the same
+	login it was changed, without requiring an extra restart.
+
 *-e, --exit*
 	Exit the compositor by sending SIGTERM to `$LABWC_PID`
 
@@ -126,15 +137,31 @@ this is accomplished by setting the session variables to empty strings. For
 systemd, the command `systemctl --user unset-environment` will be invoked to
 actually remove the variables from the activation environment.
 
-A systemd user unit named labwc-session.target is also created in
-~/.config/systemd/user/ when <daemonize>enabled</daemonize> is set in
-rc.xml. It binds to the standard graphical-session.target, so systemd user
-services can start and stop in sync with the labwc session when they declare a
-WantedBy or PartOf relationship to that target.
+Three systemd user units are created in ~/.config/systemd/user/ when
+<daemonize>enabled</daemonize> is set in rc.xml, and removed again when it is
+disabled:
+
+- `labwc.service`
+- `labwc-session.target`
+- `labwc-shutdown.target`
+
+The target labwc-session.target binds to the standard graphical-session.target,
+so systemd user services can start and stop in sync with the labwc session when
+they declare a WantedBy or PartOf relationship to that target. None of the units
+carry an [Install] section: they are started explicitly by the launcher rather
+than enabled persistently.
 
 Users are encouraged to use the shipped labwc-session launcher, which
-bootstraps the session and tears down graphical-session.target
+bootstraps the session, applies the <daemonize> setting on every login with
+labwc --daemonize-apply, and tears down graphical-session.target
 automatically via labwc-shutdown.target on exit.
+
+When labwc is started by the user manager rather than from a login shell, it
+inherits the environment of the systemd user instance, which outlives
+individual sessions. If WAYLAND_DISPLAY or DISPLAY then points at a socket
+that no longer exists, labwc un-sets the variable before selecting a wlroots
+backend, so the nested Wayland or X11 backend is not picked up accidentally.
+Remote X11 displays are left alone.
 
 # ENVIRONMENT VARIABLES
 

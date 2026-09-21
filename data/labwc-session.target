@@ -1,6 +1,0 @@
-[Unit]
-Description=labwc session
-Documentation=man:labwc(1) man:systemd.special(7)
-BindsTo=graphical-session.target
-Wants=graphical-session-pre.target
-After=graphical-session-pre.target

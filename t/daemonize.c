@@ -1,19 +1,97 @@
 // SPDX-License-Identifier: GPL-2.0-only
+#define _DEFAULT_SOURCE
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <dirent.h>
 #include <sys/stat.h>
 #include <cmocka.h>
 #include "config/daemonize.h"
 #include "common/file-helpers.h"
 
 static char test_path[256];
+static char original_home[256];
+static char scratch_home[256];
+
+static void
+remove_tree(const char *path)
+{
+	DIR *directory = opendir(path);
+	if (directory) {
+		struct dirent *entry;
+		while ((entry = readdir(directory))) {
+			if (!strcmp(entry->d_name, ".")
+					|| !strcmp(entry->d_name, "..")) {
+				continue;
+			}
+			char child[512];
+			snprintf(child, sizeof(child), "%s/%s", path, entry->d_name);
+			remove_tree(child);
+		}
+		closedir(directory);
+	}
+	remove(path);
+}
+
+static void
+ensure_user_unit_dir(void)
+{
+	const char *home = getenv("HOME");
+	if (!home || !*home) {
+		return;
+	}
+	char path[512];
+	snprintf(path, sizeof(path), "%s/.config", home);
+	mkdir(path, 0700);
+	snprintf(path, sizeof(path), "%s/.config/systemd", home);
+	mkdir(path, 0700);
+	snprintf(path, sizeof(path), "%s/.config/systemd/user", home);
+	mkdir(path, 0700);
+}
+
+/*
+ * These tests write into $HOME/.config/systemd/user/. Point HOME at a
+ * scratch directory so that running the suite can never overwrite or
+ * delete the real user configuration, including the units of a running
+ * labwc session.
+ */
+static int
+setup(void **state)
+{
+	(void)state;
+	const char *home = getenv("HOME");
+	snprintf(original_home, sizeof(original_home), "%s", home ? home : "");
+
+	char template[] = "/tmp/labwc-daemonize-test-XXXXXX";
+	char *directory = mkdtemp(template);
+	if (!directory) {
+		return -1;
+	}
+	snprintf(scratch_home, sizeof(scratch_home), "%s", directory);
+	setenv("HOME", scratch_home, 1);
+	ensure_user_unit_dir();
+	return 0;
+}
+
+static int
+teardown(void **state)
+{
+	(void)state;
+	if (original_home[0]) {
+		setenv("HOME", original_home, 1);
+	}
+	if (scratch_home[0]) {
+		remove_tree(scratch_home);
+	}
+	return 0;
+}
 
 static void
 set_test_path(const char *suffix)
 {
+	ensure_user_unit_dir();
 	const char *home = getenv("HOME");
 	if (!home || !*home) {
 		snprintf(test_path, sizeof(test_path),
@@ -290,6 +368,24 @@ test_disabled_removes_shutdown_target(void **state)
 	remove_test_path(test_path);
 }
 
+static void
+test_apply_creates_unit_directory(void **state)
+{
+	(void)state;
+	char path[512];
+	snprintf(path, sizeof(path), "%s/.config/systemd/user", getenv("HOME"));
+	rmdir(path);
+
+	daemonize_apply(true);
+
+	snprintf(path, sizeof(path), "%s/.config/systemd/user/labwc.service", getenv("HOME"));
+	assert_true(file_exists(path));
+	snprintf(path, sizeof(path), "%s/.config/systemd/user/labwc-session.target", getenv("HOME"));
+	assert_true(file_exists(path));
+	snprintf(path, sizeof(path), "%s/.config/systemd/user/labwc-shutdown.target", getenv("HOME"));
+	assert_true(file_exists(path));
+}
+
 int
 main(int argc, char **argv)
 {
@@ -305,6 +401,7 @@ main(int argc, char **argv)
 		cmocka_unit_test(test_enabled_creates_shutdown_target),
 		cmocka_unit_test(test_disabled_removes_session_target),
 		cmocka_unit_test(test_disabled_removes_shutdown_target),
+		cmocka_unit_test(test_apply_creates_unit_directory),
 	};
-	return cmocka_run_group_tests(tests, NULL, NULL);
+	return cmocka_run_group_tests(tests, setup, teardown);
 }

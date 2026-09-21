@@ -269,10 +269,18 @@ this is for compatibility with Openbox.
 	pasting the primary clipboard. Default is yes.
 
 *<core><daemonize>* [enabled|disabled]
-	When enabled, labwc creates or removes
-	/usr/lib/systemd/user/labwc.service so it can be hooked into
-	graphical-session.target and xdg-desktop-autostart.target.
-	Default is disabled.
+	When enabled, labwc creates or removes the following user-local systemd
+	units under `~/.config/systemd/user/`, so that it can be hooked into
+	graphical-session.target and xdg-desktop-autostart.target:
+
+	- `labwc.service`
+	- `labwc-session.target`
+	- `labwc-shutdown.target`
+
+	If the unit directory does not exist yet, it is created. The shipped
+	launcher `labwc-session` calls `labwc --daemonize-apply` on every login,
+	so switching the setting takes effect without a reboot. Default is
+	disabled.
 
 	Example unit:
 
@@ -293,7 +301,14 @@ this is for compatibility with Openbox.
 	ExecStart=labwc
 	```
 
-	labwc does not run systemctl --user daemon-reload.
+	The units carry no `[Install]` section; they are started explicitly
+	by `labwc-session` rather than enabled persistently. An enablement
+	symlink left behind by older versions of this feature
+	(`graphical-session.target.wants/labwc.service`) is therefore removed
+	on both enable and disable.
+
+	labwc itself does not run systemctl --user daemon-reload. The shipped
+	launcher `labwc-session` does, before starting `labwc.service`.
 
 *<core><promptCommand>*
 	Set command to be invoked for an action prompt (*<action><prompt>*)

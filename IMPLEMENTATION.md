@@ -1,5 +1,51 @@
 # daemonize implementation
 
+## Summary
+
+Adds an optional `<core><daemonize>` setting that hooks labwc into the systemd
+user session. When enabled, labwc writes three user units under
+`~/.config/systemd/user/` and the shipped `labwc-session` launcher starts labwc
+as a systemd service instead of running it directly. Default is `disabled`, and
+disabling removes the units again.
+
+Files changed:
+
+- `src/config/rcxml.c` — parse `<core><daemonize>`, accepting `enabled`,
+  `disabled`, `true`, `false`
+- `src/config/daemonize.c` — write or remove the three units, create the unit
+  directory, remove the stale `[Install]` enable symlink
+- `src/main.c` — new `labwc --daemonize-apply` option; drop stale
+  `WAYLAND_DISPLAY`/`DISPLAY` when running under systemd
+- `data/labwc-session` — stop parsing `rc.xml` in shell, call
+  `labwc --daemonize-apply`, scope `reset-failed`, guard the shutdown target
+- `docs/labwc.1.scd`, `docs/labwc-config.5.scd` — document the option, the units
+  and the launcher
+- `docs/session-management` — describe the session lifecycle
+- `docs/meson.build` — install `session-management` alongside the other files in
+  the doc directory
+- `t/daemonize.c`, `t/meson.build` — 12 tests covering enable and disable,
+  isolated from the real `$HOME`
+
+Already on `dev` and unchanged by this patch: `data/labwc.desktop` uses
+`Exec=labwc-session`.
+
+Notable behavior changes:
+
+- `labwc-session` no longer parses `rc.xml` with `sed`. It delegates to
+  `labwc --daemonize-apply`, so launcher and compositor can never disagree
+  about the setting, and the units are created on the very login the setting
+  was turned on.
+- Switching `<daemonize>` in either direction takes effect at the next login.
+  No reboot, no manual `systemctl`.
+- No `[Install]` section. The units are started explicitly by the launcher. An
+  enable symlink left behind by an earlier version of this feature is removed
+  on both enable and disable.
+- When started by the user manager, labwc drops `WAYLAND_DISPLAY`/`DISPLAY` if
+  the socket they name no longer exists, so it does not select the nested
+  Wayland or X11 backend and die at login. Remote X11 displays are left alone.
+
+Details below.
+
 ## What changed
 
 A new optional `<daemonize>` setting was added to `<core>` in `rc.xml`.
@@ -76,7 +122,31 @@ Path when enabled:
     After=graphical-session.target graphical-session-pre.target
 
 None of these units contain an `[Install]` section. They are started
-explicitly by `labwc-session` rather than enabled persistently.
+explicitly by `labwc-session` rather than enabled persistently. An
+enablement symlink left behind by older versions
+(`graphical-session.target.wants/labwc.service`) is removed on both
+enable and disable.
+
+## Applying the setting on a single login
+
+`labwc --daemonize-apply` parses `rc.xml` with the same code that runs the
+compositor, writes or removes the three units, and quits without starting
+the compositor. `labwc-session` calls it before deciding whether to start
+`labwc.service` or run `labwc` directly, so switching `<daemonize>` in
+either direction takes effect on the next login without a reboot.
+
+The unit directory (`~/.config/systemd/user/`) is created automatically if
+it does not exist yet.
+
+## Stale display variables
+
+The systemd user manager outlives individual sessions and can hold
+`WAYLAND_DISPLAY`/`DISPLAY` values pointing at a compositor that no longer
+exists. When started as a systemd service and the referenced socket is
+gone, labwc removes those variables before selecting a backend, so it does
+not fall back to the nested Wayland or X11 backend and die at startup.
+`labwc-session` also clears them from the manager environment before
+starting the service.
 
 ## Session launcher
 
@@ -88,15 +158,19 @@ user-local systemd units. It:
 - reexecs through the user's login shell when needed
 - detects `systemctl`
 - checks whether a labwc session is already active
-- runs `systemctl --user reset-failed`
+- resets failed state of `labwc.service` and the autostart units
+  (`systemctl --user reset-failed labwc.service 'app-*@autostart.service'`)
 - imports the login manager environment
 - updates the D-Bus activation environment
 - runs `systemctl --user daemon-reload` before first start
+- applies the `<daemonize>` setting by calling `labwc --daemonize-apply`,
+  which creates or removes the units on the same login the setting changed
 - starts `labwc.service` if the unit exists; otherwise falls back to
   `exec labwc` for first-run bootstrap
 - waits for the compositor to terminate
 - starts `labwc-shutdown.target` with `--job-mode=replace-irreversibly`
-  to tear down `graphical-session.target` cleanly
+  to tear down `graphical-session.target` cleanly, but only while that
+  target is still active
 - unsets the session environment variables it imported on exit
 
 For debugging, `labwc-session` appends its output to
@@ -128,8 +202,40 @@ service started before the window manager begins autostart scripts.
 ## Tests
 
 `test_daemonize` covers creation and removal of all three user-local units,
-including idempotent rewrites, missing directories, readonly parents, and
-disabled cleanup. The current suite passes 11/11.
+including idempotent rewrites, missing directories, readonly parents,
+disabled cleanup, and automatic creation of the unit directory. The suite
+passes 12/12.
+
+The tests cannot touch the real user configuration: `setup`/`teardown`
+point `HOME` at a scratch directory created with `mkdtemp`, and
+`t/meson.build` additionally runs the test with `HOME` set to the build
+directory, so even a stale test binary cannot delete the units of a
+running session.
+
+## Testing a local build
+
+After `meson compile -C build`, install the build so that a login actually
+runs it:
+
+1. install `build/labwc` to `/usr/local/bin/labwc`
+2. install `data/labwc-session` to `/usr/local/bin/labwc-session`
+3. make sure no stale `labwc` binary sits earlier in `PATH` (for example a
+   leftover `~/.local/bin/labwc`), otherwise `labwc --daemonize-apply` from
+   the launcher resolves to the wrong binary
+4. run `labwc --daemonize-apply` to write the units, then
+   `systemctl --user daemon-reload`
+5. log out and back in through a session whose `Exec` is `labwc-session`
+
+The running session is unaffected; the changes take effect at the next
+login.
+
+## Build integration
+
+`docs/meson.build` installs `session-management` into
+`$datadir/doc/labwc/`, next to `autostart`, `environment`, `rc.xml` and the
+rest, so distributors ship the lifecycle description with the compositor. It is
+a plain text file like its neighbours, not a man page, so it is not passed
+through scdoc.
 
 ## Packaging note for updates
 

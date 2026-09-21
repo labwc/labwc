@@ -28,9 +28,7 @@ static const char service_contents[] =
 	"[Service]\n"
 	"Slice=session.slice\n"
 	"Type=notify\n"
-	"ExecStart=labwc\n"
-	"[Install]\n"
-	"WantedBy=graphical-session.target\n";
+	"ExecStart=labwc\n";
 
 static const char session_target_contents[] =
 	"[Unit]\n"
@@ -100,15 +98,38 @@ apply_at(const char *path, bool enabled)
 	}
 }
 
-void
-daemonize_set_path(void)
+static const char *
+home_dir(void)
 {
 	const char *home = getenv("HOME");
 	if (!home || !*home) {
-		home = "/tmp";
+		return "/tmp";
 	}
+	return home;
+}
+
+static void
+ensure_unit_dir(void)
+{
+	/*
+	 * The unit directory may not exist yet, for example on a fresh
+	 * install. Create it so that enabling daemonize takes effect
+	 * without requiring the user to create it by hand.
+	 */
+	char path[256];
+	snprintf(path, sizeof(path), "%s/.config", home_dir());
+	mkdir(path, 0755);
+	snprintf(path, sizeof(path), "%s/.config/systemd", home_dir());
+	mkdir(path, 0755);
+	snprintf(path, sizeof(path), "%s/.config/systemd/user", home_dir());
+	mkdir(path, 0755);
+}
+
+void
+daemonize_set_path(void)
+{
 	snprintf(service_path, sizeof(service_path),
-		"%s/.config/systemd/user/labwc.service", home);
+		"%s/.config/systemd/user/labwc.service", home_dir());
 }
 
 const char *
@@ -118,7 +139,25 @@ daemonize_get_path(void)
 }
 
 static void
-daemonize_systemctl(const char *verb, const char *unit);
+remove_enable_symlink(void)
+{
+	/*
+	 * Older versions carried an [Install] section and called
+	 * `systemctl --user enable labwc.service`, which leaves a
+	 * graphical-session.target.wants symlink behind. The unit is
+	 * started explicitly by labwc-session, so the symlink is not
+	 * needed, and leaving it in place makes graphical-session.target
+	 * pull in the compositor, which can make session teardown be
+	 * refused as destructive.
+	 */
+	char path[256];
+	snprintf(path, sizeof(path),
+		"%s/.config/systemd/user/graphical-session.target.wants/labwc.service",
+		home_dir());
+	if (unlink(path) == 0) {
+		wlr_log(WLR_INFO, "removed stale enable symlink %s", path);
+	}
+}
 
 void
 daemonize_apply(bool enabled)
@@ -126,53 +165,37 @@ daemonize_apply(bool enabled)
 	daemonize_set_path();
 	wlr_log(WLR_INFO, "daemonize path: %s", service_path);
 	if (enabled) {
+		ensure_unit_dir();
 		apply_at(service_path, enabled);
 		char target_path[256];
 		snprintf(target_path, sizeof(target_path),
-			"%s/.config/systemd/user/labwc-session.target", getenv("HOME") ?: "/tmp");
+			"%s/.config/systemd/user/labwc-session.target", home_dir());
 		apply_at(target_path, enabled);
 		snprintf(target_path, sizeof(target_path),
-			"%s/.config/systemd/user/labwc-shutdown.target", getenv("HOME") ?: "/tmp");
+			"%s/.config/systemd/user/labwc-shutdown.target", home_dir());
 		apply_at(target_path, enabled);
 		if (file_exists(service_path)) {
 			wlr_log(WLR_INFO, "daemonize enabled at %s", service_path);
 		} else {
 			wlr_log(WLR_ERROR, "daemonize enabled but %s was not created", service_path);
 		}
-		daemonize_systemctl("enable", "labwc.service");
+		remove_enable_symlink();
 	} else {
 		/* Just remove the files; labwc-session handles systemd cleanup */
 		apply_at(service_path, enabled);
 		char target_path[256];
 		snprintf(target_path, sizeof(target_path),
-			"%s/.config/systemd/user/labwc-session.target", getenv("HOME") ?: "/tmp");
+			"%s/.config/systemd/user/labwc-session.target", home_dir());
 		apply_at(target_path, enabled);
 		snprintf(target_path, sizeof(target_path),
-			"%s/.config/systemd/user/labwc-shutdown.target", getenv("HOME") ?: "/tmp");
+			"%s/.config/systemd/user/labwc-shutdown.target", home_dir());
 		apply_at(target_path, enabled);
+		remove_enable_symlink();
 		if (!file_exists(service_path)) {
 			wlr_log(WLR_INFO, "daemonize disabled, %s removed", service_path);
 		} else {
 			wlr_log(WLR_ERROR, "daemonize disabled but %s still exists", service_path);
 		}
-	}
-}
-
-static void
-daemonize_systemctl(const char *verb, const char *unit)
-{
-	char cmd[256];
-	if (unit[0]) {
-		snprintf(cmd, sizeof(cmd), "systemctl --user %s %s", verb, unit);
-	} else {
-		snprintf(cmd, sizeof(cmd), "systemctl --user %s", verb);
-	}
-	int ret = system(cmd);
-	if (ret != 0) {
-		wlr_log(WLR_ERROR, "failed to %s (cmd: %s, ret: %d)",
-			verb, cmd, ret);
-	} else {
-		wlr_log(WLR_INFO, "%s", cmd);
 	}
 }
 

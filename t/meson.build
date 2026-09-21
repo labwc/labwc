@@ -44,5 +44,10 @@ foreach t : tests
       dependencies: test_deps,
     ),
     is_parallel: false,
+    # Defense in depth: the daemonize test writes into $HOME, so point it at
+    # the build directory even though the test itself redirects HOME to a
+    # scratch directory. A stale test binary can then never touch the real
+    # user configuration of a running session.
+    env: ['HOME=' + meson.current_build_dir()],
   )
 endforeach

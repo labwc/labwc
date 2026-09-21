@@ -31,6 +31,7 @@ install_data(
     'environment',
     'menu.xml',
     'README',
+    'session-management',
     'shutdown',
     'themerc',
     'rc.xml',

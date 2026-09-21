@@ -8,12 +8,34 @@ is set in `rc.xml`. On launch, labwc creates or refreshes:
 - `labwc-session.target`
 - `labwc-shutdown.target`
 
+When the setting is disabled, all three are removed again. None of the units
+carry an `[Install]` section: they are started explicitly by the launcher
+instead of being enabled persistently. An enablement symlink left behind by
+older versions of this feature
+(`~/.config/systemd/user/graphical-session.target.wants/labwc.service`) is
+removed on both enable and disable.
+
 A shipped launcher, `labwc-session`, handles first-run bootstrap and normal
-systemd startup. If `~/.config/systemd/user/labwc.service` is missing, it
-falls back to `exec labwc` so the units are created on that run; on later
-launches it starts `labwc.service` directly and tears the session down with
-`labwc-shutdown.target`.
+systemd startup. Since the units are applied by labwc itself, the launcher
+first runs `labwc --daemonize-apply`, which parses `rc.xml` and writes or
+removes the units without starting the compositor. Switching
+`<daemonize>enabled</daemonize>` in either direction therefore takes effect on
+the very next login.
+
+The launcher then starts `labwc.service` if the unit exists. If it is missing
+(because `<daemonize>` is disabled, or on the very first run), it falls back to
+`exec labwc` so the units are created on that run. When the compositor
+terminates it starts `labwc-shutdown.target` to tear down
+`graphical-session.target`, but only while that target is still active.
+
+When labwc runs as a systemd user service it inherits the environment of the
+user manager, which outlives individual sessions. If `WAYLAND_DISPLAY` or
+`DISPLAY` points at a socket that no longer exists, labwc un-sets the variable
+before selecting a wlroots backend, so the nested Wayland or X11 backend is not
+picked up accidentally. `labwc-session` also clears those variables from the
+manager environment before starting the service.
 
 For users updating from an older install, stale user-local units can be
 removed; labwc recreates them automatically once `<daemonize>enabled</daemonize>`
-is configured.
+is configured. The launcher itself has to be installed for this to work, so
+packages need to ship `data/labwc-session` next to the compositor binary.

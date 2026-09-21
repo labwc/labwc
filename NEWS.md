@@ -90,6 +90,18 @@ The format is based on [Keep a Changelog]
 
 [unreleased-commits]
 
+### Added
+
+- Optional systemd user session integration. A new `<core><daemonize>`
+  configuration item writes the user units `labwc.service`,
+  `labwc-session.target` and `labwc-shutdown.target` into
+  `~/.config/systemd/user/`, so that labwc can be hooked into
+  `graphical-session.target` and `xdg-desktop-autostart.target`. Default is
+  disabled, and disabling removes the units again. Also support the new
+  `labwc --daemonize-apply` option, which applies the setting and exits, and a
+  `labwc-session` launcher that uses it, so that switching the setting takes
+  effect on the next login without a reboot.
+
 ## Notes on wlroots-0.20
 
 There are some regression warnings worth noting for the switch to wlroots 0.20:

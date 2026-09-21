@@ -1,7 +1,0 @@
-[Unit]
-Description=labwc Session Shutdown
-Documentation=man:labwc(1) man:systemd.special(7)
-DefaultDependencies=no
-StopWhenUnneeded=yes
-Conflicts=graphical-session.target graphical-session-pre.target
-After=graphical-session.target graphical-session-pre.target

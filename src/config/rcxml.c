@@ -1105,6 +1105,18 @@ set_adaptive_sync_mode(const char *str, enum adaptive_sync_mode *variable)
 }
 
 static void
+set_daemonize_mode(const char *str, bool *variable)
+{
+	if (!strcasecmp(str, "enabled") || !strcasecmp(str, "true")) {
+		*variable = true;
+	} else if (!strcasecmp(str, "disabled") || !strcasecmp(str, "false")) {
+		*variable = false;
+	} else {
+		wlr_log(WLR_ERROR, "invalid daemonize value: '%s'", str);
+	}
+}
+
+static void
 set_tearing_mode(const char *str, enum tearing_mode *variable)
 {
 	if (!strcasecmp(str, "fullscreen")) {
@@ -1206,12 +1218,7 @@ entry(xmlNode *node, char *nodename, char *content)
 		set_bool(content, &rc.xwayland_persistence);
 	} else if (!strcasecmp(nodename, "daemonize")
 			|| !strcasecmp(nodename, "daemonize.core")) {
-		int ret = parse_bool(content, -1);
-		if (ret < 0) {
-			wlr_log(WLR_ERROR, "invalid daemonize value: '%s'", content);
-		} else {
-			rc.daemonize_enabled = ret;
-		}
+		set_daemonize_mode(content, &rc.daemonize_enabled);
 	} else if (!strcasecmp(nodename, "primarySelection.core")) {
 		set_bool(content, &rc.primary_selection);
 

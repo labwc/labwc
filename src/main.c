@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 #define _POSIX_C_SOURCE 200809L
 #include <getopt.h>
+#include <limits.h>
 #include <pango/pangocairo.h>
 #include <signal.h>
 #include <unistd.h>
@@ -29,9 +30,14 @@
 struct rcxml rc = { 0 };
 struct server server = { 0 };
 
+enum {
+	OPT_DAEMONIZE_APPLY = 256,
+};
+
 static const struct option long_options[] = {
 	{"config", required_argument, NULL, 'c'},
 	{"config-dir", required_argument, NULL, 'C'},
+	{"daemonize-apply", no_argument, NULL, OPT_DAEMONIZE_APPLY},
 	{"debug", no_argument, NULL, 'd'},
 	{"exit", no_argument, NULL, 'e'},
 	{"help", no_argument, NULL, 'h'},
@@ -49,6 +55,7 @@ static const char labwc_usage[] =
 "Usage: labwc [options...]\n"
 "  -c, --config <file>      Specify config file (with path)\n"
 "  -C, --config-dir <dir>   Specify config directory\n"
+"      --daemonize-apply    Apply the <daemonize> setting to the systemd user units and quit\n"
 "  -d, --debug              Enable full logging, including debug information\n"
 "  -e, --exit               Exit the compositor\n"
 "  -h, --help               Show help message and quit\n"
@@ -166,11 +173,99 @@ idle_callback(void *data)
 	}
 }
 
+static bool
+socket_exists(const char *path)
+{
+	return path && *path && access(path, F_OK) == 0;
+}
+
+/*
+ * WAYLAND_DISPLAY is either an absolute socket path or a name relative
+ * to XDG_RUNTIME_DIR.
+ */
+static bool
+wayland_display_is_stale(const char *display)
+{
+	if (!display || !*display) {
+		return false;
+	}
+	if (display[0] == '/') {
+		return !socket_exists(display);
+	}
+	const char *runtime_dir = getenv("XDG_RUNTIME_DIR");
+	if (!runtime_dir || !*runtime_dir) {
+		return true;
+	}
+	char path[PATH_MAX];
+	snprintf(path, sizeof(path), "%s/%s", runtime_dir, display);
+	return !socket_exists(path);
+}
+
+/*
+ * Only local X11 displays can be checked; leave remote ones alone.
+ * Local forms are ":0", ":0.0", "unix:0" and "localhost:0".
+ */
+static bool
+x11_display_is_stale(const char *display)
+{
+	if (!display || !*display) {
+		return false;
+	}
+	const char *colon = strrchr(display, ':');
+	if (!colon) {
+		return false;
+	}
+	size_t prefix_len = colon - display;
+	if (prefix_len > 0
+			&& strncmp(display, "unix", prefix_len)
+			&& strncmp(display, "localhost", prefix_len)) {
+		return false;
+	}
+	char path[PATH_MAX];
+	snprintf(path, sizeof(path), "/tmp/.X11-unix/X%s", colon + 1);
+	char *dot = strchr(path, '.');
+	if (dot) {
+		*dot = '\0';
+	}
+	return !socket_exists(path);
+}
+
+static void
+drop_stale_display_vars(void)
+{
+	/*
+	 * The systemd user manager outlives individual sessions and keeps
+	 * whatever environment the previous session imported, including
+	 * WAYLAND_DISPLAY and DISPLAY pointing at a compositor that no
+	 * longer exists. If we inherit those, wlroots picks the nested
+	 * Wayland or X11 backend instead of DRM and we die at startup.
+	 *
+	 * Only do this when started as a systemd service and only when the
+	 * socket the variable points to is actually gone, so that nested
+	 * runs against a live compositor keep working.
+	 */
+	const char *notify_socket = getenv("NOTIFY_SOCKET");
+	if (!notify_socket || !*notify_socket) {
+		return;
+	}
+	const char *display = getenv("WAYLAND_DISPLAY");
+	if (display && wayland_display_is_stale(display)) {
+		wlr_log(WLR_INFO, "removing stale WAYLAND_DISPLAY (%s)", display);
+		unsetenv("WAYLAND_DISPLAY");
+	}
+	display = getenv("DISPLAY");
+	if (display && x11_display_is_stale(display)) {
+		wlr_log(WLR_INFO, "removing stale DISPLAY (%s)", display);
+		unsetenv("DISPLAY");
+	}
+}
+
 int
 main(int argc, char *argv[])
 {
 	char *startup_cmd = NULL;
 	char *primary_client = NULL;
+	bool apply_daemonize_only = false;
 	enum wlr_log_importance verbosity = WLR_ERROR;
 
 	server.wlr_version = _LAB_CALC_WLR_VERSION_NUM(
@@ -192,6 +287,9 @@ main(int argc, char *argv[])
 			break;
 		case 'C':
 			rc.config_dir = optarg;
+			break;
+		case OPT_DAEMONIZE_APPLY:
+			apply_daemonize_only = true;
 			break;
 		case 'd':
 			verbosity = WLR_DEBUG;
@@ -232,7 +330,9 @@ main(int argc, char *argv[])
 	wlr_log_init(verbosity, NULL);
 
 	die_on_detecting_suid();
-	die_on_no_fonts();
+	if (!apply_daemonize_only) {
+		die_on_no_fonts();
+	}
 
 	session_environment_init();
 
@@ -246,6 +346,17 @@ main(int argc, char *argv[])
 	rcxml_read(rc.config_file);
 	wlr_log(WLR_INFO, "daemonize enabled: %d", rc.daemonize_enabled);
 	daemonize_apply(rc.daemonize_enabled);
+
+	if (apply_daemonize_only) {
+		/*
+		 * Write (or remove) the systemd user units according to the
+		 * <daemonize> configuration item and quit without starting the
+		 * compositor. This lets the labwc-session launcher create the
+		 * units before starting labwc.service, so that enabling
+		 * daemonize takes effect on the first login.
+		 */
+		exit(EXIT_SUCCESS);
+	}
 
 	/*
 	 * Set environment variable LABWC_PID to the pid of the compositor
@@ -277,6 +388,8 @@ main(int argc, char *argv[])
 	if (string_null_or_empty(server.title_fmt)) {
 		server.title_fmt = "labwc - %o";
 	}
+
+	drop_stale_display_vars();
 
 	server_init();
 	server_start();

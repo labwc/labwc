@@ -28,17 +28,6 @@ if [ -n "$SHELL" ] &&
   fi
 fi
 
-# Check if <daemonize> is enabled in rc.xml
-daemonize_enabled() {
-	rc_file="${XDG_CONFIG_HOME:-$HOME/.config}/labwc/rc.xml"
-	[ -f "$rc_file" ] || return 1
-	val=$(sed '/<!--/,/-->/d' "$rc_file" | tr '\n' ' ' | sed -n 's/.*<daemonize>\([^<]*\)<\/daemonize>.*/\1/ip' | head -1 | tr -d '[:space:]' | tr '[:upper:]' '[:lower:]')
-	case "$val" in
-		enabled|true) return 0 ;;
-		*) return 1 ;;
-	esac
-}
-
 # Try to detect the service manager that is being used
 if hash systemctl >/dev/null 2>&1; then
 	echo '[labwc-session] systemctl detected'
@@ -49,8 +38,9 @@ if hash systemctl >/dev/null 2>&1; then
 		exit 1
 	fi
 
-	# Reset failed state of all user units.
-	systemctl --user reset-failed
+	# Reset failed state of the units this launcher owns. Scoped, so that
+	# unrelated user services keep their failed state across logins.
+	systemctl --user reset-failed labwc.service 'app-*@autostart.service' 2>/dev/null
 
 	# Import the login manager environment.
 	systemctl --user import-environment
@@ -62,20 +52,41 @@ if hash systemctl >/dev/null 2>&1; then
 		dbus-update-activation-environment --all
 	fi
 
+	# Let the compositor itself apply the <daemonize> setting: it parses
+	# rc.xml with the same code that runs the compositor, so the launcher
+	# and the compositor can never disagree. This also creates the units on
+	# the very login where daemonize is first enabled, so the setting takes
+	# effect without an extra restart.
+	mkdir -p "$HOME/.config/systemd/user"
+	labwc --daemonize-apply
+
 	# Start labwc and wait for it to terminate.
-	if daemonize_enabled && [ -f "$HOME/.config/systemd/user/labwc.service" ]; then
+	if [ -f "$HOME/.config/systemd/user/labwc.service" ]; then
 		echo "[labwc-session] daemonize enabled, starting labwc.service"
 		systemctl --user daemon-reload
-		systemctl --user enable labwc.service 2>/dev/null
+		systemctl --user stop labwc-shutdown.target 2>/dev/null
+		systemctl --user stop labwc-session.target 2>/dev/null
+
+		# A previous session may have left WAYLAND_DISPLAY and DISPLAY in
+		# the user manager environment. If the compositor inherits either
+		# of them it selects a nested Wayland or X11 backend instead of
+		# DRM and dies at startup. Clear them before starting the service.
+		systemctl --user unset-environment WAYLAND_DISPLAY DISPLAY WAYLAND_SOCKET
+
 		systemctl --user --wait start labwc.service
 
-		# Force stop of graphical-session.target.
-		systemctl --user start --job-mode=replace-irreversibly labwc-shutdown.target
+		# Force stop of graphical-session.target, but only when it is
+		# still active. When the session tore down cleanly the target
+		# is already gone and starting the shutdown target would race
+		# autostart units that still have start jobs queued.
+		if systemctl --user is-active --quiet graphical-session.target; then
+			systemctl --user start --job-mode=replace-irreversibly labwc-shutdown.target
+		fi
 
 		# Unset environment that we've set.
 		systemctl --user unset-environment WAYLAND_DISPLAY DISPLAY XDG_SESSION_TYPE XDG_CURRENT_DESKTOP
 	else
-		echo "[labwc-session] daemonize disabled or unit not yet created, falling back to labwc"
+		echo "[labwc-session] daemonize disabled, falling back to labwc"
 		systemctl --user daemon-reload 2>/dev/null
 		systemctl --user stop labwc.service 2>/dev/null
 		systemctl --user stop labwc-session.target 2>/dev/null
@@ -84,9 +95,6 @@ if hash systemctl >/dev/null 2>&1; then
 		systemctl --user stop graphical-session.target 2>/dev/null
 		systemctl --user stop xdg-desktop-autostart.target 2>/dev/null
 		systemctl --user disable labwc.service 2>/dev/null
-		systemctl --user disable labwc-session.target 2>/dev/null
-		systemctl --user disable labwc-shutdown.target 2>/dev/null
-		systemctl --user reset-failed 2>/dev/null
 		unset NOTIFY_SOCKET NOTIFY_FD
 		labwc
 	fi

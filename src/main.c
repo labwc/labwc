@@ -12,6 +12,7 @@
 #include "common/string-helpers.h"
 #include "config/rcxml.h"
 #include "config/session.h"
+#include "config/daemonize.h"
 #include "labwc.h"
 #include "theme.h"
 #include "translate.h"
@@ -243,6 +244,8 @@ main(int argc, char *argv[])
 #endif
 
 	rcxml_read(rc.config_file);
+	wlr_log(WLR_INFO, "daemonize enabled: %d", rc.daemonize_enabled);
+	daemonize_apply(rc.daemonize_enabled);
 
 	/*
 	 * Set environment variable LABWC_PID to the pid of the compositor
@@ -277,6 +280,7 @@ main(int argc, char *argv[])
 
 	server_init();
 	server_start();
+	daemonize_notify_ready();
 
 	struct theme theme = { 0 };
 	theme_init(&theme, rc.theme_name);

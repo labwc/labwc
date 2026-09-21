@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <systemd/sd-daemon.h>
 #include <sys/stat.h>
 #include <wlr/backend/multi.h>
 #include <wlr/config.h>
@@ -343,6 +344,10 @@ session_shutdown(void)
 {
 	session_run_script("shutdown");
 
-	/* Clear the dbus and systemd user environment, each may fail gracefully */
-	update_activation_env(/* initialize */ false);
+	/*
+	 * Avoid blocking dbus/systemctl activation-env updates during
+	 * backend teardown. On shutdown, the X11 backend may already be
+	 * failing; synchronous env updates here can race with
+	 * wlr_backend_finish() and trip listener assertions.
+	 */
 }

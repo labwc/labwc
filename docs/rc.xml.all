@@ -17,6 +17,8 @@
     <reuseOutputMode>no</reuseOutputMode>
     <xwaylandPersistence>no</xwaylandPersistence>
     <primarySelection>yes</primarySelection>
+    <daemonize>disabled</daemonize>
+    <!-- accepted as <daemonize> or <daemonize.core> -->
     <!--
       # See labwc-config(5) for details
       <promptCommand></promptCommand>

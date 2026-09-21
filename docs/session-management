@@ -1,0 +1,19 @@
+# Session management
+
+Labwc can optionally integrate with the user session manager by writing
+systemd user units under `~/.config/systemd/user/` when `<daemonize>enabled</daemonize>`
+is set in `rc.xml`. On launch, labwc creates or refreshes:
+
+- `labwc.service`
+- `labwc-session.target`
+- `labwc-shutdown.target`
+
+A shipped launcher, `labwc-session`, handles first-run bootstrap and normal
+systemd startup. If `~/.config/systemd/user/labwc.service` is missing, it
+falls back to `exec labwc` so the units are created on that run; on later
+launches it starts `labwc.service` directly and tears the session down with
+`labwc-shutdown.target`.
+
+For users updating from an older install, stale user-local units can be
+removed; labwc recreates them automatically once `<daemonize>enabled</daemonize>`
+is configured.

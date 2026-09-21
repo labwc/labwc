@@ -1,7 +1,7 @@
 [Desktop Entry]
 Name=labwc
 Comment=A wayland stacking compositor
-Exec=labwc
+Exec=labwc-session
 Icon=labwc
 Type=Application
 DesktopNames=labwc;wlroots

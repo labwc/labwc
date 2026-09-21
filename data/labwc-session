@@ -1,0 +1,75 @@
+#!/bin/sh
+
+LOG="$HOME/.local/share/labwc.log"
+mkdir -p "$(dirname "$LOG")"
+exec >> "$LOG" 2>&1
+echo "=== labwc-session start: $(date) ==="
+
+# Detect if being run as a user service, which implies external session management,
+# exec compositor directly
+if [ -n "${MANAGERPID:-}" ] && [ "${SYSTEMD_EXEC_PID:-}" = "$$" ]; then
+	case "$(ps -p "$MANAGERPID" -o cmd=)" in
+	*systemd*--user*)
+		echo '[labwc-session] detected running under systemd --user, exec labwc'
+		exec labwc
+		;;
+	esac
+fi
+
+if [ -n "$SHELL" ] &&
+   grep -q "$SHELL" /etc/shells &&
+   ! (echo "$SHELL" | grep -q "false") &&
+   ! (echo "$SHELL" | grep -q "nologin"); then
+  if [ "$1" != '-l' ]; then
+    echo "[labwc-session] re-exec via login shell: $SHELL -l -c \"exec $0 -l $*\""
+    exec "$SHELL" -l -c "exec $0 -l $*"
+  else
+    shift
+  fi
+fi
+
+# Try to detect the service manager that is being used
+if hash systemctl >/dev/null 2>&1; then
+	echo '[labwc-session] systemctl detected'
+
+	# Make sure there's no already running session.
+	if systemctl --user -q is-active labwc.service; then
+		echo 'A labwc session is already running.'
+		exit 1
+	fi
+
+	# Reset failed state of all user units.
+	systemctl --user reset-failed
+
+	# Import the login manager environment.
+	systemctl --user import-environment
+	# DBus activation environment is independent from systemd. While most of
+	# dbus-activated services are already using `SystemdService` directive, some
+	# still don't and thus we should set the dbus environment with a separate
+	# command.
+	if hash dbus-update-activation-environment 2>/dev/null; then
+		dbus-update-activation-environment --all
+	fi
+
+	# Start labwc and wait for it to terminate.
+	if [ -f "$HOME/.config/systemd/user/labwc.service" ]; then
+		echo "[labwc-session] starting labwc.service"
+		systemctl --user daemon-reload
+		systemctl --user --wait start labwc.service
+	else
+		echo "[labwc-session] labwc.service missing, falling back to exec labwc"
+		exec labwc
+	fi
+
+	# Force stop of graphical-session.target.
+	systemctl --user start --job-mode=replace-irreversibly labwc-shutdown.target
+
+	# Unset environment that we've set.
+	systemctl --user unset-environment WAYLAND_DISPLAY DISPLAY XDG_SESSION_TYPE XDG_CURRENT_DESKTOP
+elif hash dinitctl >/dev/null 2>&1; then
+	echo "No dinit support yet for labwc."
+	exit 1
+else
+	echo "No systemd or dinit detected, please use labwc directly."
+	exit 1
+fi

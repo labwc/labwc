@@ -4,18 +4,22 @@ test_deps = [
   glib,
   xml2,
   wlroots,
+  cairo,
+  dependency('libsystemd'),
 ]
 
 test_lib = static_library(
   'test_lib',
   sources: files(
     '../src/config/accel.c',
+    '../src/config/daemonize.c',
     '../src/common/parse-double.c',
     '../src/common/buf.c',
     '../src/common/mem.c',
     '../src/common/string-helpers.c',
     '../src/common/xml.c',
     '../src/common/parse-bool.c',
+    '../src/common/file-helpers.c',
   ),
   include_directories: [labwc_inc],
   dependencies: test_deps,
@@ -26,6 +30,7 @@ tests = [
   'buf-simple',
   'str',
   'xml',
+  'daemonize',
 ]
 
 foreach t : tests

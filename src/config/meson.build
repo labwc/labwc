@@ -8,4 +8,5 @@ labwc_sources += files(
   'tablet-tool.c',
   'libinput.c',
   'accel.c',
+  'daemonize.c',
 )

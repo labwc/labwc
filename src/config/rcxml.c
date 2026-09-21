@@ -1204,6 +1204,14 @@ entry(xmlNode *node, char *nodename, char *content)
 		set_bool(content, &rc.reuse_output_mode);
 	} else if (!strcasecmp(nodename, "xwaylandPersistence.core")) {
 		set_bool(content, &rc.xwayland_persistence);
+	} else if (!strcasecmp(nodename, "daemonize")
+			|| !strcasecmp(nodename, "daemonize.core")) {
+		int ret = parse_bool(content, -1);
+		if (ret < 0) {
+			wlr_log(WLR_ERROR, "invalid daemonize value: '%s'", content);
+		} else {
+			rc.daemonize_enabled = ret;
+		}
 	} else if (!strcasecmp(nodename, "primarySelection.core")) {
 		set_bool(content, &rc.primary_selection);
 
@@ -1584,6 +1592,7 @@ rcxml_init(void)
 	rc.target_render_depth = LAB_RENDER_BIT_DEPTH_DEFAULT;
 	rc.auto_enable_outputs = true;
 	rc.reuse_output_mode = false;
+	rc.daemonize_enabled = false;
 	rc.allowed_interfaces = UINT32_MAX;
 	rc.xwayland_persistence = false;
 	rc.primary_selection = true;
@@ -2178,4 +2187,5 @@ rcxml_finish(void)
 
 	/* Reset state vars for starting fresh when Reload is triggered */
 	mouse_scroll_factor = -1;
+	rc.daemonize_enabled = false;
 }

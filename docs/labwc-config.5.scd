@@ -268,6 +268,33 @@ this is for compatibility with Openbox.
 	up/down) in Chromium and electron based clients without inadvertently
 	pasting the primary clipboard. Default is yes.
 
+*<core><daemonize>* [enabled|disabled]
+	When enabled, labwc creates or removes
+	/usr/lib/systemd/user/labwc.service so it can be hooked into
+	graphical-session.target and xdg-desktop-autostart.target.
+	Default is disabled.
+
+	Example unit:
+
+	```
+	[Unit]
+	Description=A Wayland window-stacking compositor
+	BindsTo=graphical-session.target
+	Before=graphical-session.target
+	Wants=graphical-session-pre.target
+	After=graphical-session-pre.target
+
+	Wants=xdg-desktop-autostart.target
+	Before=xdg-desktop-autostart.target
+
+	[Service]
+	Slice=session.slice
+	Type=notify
+	ExecStart=labwc
+	```
+
+	labwc does not run systemctl --user daemon-reload.
+
 *<core><promptCommand>*
 	Set command to be invoked for an action prompt (*<action><prompt>*)
 

@@ -83,6 +83,7 @@ struct rcxml {
 	enum render_bit_depth target_render_depth;
 	bool auto_enable_outputs;
 	bool reuse_output_mode;
+	bool daemonize_enabled;
 	uint32_t allowed_interfaces;
 	bool xwayland_persistence;
 	bool primary_selection;

@@ -58,6 +58,8 @@ if hash systemctl >/dev/null 2>&1; then
 		systemctl --user --wait start labwc.service
 	else
 		echo "[labwc-session] labwc.service missing, falling back to exec labwc"
+		systemctl --user daemon-reload
+		systemctl --user reset-failed
 		exec labwc
 	fi
 

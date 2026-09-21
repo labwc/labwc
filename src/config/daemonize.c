@@ -134,10 +134,19 @@ daemonize_apply(bool enabled)
 		} else {
 			wlr_log(WLR_ERROR, "daemonize enabled but %s was not created", service_path);
 		}
-	} else if (!file_exists(service_path)) {
-		wlr_log(WLR_INFO, "daemonize disabled, %s removed", service_path);
 	} else {
-		wlr_log(WLR_ERROR, "daemonize disabled but %s still exists", service_path);
+		char target_path[256];
+		snprintf(target_path, sizeof(target_path),
+			"%s/.config/systemd/user/labwc-session.target", getenv("HOME") ?: "/tmp");
+		apply_at(target_path, false);
+		snprintf(target_path, sizeof(target_path),
+			"%s/.config/systemd/user/labwc-shutdown.target", getenv("HOME") ?: "/tmp");
+		apply_at(target_path, false);
+		if (!file_exists(service_path)) {
+			wlr_log(WLR_INFO, "daemonize disabled, %s removed", service_path);
+		} else {
+			wlr_log(WLR_ERROR, "daemonize disabled but %s still exists", service_path);
+		}
 	}
 }
 

@@ -28,7 +28,9 @@ static const char service_contents[] =
 	"[Service]\n"
 	"Slice=session.slice\n"
 	"Type=notify\n"
-	"ExecStart=labwc\n";
+	"ExecStart=labwc\n"
+	"[Install]\n"
+	"WantedBy=graphical-session.target\n";
 
 static const char session_target_contents[] =
 	"[Unit]\n"
@@ -115,13 +117,16 @@ daemonize_get_path(void)
 	return service_path;
 }
 
+static void
+daemonize_systemctl(const char *verb, const char *unit);
+
 void
 daemonize_apply(bool enabled)
 {
 	daemonize_set_path();
 	wlr_log(WLR_INFO, "daemonize path: %s", service_path);
-	apply_at(service_path, enabled);
 	if (enabled) {
+		apply_at(service_path, enabled);
 		char target_path[256];
 		snprintf(target_path, sizeof(target_path),
 			"%s/.config/systemd/user/labwc-session.target", getenv("HOME") ?: "/tmp");
@@ -134,19 +139,40 @@ daemonize_apply(bool enabled)
 		} else {
 			wlr_log(WLR_ERROR, "daemonize enabled but %s was not created", service_path);
 		}
+		daemonize_systemctl("enable", "labwc.service");
 	} else {
+		/* Just remove the files; labwc-session handles systemd cleanup */
+		apply_at(service_path, enabled);
 		char target_path[256];
 		snprintf(target_path, sizeof(target_path),
 			"%s/.config/systemd/user/labwc-session.target", getenv("HOME") ?: "/tmp");
-		apply_at(target_path, false);
+		apply_at(target_path, enabled);
 		snprintf(target_path, sizeof(target_path),
 			"%s/.config/systemd/user/labwc-shutdown.target", getenv("HOME") ?: "/tmp");
-		apply_at(target_path, false);
+		apply_at(target_path, enabled);
 		if (!file_exists(service_path)) {
 			wlr_log(WLR_INFO, "daemonize disabled, %s removed", service_path);
 		} else {
 			wlr_log(WLR_ERROR, "daemonize disabled but %s still exists", service_path);
 		}
+	}
+}
+
+static void
+daemonize_systemctl(const char *verb, const char *unit)
+{
+	char cmd[256];
+	if (unit[0]) {
+		snprintf(cmd, sizeof(cmd), "systemctl --user %s %s", verb, unit);
+	} else {
+		snprintf(cmd, sizeof(cmd), "systemctl --user %s", verb);
+	}
+	int ret = system(cmd);
+	if (ret != 0) {
+		wlr_log(WLR_ERROR, "failed to %s (cmd: %s, ret: %d)",
+			verb, cmd, ret);
+	} else {
+		wlr_log(WLR_INFO, "%s", cmd);
 	}
 }
 

@@ -42,6 +42,7 @@ struct mousebind {
 
 	struct wl_list link;     /* struct rcxml.mousebinds */
 	bool pressed_in_context; /* used in click events */
+	bool override_inhibition;
 };
 
 enum mouse_event mousebind_event_from_str(const char *str);

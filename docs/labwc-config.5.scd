@@ -915,7 +915,8 @@ input-devices by the Wayland protocol.
 *<mouse><doubleClickTime>*
 	Set double click time in milliseconds. Default is 500.
 
-*<mouse><context name=""><mousebind button="" direction="" action=""><action>*
+*<mouse><context name=""><mousebind button="" direction="" action=""
+overrideInhibition=""><action>*
 	Multiple *<mousebind>* can exist within one *<context>*; and multiple
 	*<action>* can exist within one *<mousebind>*.
 
@@ -1012,6 +1013,13 @@ input-devices by the Wayland protocol.
   </context>
 </mouse>
 ```
+
+	*overrideInhibition* [yes|no]
+		Make this mousebind work even if the view inhibits
+		keybinds/mousebinds with `ToggleKeybinds` action.
+		This can be used to prevent mousebinds from being delivered
+		to Virtual Machines, VNC clients or nested compositors.
+		Default is no.
 
 *<mouse><default />*
 	Load default mousebinds. This is an addition to the openbox

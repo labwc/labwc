@@ -652,6 +652,7 @@ cursor_process_motion(uint32_t time, double *sx, double *sy)
 	struct mousebind *mousebind;
 	wl_list_for_each(mousebind, &rc.mousebinds, link) {
 		if (ctx.type == LAB_NODE_CLIENT
+				&& !mousebind->override_inhibition
 				&& view_inhibits_actions(ctx.view, &mousebind->actions)) {
 			continue;
 		}
@@ -1003,6 +1004,7 @@ process_release_mousebinding(struct cursor_context *ctx, uint32_t button)
 
 	wl_list_for_each(mousebind, &rc.mousebinds, link) {
 		if (ctx->type == LAB_NODE_CLIENT
+				&& !mousebind->override_inhibition
 				&& view_inhibits_actions(ctx->view, &mousebind->actions)) {
 			continue;
 		}
@@ -1074,6 +1076,7 @@ process_press_mousebinding(struct cursor_context *ctx,
 
 	wl_list_for_each(mousebind, &rc.mousebinds, link) {
 		if (ctx->type == LAB_NODE_CLIENT
+				&& !mousebind->override_inhibition
 				&& view_inhibits_actions(ctx->view, &mousebind->actions)) {
 			continue;
 		}
@@ -1398,6 +1401,7 @@ process_cursor_axis(enum wl_pointer_axis orientation,
 		struct mousebind *mousebind;
 		wl_list_for_each(mousebind, &rc.mousebinds, link) {
 			if (ctx.type == LAB_NODE_CLIENT
+					&& !mousebind->override_inhibition
 					&& view_inhibits_actions(ctx.view, &mousebind->actions)) {
 				continue;
 			}

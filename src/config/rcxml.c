@@ -636,6 +636,7 @@ fill_mousebind(xmlNode *node, const char *context)
 		/* <mousebind button="" action="EVENT"> */
 		mousebind->mouse_event = mousebind_event_from_str(buf);
 	}
+	lab_xml_get_bool(node, "overrideInhibition", &mousebind->override_inhibition);
 
 	append_parsed_actions(node, &mousebind->actions);
 }

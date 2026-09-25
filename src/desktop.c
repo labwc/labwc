@@ -166,7 +166,11 @@ desktop_focus_view_internal(struct view *view, bool raise, bool allow_delay)
 	 * since view_move_to_front() raises all sibling views together.
 	 */
 	struct view *dialog = view_get_modal_dialog(view);
-	set_or_offer_focus(dialog ? dialog : view);
+	if (dialog && !view_is_focusable(view)) {
+		set_or_offer_focus(dialog);
+	} else {
+		set_or_offer_focus(view);
+	}
 
 	show_desktop_reset();
 }
@@ -444,4 +448,3 @@ get_cursor_context(void)
 	 */
 	return ret;
 }
-

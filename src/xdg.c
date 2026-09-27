@@ -705,6 +705,19 @@ top_parent_of(struct view *view)
 	return toplevel;
 }
 
+static bool
+is_child_of(struct view *child, struct wlr_xdg_toplevel *parent)
+{
+	struct wlr_xdg_toplevel *toplevel = xdg_toplevel_from_view(child);
+	while (toplevel->parent) {
+		if (toplevel->parent == parent) {
+			return true;
+		}
+		toplevel = toplevel->parent;
+	}
+	return false;
+}
+
 /* Return the most senior parent (=root) view */
 static struct view *
 xdg_toplevel_view_get_root(struct view *view)
@@ -729,11 +742,10 @@ xdg_toplevel_view_append_children(struct view *self, struct wl_array *children)
 		if (!view->mapped) {
 			continue;
 		}
-		if (top_parent_of(view) != toplevel) {
-			continue;
+		if (is_child_of(view, toplevel)) {
+			struct view **child = wl_array_add(children, sizeof(*child));
+			*child = view;
 		}
-		struct view **child = wl_array_add(children, sizeof(*child));
-		*child = view;
 	}
 }
 

@@ -198,6 +198,19 @@ top_parent_of(struct view *view)
 }
 
 static bool
+is_child_of(struct view *child, struct wlr_xwayland_surface *parent)
+{
+	struct wlr_xwayland_surface *s = xwayland_surface_from_view(child);
+	while (s->parent) {
+		if (s->parent == parent) {
+			return true;
+		}
+		s = s->parent;
+	}
+	return false;
+}
+
+static bool
 want_deco(struct wlr_xwayland_surface *xwayland_surface)
 {
 	struct view *view = (struct view *)xwayland_surface->data;
@@ -898,11 +911,10 @@ xwayland_view_append_children(struct view *self, struct wl_array *children)
 		if (!view->mapped) {
 			continue;
 		}
-		if (top_parent_of(view) != surface) {
-			continue;
+		if (is_child_of(view, surface)) {
+			struct view **child = wl_array_add(children, sizeof(*child));
+			*child = view;
 		}
-		struct view **child = wl_array_add(children, sizeof(*child));
-		*child = view;
 	}
 }
 

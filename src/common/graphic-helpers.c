@@ -3,7 +3,10 @@
 #include "common/graphic-helpers.h"
 #include <cairo.h>
 #include <glib.h> /* g_ascii_strcasecmp */
+#include <wlr/types/wlr_scene.h>
 #include <wlr/util/box.h>
+#include "buffer.h"
+#include "common/scene-helpers.h"
 #include "common/macros.h"
 #include "xcolor-table.h"
 
@@ -112,4 +115,62 @@ lookup_named_color(const char *name, uint32_t *argb)
 	*argb = 0xFF000000u | ((uint32_t)found->red << 16)
 		| ((uint32_t)found->green << 8) | found->blue;
 	return true;
+}
+
+/* 1 degree in radians (=2π/360) */
+static const double deg = 0.017453292519943295;
+
+void
+create_rounded_rect_bg(struct wlr_scene_tree *parent, int width,
+	int height, const float color[4], int corner_radius,
+	bool lower_to_bottom)
+{
+	if (width <= 0 || height <= 0) {
+		return;
+	}
+
+	double r = MIN(corner_radius, MIN(width, height) / 2.0);
+	if (r < 0) {
+		r = 0;
+	}
+
+	struct lab_data_buffer *buf = buffer_create_cairo(width, height, 1);
+	if (!buf) {
+		/* Fallback to plain rectangular scene rect */
+		lab_wlr_scene_rect_create(parent, width, height, color);
+		return;
+	}
+
+	cairo_surface_t *surface = buf->surface;
+	cairo_t *cairo = cairo_create(surface);
+
+	/* Clear to transparent */
+	cairo_set_operator(cairo, CAIRO_OPERATOR_CLEAR);
+	cairo_paint(cairo);
+	cairo_set_operator(cairo, CAIRO_OPERATOR_SOURCE);
+
+	if (r > 0) {
+		cairo_new_sub_path(cairo);
+		cairo_arc(cairo, r, r, r, 180 * deg, 270 * deg);
+		cairo_arc(cairo, width - r, r, r, -90 * deg, 0);
+		cairo_arc(cairo, width - r, height - r, r, 0,
+			90 * deg);
+		cairo_arc(cairo, r, height - r, r, 90 * deg,
+			180 * deg);
+		cairo_close_path(cairo);
+	} else {
+		cairo_rectangle(cairo, 0, 0, width, height);
+	}
+
+	set_cairo_color(cairo, color);
+	cairo_fill(cairo);
+
+	cairo_surface_flush(surface);
+	cairo_destroy(cairo);
+
+	struct wlr_scene_buffer *scene_buf =
+		lab_wlr_scene_buffer_create(parent, &buf->base);
+	if (lower_to_bottom) {
+		wlr_scene_node_lower_to_bottom(&scene_buf->node);
+	}
 }

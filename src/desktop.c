@@ -102,19 +102,6 @@ schedule_delayed_auto_raise(struct view *view)
 		rc.raise_on_focus_delay_ms);
 }
 
-static struct view *
-desktop_topmost_focusable_view(void)
-{
-	struct view *view;
-	for_each_view(view, &server.views,
-			LAB_VIEW_CRITERIA_CURRENT_WORKSPACE) {
-		if (!view->minimized) {
-			return view;
-		}
-	}
-	return NULL;
-}
-
 /*
  * The raise_on_focus_delay is only meant to dampen z-order churn from
  * focus-follows-mouse cursor passes. Explicit focus changes (alt-tab,
@@ -208,6 +195,19 @@ desktop_focus_view_or_surface(struct seat *seat, struct view *view,
 		}
 #endif
 	}
+}
+
+static struct view *
+desktop_topmost_focusable_view(void)
+{
+	struct view *view;
+	for_each_view(view, &server.views,
+			LAB_VIEW_CRITERIA_CURRENT_WORKSPACE) {
+		if (!view->minimized) {
+			return view;
+		}
+	}
+	return NULL;
 }
 
 void

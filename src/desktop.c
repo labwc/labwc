@@ -102,6 +102,19 @@ schedule_delayed_auto_raise(struct view *view)
 		rc.raise_on_focus_delay_ms);
 }
 
+static struct view *
+desktop_topmost_focusable_view(void)
+{
+	struct view *view;
+	for_each_view(view, &server.views,
+			LAB_VIEW_CRITERIA_CURRENT_WORKSPACE) {
+		if (!view->minimized) {
+			return view;
+		}
+	}
+	return NULL;
+}
+
 /*
  * The raise_on_focus_delay is only meant to dampen z-order churn from
  * focus-follows-mouse cursor passes. Explicit focus changes (alt-tab,
@@ -164,13 +177,15 @@ desktop_focus_view_internal(struct view *view, bool raise, bool allow_delay)
 	 * If any child/sibling of the view is a modal dialog, focus
 	 * the dialog instead. It does not need to be raised separately
 	 * since view_move_to_front() raises all sibling views together.
+	 *
+	 * Some clients create toplevels whilst a modal dialog is open. An
+	 * example of this is the FreeCAD expression editor. Consequently, we
+	 * must only give modal dialogs focus if they are the topmost window.
+	 * See issue #3727
 	 */
 	struct view *dialog = view_get_modal_dialog(view);
-	if (dialog && !view_is_focusable(view)) {
-		set_or_offer_focus(dialog);
-	} else {
-		set_or_offer_focus(view);
-	}
+	bool is_topmost = dialog == desktop_topmost_focusable_view();
+	set_or_offer_focus(dialog && is_topmost ? dialog : view);
 
 	show_desktop_reset();
 }
@@ -198,19 +213,6 @@ desktop_focus_view_or_surface(struct seat *seat, struct view *view,
 		}
 #endif
 	}
-}
-
-static struct view *
-desktop_topmost_focusable_view(void)
-{
-	struct view *view;
-	for_each_view(view, &server.views,
-			LAB_VIEW_CRITERIA_CURRENT_WORKSPACE) {
-		if (!view->minimized) {
-			return view;
-		}
-	}
-	return NULL;
 }
 
 void

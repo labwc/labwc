@@ -596,7 +596,7 @@ bool view_is_modal_dialog(struct view *view);
 
 /**
  * view_get_modal_dialog() - returns any modal dialog found among this
- * view's children or siblings (or possibly this view itself).
+ * view's children (or possibly this view itself).
  */
 struct view *view_get_modal_dialog(struct view *view);
 

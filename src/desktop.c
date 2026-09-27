@@ -174,18 +174,13 @@ desktop_focus_view_internal(struct view *view, bool raise, bool allow_delay)
 	}
 
 	/*
-	 * If any child/sibling of the view is a modal dialog, focus
+	 * If any child of the view is a modal dialog, focus
 	 * the dialog instead. It does not need to be raised separately
 	 * since view_move_to_front() raises all sibling views together.
 	 *
-	 * Some clients create toplevels whilst a modal dialog is open. An
-	 * example of this is the FreeCAD expression editor. Consequently, we
-	 * must only give modal dialogs focus if they are the topmost window.
-	 * See issue #3727
 	 */
 	struct view *dialog = view_get_modal_dialog(view);
-	bool is_topmost = dialog == desktop_topmost_focusable_view();
-	set_or_offer_focus(dialog && is_topmost ? dialog : view);
+	set_or_offer_focus(dialog ? dialog : view);
 
 	show_desktop_reset();
 }

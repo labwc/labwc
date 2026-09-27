@@ -84,7 +84,7 @@ init_indicator(struct indicator_state *state)
 	wlr_scene_node_set_position(&state->sfb_modifiers->scene_buffer->node, 0, 60);
 
 	struct xkb_rule_names rules = { 0 };
-	struct xkb_context *context = xkb_context_new(XKB_CONTEXT_NO_FLAGS);
+	struct xkb_context *context = xkb_context_new(XKB_CONTEXT_NO_SECURE_GETENV);
 	state->keymap = xkb_map_new_from_names(context, &rules, XKB_KEYMAP_COMPILE_NO_FLAGS);
 }
 

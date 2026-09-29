@@ -757,7 +757,9 @@ set_surface(struct view *view, struct wlr_surface *surface)
 	}
 	view->surface = surface;
 	if (surface) {
-		/* Connect wlr_surface event listeners */
+		/* Connect wlr_surface event listeners for map/unmap,
+		 * commit is added after mapping.
+		 */
 		mappable_connect(&view->mappable, surface,
 			handle_map, handle_unmap);
 	}

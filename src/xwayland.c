@@ -760,7 +760,6 @@ set_surface(struct view *view, struct wlr_surface *surface)
 		/* Connect wlr_surface event listeners */
 		mappable_connect(&view->mappable, surface,
 			handle_map, handle_unmap);
-		CONNECT_SIGNAL(surface, view, commit);
 	}
 }
 
@@ -782,6 +781,12 @@ handle_map(struct wl_listener *listener, void *data)
 			view->scene_tree, view->surface);
 		die_if_null(view->content_tree);
 		wlr_scene_subsurface_tree_create(&view->capture.scene->tree, view->surface);
+		/* Our commit signal has to be connected after wlr_scene_surface is created and
+		 * its signals connected by the function *wlr_scene_subsurface_tree_create()*
+		 * above, so when we receive it, we have the updated surface dimensions.
+		 * See issue #3711.
+		 */
+		CONNECT_SIGNAL(view->surface, view, commit);
 	}
 
 	wlr_scene_node_set_enabled(&view->content_tree->node, !view->shaded);

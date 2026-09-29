@@ -751,18 +751,12 @@ static void
 set_surface(struct view *view, struct wlr_surface *surface)
 {
 	if (view->surface) {
-		/*
-		 * Disconnect mappable wlr_surface event listeners,
-		 * commit is removed in handle_unmap.
-		 */
+		/* Disconnect mappable wlr_surface event listeners. */
 		mappable_disconnect(&view->mappable);
 	}
 	view->surface = surface;
 	if (surface) {
-		/*
-		 * Connect mappable wlr_surface event listeners,
-		 * commit is added in handle_map.
-		 */
+		/* Connect mappable wlr_surface event listeners. */
 		mappable_connect(&view->mappable, surface,
 			handle_map, handle_unmap);
 	}

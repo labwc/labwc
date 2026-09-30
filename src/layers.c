@@ -10,21 +10,186 @@
 #include <assert.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include <string.h>
 #include <strings.h>
 #include <wlr/types/wlr_cursor.h>
 #include <wlr/types/wlr_fractional_scale_v1.h>
+#include <wlr/types/wlr_input_device.h>
+#include <wlr/types/wlr_input_method_v2.h>
 #include <wlr/types/wlr_layer_shell_v1.h>
 #include <wlr/types/wlr_scene.h>
+#include <wlr/types/wlr_virtual_keyboard_v1.h>
 #include <wlr/types/wlr_xdg_shell.h>
 #include <wlr/util/log.h>
 #include "common/macros.h"
 #include "common/mem.h"
 #include "config/rcxml.h"
+#include "input/ime.h"
+#include "input/input.h"
 #include "labwc.h"
 #include "node.h"
 #include "output.h"
+#include "session-lock.h"
 
 #define LAB_LAYERSHELL_VERSION 4
+
+/* All mapped/unmapped layer-shell surfaces (struct lab_layer_surface.link) */
+static struct wl_list layer_surfaces = {0};
+
+/*
+ * Returns the client that owns the active zwp_input_method_v2 global, or NULL
+ * if no input-method is currently bound to the seat.
+ */
+static struct wl_client *
+input_method_client(void)
+{
+	struct input_method_relay *relay = server.seat.input_method_relay;
+	if (!relay || !relay->input_method) {
+		return NULL;
+	}
+	return wl_resource_get_client(relay->input_method->resource);
+}
+
+/*
+ * Whether the given client owns a zwp_virtual_keyboard_v1. On-screen keyboards
+ * inject key events through a virtual keyboard (squeekboard falls back to this
+ * whenever another client, e.g. fcitx, already holds the input-method global),
+ * so a layer-shell client that also owns a virtual keyboard is auto-detected as
+ * an OSK without requiring a hardcoded namespace or any configuration.
+ */
+static bool
+client_has_virtual_keyboard(struct wl_client *client)
+{
+	if (!client) {
+		return false;
+	}
+	struct input *input;
+	wl_list_for_each(input, &server.seat.inputs, link) {
+		struct wlr_input_device *device = input->wlr_input_device;
+		if (!device || device->type != WLR_INPUT_DEVICE_KEYBOARD) {
+			continue;
+		}
+		struct wlr_virtual_keyboard_v1 *vkbd =
+			wlr_input_device_get_virtual_keyboard(device);
+		if (vkbd && wl_resource_get_client(vkbd->resource) == client) {
+			return true;
+		}
+	}
+	return false;
+}
+
+static bool
+should_be_on_lock_screen(struct lab_layer_surface *layer)
+{
+	if (!rc.allow_ime_on_lock_screen) {
+		return false;
+	}
+	if (!server.session_lock_manager
+			|| !server.session_lock_manager->locked) {
+		return false;
+	}
+	if (!layer->scene_layer_surface) {
+		return false;
+	}
+	struct wlr_layer_surface_v1 *layer_surface =
+		layer->scene_layer_surface->layer_surface;
+	const char *ns = layer_surface->namespace
+		? layer_surface->namespace : "(null)";
+	if (!layer_surface->surface->mapped) {
+		wlr_log(WLR_INFO, "IME-on-lock: '%s' NOT eligible: not mapped", ns);
+		return false;
+	}
+
+	/*
+	 * Eligible if the surface belongs to the active input-method client, or
+	 * if its client also owns a virtual keyboard (auto-detected OSK). The
+	 * latter covers setups where another client (e.g. fcitx) holds the
+	 * input-method global, so the OSK owns its keyboard layer surface and
+	 * virtual keyboard from a separate client.
+	 */
+	struct wl_client *surface_client =
+		wl_resource_get_client(layer_surface->resource);
+	struct wl_client *im_client = input_method_client();
+	bool client_match = im_client && surface_client == im_client;
+	bool vkbd_match = client_has_virtual_keyboard(surface_client);
+	bool eligible = client_match || vkbd_match;
+
+	wlr_log(WLR_INFO, "IME-on-lock: '%s' -> %s (client_match=%d "
+		"vkbd_match=%d)",
+		ns, eligible ? "ELIGIBLE" : "NOT eligible",
+		client_match, vkbd_match);
+	return eligible;
+}
+
+/*
+ * Move an input-method layer-shell surface in or out of the per-output
+ * session-lock tree. The lock tree is rendered (and pointer/touch hit-tested)
+ * above the lock screen. Both the layer-tree and the session-lock tree share
+ * the same output-origin position, so the surface keeps its on-screen
+ * placement across the reparent.
+ */
+static void
+set_layer_on_lock_screen(struct lab_layer_surface *layer, bool enable)
+{
+	if (!layer->scene_layer_surface) {
+		return;
+	}
+	struct wlr_layer_surface_v1 *layer_surface =
+		layer->scene_layer_surface->layer_surface;
+	struct wlr_output *wlr_output = layer_surface->output;
+	if (!wlr_output || !wlr_output->data) {
+		return;
+	}
+	struct output *output = wlr_output->data;
+	struct wlr_scene_node *node = &layer->scene_layer_surface->tree->node;
+
+	if (enable) {
+		/*
+		 * Idempotently (re-)assert the surface above the lock screen.
+		 * This is called from several triggers (lock created, lock
+		 * surface mapped, input-method bound, surface commit) so that
+		 * the OSK reliably ends up on top regardless of the order in
+		 * which the lock surface and the OSK settle.
+		 */
+		if (node->parent != output->session_lock_tree) {
+			wlr_log(WLR_INFO, "IME-on-lock: elevating layer surface "
+				"'%s' above lock screen", layer_surface->namespace);
+			wlr_scene_node_reparent(node, output->session_lock_tree);
+		}
+		wlr_scene_node_raise_to_top(node);
+		layer->on_lock_screen = true;
+	} else if (layer->on_lock_screen) {
+		wlr_log(WLR_INFO, "IME-on-lock: returning layer surface '%s' "
+			"to normal layer", layer_surface->namespace);
+		wlr_scene_node_reparent(node,
+			output->layer_tree[layer_surface->current.layer]);
+		layer->on_lock_screen = false;
+	}
+}
+
+static void
+update_layer_on_lock_screen(struct lab_layer_surface *layer)
+{
+	set_layer_on_lock_screen(layer, should_be_on_lock_screen(layer));
+}
+
+void
+layers_update_on_lock_screen(void)
+{
+	if (!layer_surfaces.next) {
+		return;
+	}
+	wlr_log(WLR_INFO, "IME-on-lock: re-evaluating layer surfaces "
+		"(allowIMEOnLockScreen=%s, locked=%s, n=%d)",
+		rc.allow_ime_on_lock_screen ? "yes" : "no",
+		(server.session_lock_manager
+			&& server.session_lock_manager->locked) ? "yes" : "no",
+		wl_list_length(&layer_surfaces));
+	struct lab_layer_surface *layer;
+	wl_list_for_each(layer, &layer_surfaces, link) {
+		update_layer_on_lock_screen(layer);
+	}
+}
 
 static void
 apply_override(struct output *output, struct wlr_box *usable_area)
@@ -264,8 +429,14 @@ handle_surface_commit(struct wl_listener *listener, void *data)
 	uint32_t committed = layer_surface->current.committed;
 	struct output *output = (struct output *)wlr_output->data;
 
-	/* Process layer change */
-	if (committed & WLR_LAYER_SURFACE_V1_STATE_LAYER) {
+	/*
+	 * Process layer change. Skip the reparent while the surface is
+	 * elevated above the lock screen; it lives in the session-lock tree
+	 * and update_layer_on_lock_screen() (called below) will reparent it
+	 * to the correct layer once it is no longer on the lock screen.
+	 */
+	if ((committed & WLR_LAYER_SURFACE_V1_STATE_LAYER)
+			&& !layer->on_lock_screen) {
 		wlr_scene_node_reparent(&layer->scene_layer_surface->tree->node,
 			output->layer_tree[layer_surface->current.layer]);
 	}
@@ -292,6 +463,13 @@ handle_surface_commit(struct wl_listener *listener, void *data)
 		layer_try_set_focus(seat, layer_surface);
 	}
 out:
+
+	/*
+	 * Keep an input-method on-screen keyboard elevated above the lock
+	 * screen. This also catches the case where the surface changed layer
+	 * above (which reparents it back into the normal layer-tree).
+	 */
+	update_layer_on_lock_screen(layer);
 
 	if (committed || layer->mapped != layer_surface->surface->mapped) {
 		layer->mapped = layer_surface->surface->mapped;
@@ -348,6 +526,7 @@ handle_node_destroy(struct wl_listener *listener, void *data)
 	wl_list_remove(&layer->new_popup.link);
 	wl_list_remove(&layer->output_destroy.link);
 	wl_list_remove(&layer->node_destroy.link);
+	wl_list_remove(&layer->link);
 	free(layer);
 }
 
@@ -377,6 +556,9 @@ handle_unmap(struct wl_listener *listener, void *data)
 		try_to_focus_next_layer_or_toplevel();
 	}
 	cursor_update_focus();
+
+	/* Return the surface to its normal layer when it is no longer shown */
+	update_layer_on_lock_screen(layer);
 
 	layer->being_unmapped = false;
 }
@@ -424,6 +606,8 @@ handle_map(struct wl_listener *listener, void *data)
 
 	struct seat *seat = &server.seat;
 	layer_try_set_focus(seat, layer->scene_layer_surface->layer_surface);
+
+	update_layer_on_lock_screen(layer);
 }
 
 static bool
@@ -681,6 +865,7 @@ handle_new_layer_surface(struct wl_listener *listener, void *data)
 
 	struct lab_layer_surface *surface = znew(*surface);
 	surface->layer_surface = layer_surface;
+	wl_list_insert(&layer_surfaces, &surface->link);
 
 	struct output *output = layer_surface->output->data;
 
@@ -727,6 +912,7 @@ handle_new_layer_surface(struct wl_listener *listener, void *data)
 void
 layers_init(void)
 {
+	wl_list_init(&layer_surfaces);
 	server.layer_shell = wlr_layer_shell_v1_create(server.wl_display,
 		LAB_LAYERSHELL_VERSION);
 	server.new_layer_surface.notify = handle_new_layer_surface;

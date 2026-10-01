@@ -59,6 +59,18 @@ ssd_border_create(struct ssd *ssd)
 		wlr_scene_node_set_enabled(&ssd->border.tree->node, false);
 	}
 
+	/*
+	 * When the handle assembly is active, hide the bottom border
+	 * because the handle provides its own bottom border visuals.
+	 */
+	if (ssd->handle.tree && ssd->handle.tree->node.enabled) {
+		FOR_EACH_ACTIVE_STATE(active) {
+			wlr_scene_node_set_enabled(
+				&ssd->border.subtrees[active].bottom->node,
+				false);
+		}
+	}
+
 	if (view->current.width > 0 && view->current.height > 0) {
 		/*
 		 * The SSD is recreated by a Reconfigure request
@@ -152,6 +164,15 @@ ssd_border_update(struct ssd *ssd)
 			top_width, theme->border_width);
 		wlr_scene_node_set_position(&subtree->top->node,
 			top_x, -(ssd->titlebar.height + theme->border_width));
+
+		/*
+		 * Hide the bottom border when the handle assembly
+		 * is active (handle draws its own borders).
+		 */
+		bool handle_active = ssd->handle.tree
+			&& ssd->handle.tree->node.enabled;
+		wlr_scene_node_set_enabled(
+			&subtree->bottom->node, !handle_active);
 	}
 }
 

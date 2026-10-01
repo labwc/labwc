@@ -1531,6 +1531,8 @@ view_toggle_decorations(struct view *view)
 	assert(view);
 
 	if (rc.ssd_keep_border && view->ssd_mode == LAB_SSD_MODE_FULL) {
+		view_set_ssd_mode(view, LAB_SSD_MODE_BORDER_HANDLE);
+	} else if (view->ssd_mode == LAB_SSD_MODE_BORDER_HANDLE) {
 		view_set_ssd_mode(view, LAB_SSD_MODE_BORDER);
 	} else if (view->ssd_mode != LAB_SSD_MODE_NONE) {
 		view_set_ssd_mode(view, LAB_SSD_MODE_NONE);
@@ -1621,6 +1623,19 @@ view_titlebar_visible(struct view *view)
 	return view->ssd_mode == LAB_SSD_MODE_FULL;
 }
 
+bool
+view_handle_visible(struct view *view)
+{
+	if (rc.theme->handle_width <= 0) {
+		return false;
+	}
+	if (view->shaded) {
+		return false;
+	}
+	return view->ssd_mode == LAB_SSD_MODE_FULL
+		|| view->ssd_mode == LAB_SSD_MODE_BORDER_HANDLE;
+}
+
 void
 view_set_ssd_mode(struct view *view, enum lab_ssd_mode mode)
 {
@@ -1640,6 +1655,7 @@ view_set_ssd_mode(struct view *view, enum lab_ssd_mode mode)
 	if (mode) {
 		decorate(view);
 		ssd_set_titlebar(view->ssd, view_titlebar_visible(view));
+		ssd_set_handle(view->ssd, view_handle_visible(view));
 	} else {
 		undecorate(view);
 	}

@@ -83,6 +83,9 @@ struct seat {
 
 	struct lab_set bound_buttons;
 
+	/* Keys that have been pressed and not consumed by compositor actions */
+	struct lab_set pressed_sent_keys;
+
 	struct {
 		bool active;
 		struct {

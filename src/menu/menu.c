@@ -10,7 +10,7 @@
 #include <string.h>
 #include <strings.h>
 #include <unistd.h>
-#include <wlr/types/wlr_scene.h>
+#include <scenefx/types/wlr_scene.h>
 #include <wlr/types/wlr_xdg_shell.h>
 #include <wlr/util/log.h>
 #include "action.h"

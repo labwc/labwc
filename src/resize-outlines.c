@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 
 #include "resize-outlines.h"
-#include <wlr/types/wlr_scene.h>
+#include <scenefx/types/wlr_scene.h>
 #include "common/border.h"
 #include "common/lab-scene-rect.h"
 #include "config/rcxml.h"

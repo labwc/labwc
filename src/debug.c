@@ -2,7 +2,7 @@
 #include "debug.h"
 #include <stdlib.h>
 #include <wlr/types/wlr_layer_shell_v1.h>
-#include <wlr/types/wlr_scene.h>
+#include <scenefx/types/wlr_scene.h>
 #include "common/lab-scene-rect.h"
 #include "common/scene-helpers.h"
 #include "common/string-helpers.h"
@@ -42,6 +42,12 @@ get_node_type(struct wlr_scene_node *node)
 			return "surface";
 		}
 		return "buffer";
+	case WLR_SCENE_NODE_SHADOW:
+		return "shadow";
+	case WLR_SCENE_NODE_OPTIMIZED_BLUR:
+		return "optimized-blur";
+	case WLR_SCENE_NODE_BLUR:
+		return "blur";
 	}
 	return "error";
 }

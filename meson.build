@@ -161,6 +161,11 @@ subdir('protocols')
 labwc_deps = [
   server_protos,
   wayland_server,
+  # SceneFX provides the scene-graph renderer (with blur support).
+  # It must be listed before wlroots: libscenefx exports the same
+  # wlr_scene_* symbols and the dynamic linker resolves them in link
+  # order, so scenefx must come first.
+  dependency('scenefx-0.5', version: ['>=0.5.0']),
   wlroots,
   xkbcommon,
 	xcb_ewmh,

@@ -1171,6 +1171,21 @@ entry(xmlNode *node, char *nodename, char *content)
 	} else if (!strcasecmp(nodename, "errorCommand.core")) {
 		xstrdup_replace(rc.error_command, content);
 
+	} else if (!strcasecmp(nodename, "passes.blur")) {
+		rc.blur.passes = atoi(content);
+	} else if (!strcasecmp(nodename, "radius.blur")) {
+		rc.blur.radius = atoi(content);
+	} else if (!strcasecmp(nodename, "noise.blur")) {
+		set_float(content, &rc.blur.noise);
+	} else if (!strcasecmp(nodename, "brightness.blur")) {
+		set_float(content, &rc.blur.brightness);
+	} else if (!strcasecmp(nodename, "contrast.blur")) {
+		set_float(content, &rc.blur.contrast);
+	} else if (!strcasecmp(nodename, "saturation.blur")) {
+		set_float(content, &rc.blur.saturation);
+	} else if (!strcasecmp(nodename, "strength.blur")) {
+		set_float(content, &rc.blur.strength);
+
 	} else if (!strcmp(nodename, "policy.placement")) {
 		enum lab_placement_policy policy = view_placement_parse(content);
 		if (policy != LAB_PLACE_INVALID) {
@@ -1530,6 +1545,15 @@ rcxml_init(void)
 	rc.shadows_enabled = false;
 	rc.shadows_on_tiled = false;
 
+	/* blur: SceneFX defaults (see blur_data_get_default()) */
+	rc.blur.passes = 3;
+	rc.blur.radius = 5;
+	rc.blur.noise = 0.02f;
+	rc.blur.brightness = 0.9f;
+	rc.blur.contrast = 0.9f;
+	rc.blur.saturation = 1.1f;
+	rc.blur.strength = 1.0f;
+
 	rc.gap = 0;
 	rc.adaptive_sync = LAB_ADAPTIVE_SYNC_DISABLED;
 	rc.allow_tearing = LAB_TEARING_DISABLED;
@@ -1777,6 +1801,22 @@ load_default_window_switcher_fields(void)
 static void
 post_processing(void)
 {
+	/* Keep <blur> values in a range SceneFX can make sense of */
+	if (rc.blur.passes < 0) {
+		rc.blur.passes = 0;
+	}
+	if (rc.blur.radius < 0) {
+		rc.blur.radius = 0;
+	}
+	if (rc.blur.noise < 0.0f) {
+		rc.blur.noise = 0.0f;
+	}
+	if (rc.blur.strength < 0.0f) {
+		rc.blur.strength = 0.0f;
+	} else if (rc.blur.strength > 1.0f) {
+		rc.blur.strength = 1.0f;
+	}
+
 	if (!wl_list_length(&rc.keybinds)) {
 		wlr_log(WLR_INFO, "load default key bindings");
 		load_default_key_bindings();

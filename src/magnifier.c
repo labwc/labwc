@@ -6,7 +6,7 @@
 #include <wlr/render/swapchain.h>
 #include <wlr/types/wlr_cursor.h>
 #include <wlr/types/wlr_output.h>
-#include <wlr/types/wlr_scene.h>
+#include <scenefx/types/wlr_scene.h>
 #include <wlr/util/transform.h>
 #include "common/box.h"
 #include "config/rcxml.h"

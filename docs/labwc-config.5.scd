@@ -703,6 +703,38 @@ extending outward from the snapped edge.
 	Font weight (normal, thin, ultralight, light, semilight, book, medium,
 	semibold, bold, ultrabold, heavy, ultraheavy). Default is normal.
 
+## BLUR
+
+Settings of the blur effect rendered behind windows that request it with the
+*ext-background-effect-v1* protocol. All values are reloaded on reconfigure
+(SIGHUP).
+
+*<blur><passes>*
+	Number of blur passes. Bigger values blur over a larger area at the cost
+	of rendering time. Default is 3.
+
+*<blur><radius>*
+	Blur radius in pixels. Default is 5.
+
+*<blur><noise>*
+	Amount of noise mixed into the blurred image. Default is 0.02.
+
+*<blur><brightness>*
+	Brightness of the blurred image, where 1.0 leaves it unchanged.
+	Default is 0.9.
+
+*<blur><contrast>*
+	Contrast of the blurred image, where 1.0 leaves it unchanged.
+	Default is 0.9.
+
+*<blur><saturation>*
+	Saturation of the blurred image, where 1.0 leaves it unchanged.
+	Default is 1.1.
+
+*<blur><strength>*
+	Overall strength of the blur between 0 and 1, where 0 disables the blur.
+	Default is 1.
+
 ## MARGIN
 
 *<margin top="" bottom="" left="" right="" output="" />*

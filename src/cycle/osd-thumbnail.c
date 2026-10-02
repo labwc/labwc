@@ -4,7 +4,7 @@
 #include <wlr/render/swapchain.h>
 #include <wlr/types/wlr_buffer.h>
 #include <wlr/types/wlr_output_layout.h>
-#include <wlr/types/wlr_scene.h>
+#include <scenefx/types/wlr_scene.h>
 #include "config/rcxml.h"
 #include "common/box.h"
 #include "common/buf.h"
@@ -72,6 +72,11 @@ render_node(struct wlr_render_pass *pass,
 	case WLR_SCENE_NODE_RECT:
 		/* should be unreached */
 		wlr_log(WLR_ERROR, "ignoring rect");
+		break;
+	case WLR_SCENE_NODE_SHADOW:
+	case WLR_SCENE_NODE_OPTIMIZED_BLUR:
+	case WLR_SCENE_NODE_BLUR:
+		/* effects are not renderable into a thumbnail */
 		break;
 	}
 }

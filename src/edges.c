@@ -4,7 +4,7 @@
 #include <limits.h>
 #include <pixman.h>
 #include <wlr/types/wlr_output_layout.h>
-#include <wlr/types/wlr_scene.h>
+#include <scenefx/types/wlr_scene.h>
 #include <wlr/util/box.h>
 #include "common/border.h"
 #include "common/box.h"

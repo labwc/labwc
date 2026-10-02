@@ -4,7 +4,7 @@
 #include <assert.h>
 #include <string.h>
 #include <wlr/render/pixman.h>
-#include <wlr/types/wlr_scene.h>
+#include <scenefx/types/wlr_scene.h>
 #include "buffer.h"
 #include "common/mem.h"
 #include "common/scene-helpers.h"

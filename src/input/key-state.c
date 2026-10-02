@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <wlr/types/wlr_keyboard.h>
-#include <wlr/types/wlr_scene.h>
+#include <scenefx/types/wlr_scene.h>
 #include <xkbcommon/xkbcommon.h>
 #include "config/rcxml.h"
 #include "common/buf.h"

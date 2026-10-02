@@ -43,4 +43,11 @@ struct background_effect *background_effect_create(struct wl_display *display,
 const struct background_effect_surface_state *
 background_effect_get_state(struct wlr_surface *surface);
 
+/*
+ * Apply the <blur> section of rc.xml: SceneFX blur parameters and the
+ * strength of already existing blur nodes. Called at startup and on
+ * config reload.
+ */
+void background_effect_reconfigure(void);
+
 #endif /* LABWC_BACKGROUND_EFFECT_H */

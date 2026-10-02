@@ -3,7 +3,7 @@
 #include <assert.h>
 #include <wlr/types/wlr_cursor.h>
 #include <wlr/types/wlr_output_layout.h>
-#include <wlr/types/wlr_scene.h>
+#include <scenefx/types/wlr_scene.h>
 #include "common/lab-scene-rect.h"
 #include "config/rcxml.h"
 #include "labwc.h"

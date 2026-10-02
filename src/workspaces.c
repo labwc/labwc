@@ -10,7 +10,7 @@
 #include <strings.h>
 #include <wlr/types/wlr_ext_workspace_v1.h>
 #include <wlr/types/wlr_output_layout.h>
-#include <wlr/types/wlr_scene.h>
+#include <scenefx/types/wlr_scene.h>
 #include "buffer.h"
 #include "common/font.h"
 #include "common/graphic-helpers.h"

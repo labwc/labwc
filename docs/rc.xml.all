@@ -25,6 +25,16 @@
     -->
   </core>
 
+  <blur>
+    <passes>3</passes>
+    <radius>5</radius>
+    <noise>0.02</noise>
+    <brightness>0.9</brightness>
+    <contrast>0.9</contrast>
+    <saturation>1.1</saturation>
+    <strength>1.0</strength>
+  </blur>
+
   <placement>
     <policy>cascade</policy>
     <!--

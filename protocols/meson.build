@@ -16,6 +16,7 @@ wayland_scanner_server = generator(
 server_protocols = [
 	'wlr-layer-shell-unstable-v1.xml',
 	'wlr-output-power-management-unstable-v1.xml',
+	'ext-background-effect-v1.xml',
 ]
 
 server_protos_src = []
@@ -35,4 +36,8 @@ lib_server_protos = static_library(
 server_protos = declare_dependency(
 	link_with: lib_server_protos,
 	sources: server_protos_headers,
+	# Make the generated '*-protocol.h' headers includable from the
+	# compositor sources (this subdir and the project root, in both the
+	# source and the build tree).
+	include_directories: include_directories('.', '..'),
 )

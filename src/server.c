@@ -52,6 +52,7 @@
 #endif
 
 #include "action.h"
+#include "background-effect.h"
 #include "common/macros.h"
 #include "common/mem.h"
 #include "common/nag.h"
@@ -286,6 +287,7 @@ allow_for_sandbox(const struct wlr_security_context_v1_state *security_state,
 		"wp_single_pixel_buffer_manager_v1",
 		"wp_fractional_scale_manager_v1",
 		"wp_tearing_control_manager_v1",
+		"ext_background_effect_manager_v1",
 		"zwp_tablet_manager_v2",
 		"zxdg_importer_v1",
 		"zxdg_importer_v2",
@@ -799,6 +801,15 @@ server_init(void)
 	wlr_alpha_modifier_v1_create(server.wl_display);
 
 	session_lock_init();
+
+	/*
+	 * ext-background-effect-v1: advertise blur support so clients can
+	 * attach a blur region to their surfaces (see labwc/labwc #3391).
+	 * Note: the blur itself is not rendered yet.
+	 */
+	server.background_effect = background_effect_create(
+		server.wl_display,
+		EXT_BACKGROUND_EFFECT_MANAGER_V1_CAPABILITY_BLUR);
 
 #if WLR_HAS_DRM_BACKEND
 	server.drm_lease_manager = wlr_drm_lease_v1_manager_create(

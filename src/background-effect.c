@@ -31,10 +31,12 @@
 
 #include "background-effect.h"
 #include "common/mem.h"
+#include "common/scene-helpers.h"
 #include "config/rcxml.h"
 #include "ext-background-effect-v1-protocol.h"
 #include "labwc.h"
 #include "output.h"
+#include "view.h"
 
 #define BACKGROUND_EFFECT_VERSION 1
 
@@ -75,6 +77,70 @@ struct background_effect {
 	uint32_t capabilities;
 	struct wl_listener display_destroy;
 };
+
+/*
+ * Return the view whose scene_tree is an ancestor of @node, i.e. the
+ * owner of the surface. NULL for surfaces not owned by a view (layer
+ * shell clients, popups, ...).
+ */
+static struct view *
+find_view_for_node(struct wlr_scene_node *node)
+{
+	struct view *view;
+	wl_list_for_each(view, &server.views, link) {
+		if (!view->scene_tree) {
+			continue;
+		}
+		for (struct wlr_scene_node *n = node;
+				n;
+				n = n->parent ? &n->parent->node : NULL) {
+			if (n == &view->scene_tree->node) {
+				return view;
+			}
+		}
+	}
+	return NULL;
+}
+
+/* Absolute (scene root relative) position of @node */
+static void
+node_absolute_position(struct wlr_scene_node *node, int *x, int *y)
+{
+	*x = 0;
+	*y = 0;
+	for (struct wlr_scene_node *n = node;
+			n;
+			n = n->parent ? &n->parent->node : NULL) {
+		*x += n->x;
+		*y += n->y;
+	}
+}
+
+/*
+ * Dedicated home for the blur nodes of a view: the bottom-most child of
+ * view->scene_tree, i.e. below ssd->tree but above the backdrop.
+ *
+ * SceneFX renders a WLR_SCENE_NODE_BLUR clipped to its visible region
+ * expanded by one buffer pixel at fractional scales (round_up in
+ * scene_entry_render()), so the blur always spills ~1px outside its own
+ * box. Keeping it below the SSD lets the border cover that spill instead
+ * of the other way around.
+ *
+ * Lowered on every call because ssd_create() lowers ssd->tree to the
+ * bottom of view->scene_tree when the SSD is (re)created, e.g. on
+ * reconfigure or ToggleDecorations, while an idle client may not commit
+ * again for a long time.
+ */
+static struct wlr_scene_tree *
+view_get_blur_tree(struct view *view)
+{
+	assert(view->scene_tree);
+	if (!view->blur_tree) {
+		view->blur_tree = lab_wlr_scene_tree_create(view->scene_tree);
+	}
+	wlr_scene_node_lower_to_bottom(&view->blur_tree->node);
+	return view->blur_tree;
+}
 
 /*
  * All live background_effect_surface objects, so that the <blur> config
@@ -224,10 +290,30 @@ blur_nodes_update(struct background_effect_surface *surface)
 		return;
 	}
 
-	/* Blur nodes live in the tree holding the surface node */
-	struct wlr_scene_tree *tree = node->parent;
-	int offset_x = node->x;
-	int offset_y = node->y;
+	/*
+	 * Blur nodes live below the SSD so that the server-side border
+	 * covers the ~1px blur spill produced by SceneFX at fractional
+	 * scales (see view_get_blur_tree()).
+	 * Views without an SSD (CSD) get the same tree at the bottom of
+	 * view->scene_tree, which is equivalent to the previous behaviour.
+	 * Surfaces not owned by a view (layer-shell, popups, ...) keep the
+	 * old placement inside the tree holding the surface node.
+	 */
+	struct view *view = find_view_for_node(node);
+	struct wlr_scene_tree *tree;
+	int offset_x, offset_y;
+	if (view) {
+		tree = view_get_blur_tree(view);
+		int node_x, node_y, tree_x, tree_y;
+		node_absolute_position(node, &node_x, &node_y);
+		node_absolute_position(&tree->node, &tree_x, &tree_y);
+		offset_x = node_x - tree_x;
+		offset_y = node_y - tree_y;
+	} else {
+		tree = node->parent;
+		offset_x = node->x;
+		offset_y = node->y;
+	}
 
 	if (!wl_list_empty(&surface->blur_nodes)
 			&& surface->applied_tree == tree
@@ -258,7 +344,12 @@ blur_nodes_update(struct background_effect_surface *surface)
 		}
 		wlr_scene_node_set_position(&blur->node, x, y);
 		wlr_scene_blur_set_strength(blur, rc.blur.strength);
-		/* Render below the surface content, above everything else */
+		/*
+		 * Render below the surface content. Required for the fallback
+		 * tree (the surface node is a sibling there); in
+		 * view->blur_tree the content always renders above, so
+		 * lowering is harmless.
+		 */
 		wlr_scene_node_lower_to_bottom(&blur->node);
 
 		struct blur_node *blur_node = znew(*blur_node);

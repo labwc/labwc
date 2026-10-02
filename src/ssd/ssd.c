@@ -156,6 +156,15 @@ ssd_create(struct view *view, bool active)
 		LAB_NODE_SSD_ROOT, view, /*data*/ NULL);
 
 	wlr_scene_node_lower_to_bottom(&ssd->tree->node);
+	/*
+	 * Keep the ext-background-effect-v1 blur nodes below the SSD:
+	 * SceneFX spills the blur ~1px outside the blur node at fractional
+	 * scales, and the border (flush against the surface) has to be
+	 * rendered on top of that spill. See view_get_blur_tree().
+	 */
+	if (view->blur_tree) {
+		wlr_scene_node_lower_to_bottom(&view->blur_tree->node);
+	}
 	ssd->titlebar.height = rc.theme->titlebar_height;
 	ssd_shadow_create(ssd);
 	ssd_extents_create(ssd);

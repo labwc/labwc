@@ -2557,6 +2557,8 @@ view_destroy(struct view *view)
 	if (view->scene_tree) {
 		wlr_scene_node_destroy(&view->scene_tree->node);
 		view->scene_tree = NULL;
+		/* child of scene_tree, destroyed with it */
+		view->blur_tree = NULL;
 	}
 
 	assert(wl_list_empty(&view->events.new_app_id.listener_list));

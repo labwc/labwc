@@ -612,6 +612,9 @@ fill_menu(struct menu *parent, xmlNode *n)
 	char *execute = (char *)xmlGetProp(n, (const xmlChar *)"execute");
 	char *id = (char *)xmlGetProp(n, (const xmlChar *)"id");
 
+	bool internal = !strcmp(id, "client-list-combined-menu")
+		|| !strcmp(id, "client-send-to-menu");
+
 	if (!id) {
 		wlr_log(WLR_ERROR, "<menu> without id is not allowed");
 		goto error;
@@ -636,7 +639,7 @@ fill_menu(struct menu *parent, xmlNode *n)
 				icon_name, /* arrow */ true);
 			item->submenu = pipemenu;
 		}
-	} else if ((label && parent) || !parent) {
+	} else if (((label && parent) || !parent) && !internal) {
 		/*
 		 * (label && parent) refers to <menu id="" label="">
 		 * which is an nested (inline) menu definition.
@@ -656,6 +659,9 @@ fill_menu(struct menu *parent, xmlNode *n)
 		 * actually pointless so we handle it with or without the label
 		 * attribute to make it easier for users to define "root-menu"
 		 * and "client-menu".
+		 *
+		 * (!internal) rejects client-list-combined-menu and
+		 * client-send-to-menu
 		 */
 		struct menu *menu = menu_create(parent, id, label);
 		if (icon_name) {
@@ -703,7 +709,7 @@ fill_menu(struct menu *parent, xmlNode *n)
 			iter = iter->parent;
 		}
 
-		struct menuitem *item = item_create(parent, menu->label,
+		struct menuitem *item = item_create(parent, label ? label : menu->label,
 			icon_name ? icon_name : menu->icon_name, true);
 		item->submenu = menu;
 	}

@@ -22,8 +22,9 @@
 #include <wlr/types/wlr_output_power_management_v1.h>
 #include <wlr/types/wlr_xcursor_manager.h>
 #include <wlr/types/wlr_xdg_output_v1.h>
-#include <wlr/types/wlr_scene.h>
+#include <scenefx/types/wlr_scene.h>
 #include <wlr/util/log.h>
+#include "background-effect.h"
 #include "common/macros.h"
 #include "common/mem.h"
 #include "common/scene-helpers.h"
@@ -813,6 +814,13 @@ output_update_for_layout_change(void)
 {
 	output_update_all_usable_areas(/*layout_changed*/ true);
 	session_lock_update_for_layout_change();
+
+	/*
+	 * The output scale decides whether SceneFX spills the blur over
+	 * the node box (fractional scales only), so the blur nodes may
+	 * have to be rebuilt - see blur_region_compensate().
+	 */
+	background_effect_refresh();
 
 	/*
 	 * "Move" each wlr_output_cursor (in per-output coordinates) to

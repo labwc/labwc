@@ -5,6 +5,7 @@
 #include <signal.h>
 #include <string.h>
 #include <sys/wait.h>
+#include <scenefx/render/fx_renderer/fx_renderer.h>
 #include <wlr/backend/headless.h>
 #include <wlr/backend/multi.h>
 #include <wlr/config.h>
@@ -30,7 +31,7 @@
 #include <wlr/types/wlr_presentation_time.h>
 #include <wlr/types/wlr_primary_selection_v1.h>
 #include <wlr/types/wlr_relative_pointer_v1.h>
-#include <wlr/types/wlr_scene.h>
+#include <scenefx/types/wlr_scene.h>
 #include <wlr/types/wlr_screencopy_v1.h>
 #include <wlr/types/wlr_security_context_v1.h>
 #include <wlr/types/wlr_single_pixel_buffer_v1.h>
@@ -52,6 +53,7 @@
 #endif
 
 #include "action.h"
+#include "background-effect.h"
 #include "common/macros.h"
 #include "common/mem.h"
 #include "common/nag.h"
@@ -117,6 +119,7 @@ reload_config_and_theme(void)
 	cycle_finish(/*switch_focus*/ false);
 	menu_reconfigure();
 	seat_reconfigure();
+	background_effect_reconfigure();
 	regions_reconfigure();
 	resize_indicator_reconfigure();
 	kde_server_decoration_update_default();
@@ -286,6 +289,7 @@ allow_for_sandbox(const struct wlr_security_context_v1_state *security_state,
 		"wp_single_pixel_buffer_manager_v1",
 		"wp_fractional_scale_manager_v1",
 		"wp_tearing_control_manager_v1",
+		"ext_background_effect_manager_v1",
 		"zwp_tablet_manager_v2",
 		"zxdg_importer_v1",
 		"zxdg_importer_v2",
@@ -405,7 +409,7 @@ handle_renderer_lost(struct wl_listener *listener, void *data)
 {
 	wlr_log(WLR_INFO, "Re-creating renderer after GPU reset");
 
-	struct wlr_renderer *renderer = wlr_renderer_autocreate(server.backend);
+	struct wlr_renderer *renderer = fx_renderer_create(server.backend);
 	if (!renderer) {
 		wlr_log(WLR_ERROR, "Unable to create renderer");
 		return;
@@ -559,9 +563,15 @@ server_init(void)
 	 * The renderer is responsible for defining the various pixel formats it
 	 * supports for shared memory, this configures that for clients.
 	 */
-	server.renderer = wlr_renderer_autocreate(server.backend);
+	/*
+	 * SceneFX needs its own GLES2 based renderer: the scene-graph
+	 * (blur, shadows, rounded corners) renders through it. An
+	 * autocreated pixman/vulkan renderer cannot be used.
+	 */
+	server.renderer = fx_renderer_create(server.backend);
 	if (!server.renderer) {
-		wlr_log(WLR_ERROR, "unable to create renderer");
+		wlr_log(WLR_ERROR, "unable to create SceneFX fx renderer "
+			"(GLES2 + DRM render node required)");
 		exit(EXIT_FAILURE);
 	}
 
@@ -799,6 +809,17 @@ server_init(void)
 	wlr_alpha_modifier_v1_create(server.wl_display);
 
 	session_lock_init();
+
+	/*
+	 * ext-background-effect-v1: advertise blur support so clients can
+	 * attach a blur region to their surfaces (see labwc/labwc #3391).
+	 * The blur is rendered by SceneFX (wlr_scene_blur nodes); its
+	 * parameters are read from the <blur> section of rc.xml.
+	 */
+	server.background_effect = background_effect_create(
+		server.wl_display,
+		EXT_BACKGROUND_EFFECT_MANAGER_V1_CAPABILITY_BLUR);
+	background_effect_reconfigure();
 
 #if WLR_HAS_DRM_BACKEND
 	server.drm_lease_manager = wlr_drm_lease_v1_manager_create(

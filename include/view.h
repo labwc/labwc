@@ -172,6 +172,14 @@ struct view {
 	struct wlr_surface *surface;
 	struct wlr_scene_tree *scene_tree;
 	struct wlr_scene_tree *content_tree; /* may be NULL for unmapped view */
+	/*
+	 * Holds the ext-background-effect-v1 blur nodes. Kept as the
+	 * bottom-most child of scene_tree (below ssd->tree) so that the
+	 * server-side border is rendered on top of the blur spill that
+	 * SceneFX produces at fractional scales. NULL until the first blur
+	 * is requested (created by background-effect.c).
+	 */
+	struct wlr_scene_tree *blur_tree;
 
 	/* These are never NULL and an empty string is set instead. */
 	char *title;

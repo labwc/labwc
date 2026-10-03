@@ -89,6 +89,21 @@ struct rcxml {
 	char *prompt_command;
 	char *error_command;
 
+	/*
+	 * blur (SceneFX, used for ext-background-effect-v1 blur regions).
+	 * The first six values map to wlr_scene_set_blur_data(), strength
+	 * is applied per wlr_scene_blur node.
+	 */
+	struct blur_config {
+		int passes;
+		int radius;
+		float noise;
+		float brightness;
+		float contrast;
+		float saturation;
+		float strength;
+	} blur;
+
 	/* placement */
 	enum lab_placement_policy placement_policy;
 	int placement_cascade_offset_x;

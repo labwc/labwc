@@ -13,6 +13,7 @@
 #define XCURSOR_SIZE 24
 
 struct wlr_xdg_popup;
+struct background_effect;
 
 enum input_mode {
 	LAB_INPUT_STATE_PASSTHROUGH = 0,
@@ -166,6 +167,9 @@ struct server {
 	struct wlr_session *session;
 	struct wlr_linux_dmabuf_v1 *linux_dmabuf;
 	struct wlr_compositor *compositor;
+
+	/* ext-background-effect-v1 (see labwc/labwc discussion #3391) */
+	struct background_effect *background_effect;
 
 	struct wl_event_source *sighup_source;
 	struct wl_event_source *sigint_source;

@@ -7,7 +7,7 @@
 #include <strings.h>
 #include <unistd.h>
 #include <wlr/types/wlr_cursor.h>
-#include <wlr/types/wlr_scene.h>
+#include <scenefx/types/wlr_scene.h>
 #include <wlr/util/log.h>
 #include "action-prompt-codes.h"
 #include "common/buf.h"

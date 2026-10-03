@@ -3,7 +3,7 @@
 #include "common/scene-helpers.h"
 #include <assert.h>
 #include <wlr/types/wlr_output.h>
-#include <wlr/types/wlr_scene.h>
+#include <scenefx/types/wlr_scene.h>
 #include <wlr/util/log.h>
 #include "common/mem.h"
 #include "magnifier.h"

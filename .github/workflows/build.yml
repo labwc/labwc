@@ -85,7 +85,7 @@ jobs:
           pacman -Syu --noconfirm
           pacman -S --noconfirm git meson clang wlroots0.20 libdrm libinput \
             wayland-protocols cairo pango libxml2 xorg-xwayland librsvg \
-            libdisplay-info gdb ttf-dejavu foot libsfdo cmocka
+            libdisplay-info gdb ttf-dejavu foot libsfdo cmocka scenefx
 
       - name: Install Debian Testing dependencies
         if: matrix.name == 'Debian'
@@ -101,7 +101,8 @@ jobs:
           apt-get install -y libxml2-dev liblzma-dev libglib2.0-dev \
             libcairo2-dev libpango1.0-dev libinput-dev libpng-dev \
             librsvg2-dev wayland-protocols libxkbcommon-dev libdrm-dev \
-            scdoc gettext libwlroots-0.20-dev libsfdo-dev
+            scdoc gettext libwlroots-0.20-dev libsfdo-dev \
+            libscenefx-0.5-dev
 
       - name: Install FreeBSD dependencies
         if: matrix.name == 'FreeBSD'
@@ -113,7 +114,7 @@ jobs:
             pkg set -yn pkg:mesa-dri # hack to skip llvm dependency
             pkg install -y git pcre2 meson gcc pkgconf cairo pango evdev-proto \
               hwdata wayland-protocols libdisplay-info libepoll-shim \
-              wlroots020
+              wlroots020 scenefx05
           run: echo "setup done"
 
       - name: Install Void Linux dependencies
@@ -128,7 +129,7 @@ jobs:
           xbps-install -y git meson gcc clang pkg-config scdoc \
             cairo-devel glib-devel libpng-devel librsvg-devel libxml2-devel \
             pango-devel wlroots0.20-devel gdb bash xorg-server-xwayland \
-            dejavu-fonts-ttf libsfdo-devel foot hwids
+            dejavu-fonts-ttf libsfdo-devel foot hwids scenefx-devel
 
       # These builds are executed on all runners
       - name: Build with gcc

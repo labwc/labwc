@@ -50,4 +50,12 @@ background_effect_get_state(struct wlr_surface *surface);
  */
 void background_effect_reconfigure(void);
 
+/*
+ * Re-evaluate the blur nodes of all live surfaces. Called on output
+ * layout changes, e.g. when the output scale switches between integer
+ * and fractional and the nodes have to be rebuilt with (or without) the
+ * SceneFX spill compensation.
+ */
+void background_effect_refresh(void);
+
 #endif /* LABWC_BACKGROUND_EFFECT_H */

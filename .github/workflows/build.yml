@@ -50,7 +50,9 @@ jobs:
         include:
           - name: Arch
             os: ubuntu-latest
-            container: archlinux:base-devel
+            container:
+              image: archlinux:base-devel
+              options: --device /dev/udmabuf
             env:
               TARGET: 'sh -xe'
 
@@ -67,7 +69,9 @@ jobs:
 
           - name: Void-musl
             os: ubuntu-latest
-            container: ghcr.io/void-linux/void-musl:latest
+            container:
+              image: ghcr.io/void-linux/void-musl:latest
+              options: --device /dev/udmabuf
             env:
               TARGET: 'sh -xe'
 
@@ -85,7 +89,8 @@ jobs:
           pacman -Syu --noconfirm
           pacman -S --noconfirm git meson clang wlroots0.20 libdrm libinput \
             wayland-protocols cairo pango libxml2 xorg-xwayland librsvg \
-            libdisplay-info gdb ttf-dejavu foot libsfdo cmocka scenefx
+            libdisplay-info gdb ttf-dejavu foot libsfdo cmocka scenefx \
+            adwaita-cursors
 
       - name: Install Debian Testing dependencies
         if: matrix.name == 'Debian'
@@ -129,7 +134,8 @@ jobs:
           xbps-install -y git meson gcc clang pkg-config scdoc \
             cairo-devel glib-devel libpng-devel librsvg-devel libxml2-devel \
             pango-devel wlroots0.20-devel gdb bash xorg-server-xwayland \
-            dejavu-fonts-ttf libsfdo-devel foot hwids scenefx-devel
+            dejavu-fonts-ttf libsfdo-devel foot hwids scenefx-devel \
+            mesa mesa-dri adwaita-icon-theme
 
       # These builds are executed on all runners
       - name: Build with gcc
@@ -249,6 +255,7 @@ jobs:
           echo '
             cd "$GITHUB_WORKSPACE"
             export CC=gcc
+            export WLR_RENDERER_FORCE_SOFTWARE=1 XCURSOR_THEME=Adwaita
             meson setup build-gcc-gdb -Dxwayland=enabled -Db_sanitize=undefined --werror
             meson compile -C build-gcc-gdb
             scripts/ci/smoke-test.sh build-gcc-gdb
@@ -260,6 +267,7 @@ jobs:
           echo '
             cd "$GITHUB_WORKSPACE"
             export CC=clang
+            export WLR_RENDERER_FORCE_SOFTWARE=1 XCURSOR_THEME=Adwaita
             meson setup build-clang-gdb -Dxwayland=enabled -Db_sanitize=undefined --werror
             meson compile -C build-clang-gdb
             scripts/ci/smoke-test.sh build-clang-gdb
@@ -271,6 +279,7 @@ jobs:
           echo '
             cd "$GITHUB_WORKSPACE"
             export CC=gcc
+            export WLR_RENDERER_FORCE_SOFTWARE=1 XCURSOR_THEME=Adwaita
             meson setup build-gcc-leak -Dxwayland=enabled -Db_sanitize=address,undefined \
               --werror --force-fallback-for=wlroots -Dwlroots:c_std=c11
             meson compile -C build-gcc-leak
@@ -283,6 +292,7 @@ jobs:
           echo '
             cd "$GITHUB_WORKSPACE"
             export CC=clang
+            export WLR_RENDERER_FORCE_SOFTWARE=1 XCURSOR_THEME=Adwaita
             meson setup build-clang-leak -Dxwayland=enabled -Db_sanitize=address,undefined \
               --werror --force-fallback-for=wlroots -Dwlroots:c_std=c11
             meson compile -C build-clang-leak
@@ -296,6 +306,7 @@ jobs:
           echo '
             cd "$GITHUB_WORKSPACE"
             export CC=gcc
+            export WLR_RENDERER_FORCE_SOFTWARE=1 XCURSOR_THEME=Adwaita
             meson setup build-gcc-gdb -Dxwayland=enabled --werror
             meson compile -C build-gcc-gdb
             LABWC_RUNS=2 scripts/ci/smoke-test.sh build-gcc-gdb

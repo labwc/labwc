@@ -30,6 +30,7 @@
 #include <wlr/util/log.h>
 
 #include "background-effect.h"
+#include "common/macros.h"
 #include "common/mem.h"
 #include "common/scene-helpers.h"
 #include "config/rcxml.h"
@@ -61,6 +62,13 @@ struct background_effect_surface {
 	pixman_region32_t applied; /* region the blur_nodes cover */
 	struct wlr_scene_tree *applied_tree; /* tree the blur_nodes live in */
 	int applied_x, applied_y; /* surface node offset inside applied_tree */
+	/*
+	 * Whether the blur_nodes were created with the SceneFX spill
+	 * compensation (see blur_region_compensate()) - the answer changes
+	 * with the output scale, so it takes part in the "nothing changed"
+	 * check below.
+	 */
+	bool applied_compensate;
 
 	/*
 	 * Scene-node rendering wlr_surface, cached to avoid searching the
@@ -140,6 +148,84 @@ view_get_blur_tree(struct view *view)
 	}
 	wlr_scene_node_lower_to_bottom(&view->blur_tree->node);
 	return view->blur_tree;
+}
+
+/*
+ * SceneFX renders a WLR_SCENE_NODE_BLUR clipped to the node's visible
+ * region converted to buffer coordinates with round_up=true, which
+ * expands the region by one buffer pixel whenever the output scale is
+ * fractional (scale_region() in scenefx/types/scene/wlr_scene.c). A blur
+ * node therefore paints ~1px outside of its own box.
+ *
+ * For views that spill is hidden by the SSD, which is rendered above the
+ * blur nodes. Layer-shell surfaces (bars, docks) have nothing around them:
+ * on a detailed wallpaper the spill shows up as a ~1px halo of blurred
+ * backdrop hugging the client's outline, made worse by clients that
+ * approximate rounded shapes with a staircase of rectangles.
+ *
+ * Shrink the outer contour of @region by one logical pixel so that the
+ * spill lands back on the requested area. The erosion is calculated on the
+ * union, so boundaries shared with another rect of the same region - the
+ * steps of a client side tessellated rounded rectangle - stay untouched
+ * and keep their coverage.
+ *
+ * Returns false when the region is too small to survive the erosion; the
+ * caller then keeps the original region.
+ */
+static bool
+blur_region_compensate(pixman_region32_t *region)
+{
+	static const int offsets[][2] = {
+		{ 1, 0 }, { -1, 0 }, { 0, 1 }, { 0, -1 },
+		{ 1, 1 }, { 1, -1 }, { -1, 1 }, { -1, -1 },
+	};
+	pixman_region32_t eroded, shifted;
+
+	pixman_region32_init(&eroded);
+	pixman_region32_copy(&eroded, region);
+	for (size_t i = 0; i < ARRAY_SIZE(offsets); i++) {
+		pixman_region32_init(&shifted);
+		pixman_region32_copy(&shifted, region);
+		pixman_region32_translate(&shifted,
+			offsets[i][0], offsets[i][1]);
+		pixman_region32_intersect(&eroded, &eroded, &shifted);
+		pixman_region32_fini(&shifted);
+	}
+	bool success = pixman_region32_not_empty(&eroded);
+	if (success) {
+		pixman_region32_copy(region, &eroded);
+	}
+	pixman_region32_fini(&eroded);
+	return success;
+}
+
+/*
+ * True when at least one usable output runs at a fractional scale in
+ * (1, 2), i.e. when SceneFX applies the one buffer pixel spill and the
+ * compensating erosion costs at most one boundary row inside the
+ * requested region.
+ *
+ * Outside that range the trade is not worth it: at scale >= 2 eroding by
+ * one logical pixel costs two buffer rows of blur inside the client's
+ * shape, at scale <= 1 fractional it would not fully absorb the one pixel
+ * spill anyway. Integer scales have no spill at all (scale_region()
+ * only expands when floor(scale) != scale).
+ */
+static bool
+spill_compensation_in_use(void)
+{
+	struct output *output;
+
+	wl_list_for_each(output, &server.outputs, link) {
+		if (!output_is_usable(output)) {
+			continue;
+		}
+		float scale = output->wlr_output->scale;
+		if (scale > 1.f && scale < 2.f && scale != (float)(int)scale) {
+			return true;
+		}
+	}
+	return false;
 }
 
 /*
@@ -315,10 +401,21 @@ blur_nodes_update(struct background_effect_surface *surface)
 		offset_y = node->y;
 	}
 
+	/*
+	 * Compensate the SceneFX spill only where it is not covered
+	 * anyway: layer-shell surfaces and views without an SSD (CSD).
+	 * Where an SSD is present its border renders above the blur nodes
+	 * and hides the spill, and compensating would only cost a blurred
+	 * pixel row along the window edge.
+	 */
+	bool compensate = spill_compensation_in_use()
+		&& (!view || !view->ssd);
+
 	if (!wl_list_empty(&surface->blur_nodes)
 			&& surface->applied_tree == tree
 			&& surface->applied_x == offset_x
 			&& surface->applied_y == offset_y
+			&& surface->applied_compensate == compensate
 			&& pixman_region32_equal(&surface->applied, &region)) {
 		/* Nothing changed */
 		pixman_region32_fini(&region);
@@ -327,9 +424,22 @@ blur_nodes_update(struct background_effect_surface *surface)
 
 	blur_nodes_destroy(surface);
 
+	/*
+	 * Region actually covered by the blur nodes: the requested one,
+	 * shrunk by the SceneFX spill where the spill would be visible on
+	 * the backdrop (no SSD to hide it under). `region` itself stays the
+	 * client's request, it is what `applied` compares against.
+	 */
+	pixman_region32_t node_region;
+	pixman_region32_init(&node_region);
+	pixman_region32_copy(&node_region, &region);
+	if (compensate) {
+		blur_region_compensate(&node_region);
+	}
+
 	int n_rects;
 	const pixman_box32_t *rects =
-		pixman_region32_rectangles(&region, &n_rects);
+		pixman_region32_rectangles(&node_region, &n_rects);
 	for (int i = 0; i < n_rects; i++) {
 		int x = offset_x + rects[i].x1;
 		int y = offset_y + rects[i].y1;
@@ -363,11 +473,13 @@ blur_nodes_update(struct background_effect_surface *surface)
 	surface->applied_tree = tree;
 	surface->applied_x = offset_x;
 	surface->applied_y = offset_y;
-	const pixman_box32_t *extents = pixman_region32_extents(&region);
+	surface->applied_compensate = compensate;
+	const pixman_box32_t *extents = pixman_region32_extents(&node_region);
 	wlr_log(WLR_DEBUG, "ext-background-effect-v1: created %d blur "
 		"node(s) for surface %p covering %dx%d",
 		n_rects, (void *)surface->wlr_surface,
 		extents->x2 - extents->x1, extents->y2 - extents->y1);
+	pixman_region32_fini(&node_region);
 	pixman_region32_fini(&region);
 }
 
@@ -666,4 +778,20 @@ background_effect_reconfigure(void)
 		"saturation=%.2f strength=%.2f", rc.blur.passes, rc.blur.radius,
 		rc.blur.noise, rc.blur.brightness, rc.blur.contrast,
 		rc.blur.saturation, rc.blur.strength);
+}
+
+/*
+ * Re-run blur_nodes_update() for every surface that has one. Needed when
+ * something the client has no say in changes how the nodes must be built -
+ * currently the output scale, which decides whether the SceneFX spill has
+ * to be compensated (see blur_region_compensate()). Called on output
+ * layout changes; cheap no-op when nothing changed.
+ */
+void
+background_effect_refresh(void)
+{
+	struct background_effect_surface *surface;
+	wl_list_for_each(surface, &surfaces, link) {
+		blur_nodes_update(surface);
+	}
 }

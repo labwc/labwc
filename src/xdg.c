@@ -613,10 +613,10 @@ xdg_toplevel_view_configure(struct view *view, struct wlr_box geo)
 	struct wlr_xdg_toplevel *toplevel = xdg_toplevel_from_view(view);
 
 	/*
-	 * We do not need to send a configure request unless the size
-	 * changed (wayland has no notion of a global position). If the
-	 * size is the same (and there is no pending configure request)
-	 * then we can just move the view directly.
+	 * We do not need to send a configure request unless the size changed
+	 * (wayland has no notion of a global position). If the size is the same
+	 * (and there is no pending configure request) then we can just move the
+	 * view directly.
 	 */
 	if (geo.width != view->pending.width
 			|| geo.height != view->pending.height) {
@@ -641,13 +641,15 @@ xdg_toplevel_view_configure(struct view *view, struct wlr_box geo)
 			}
 		} else {
 			/*
-			 * This may happen, for example, when a panel resizes because a
-			 * foreign-toplevel has been destroyed. This would then trigger
-			 * a call to desktop_arrange_all_views() which in turn explicitly
-			 * also tries to configure unmapped surfaces. This is fine when
-			 * trying to resize surfaces before they are mapped but it will
-			 * also try to resize surfaces which have been unmapped but their
-			 * associated struct view has not been destroyed yet.
+			 * This may happen, for example, when a panel resizes
+			 * because a foreign-toplevel has been destroyed. This
+			 * would then trigger a call to
+			 * desktop_arrange_all_views() which in turn explicitly
+			 * also tries to configure unmapped surfaces. This is
+			 * fine when trying to resize surfaces before they are
+			 * mapped but it will also try to resize surfaces which
+			 * have been unmapped but their associated struct view
+			 * has not been destroyed yet.
 			 */
 			wlr_log(WLR_DEBUG, "Preventing configure of uninitialized surface");
 		}

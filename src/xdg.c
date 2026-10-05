@@ -631,8 +631,9 @@ xdg_toplevel_view_configure(struct view *view, struct wlr_box geo)
 			 *
 			 * Ref:
 			 * - https://github.com/labwc/labwc/issues/3608
+			 * - https://github.com/labwc/labwc/issues/3750
 			 */
-			if (geo.width > 0 && geo.height > 0) {
+			if (geo.width >= 0 && geo.height >= 0) {
 				serial = wlr_xdg_toplevel_set_size(toplevel,
 						geo.width, geo.height);
 			} else {

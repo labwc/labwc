@@ -6,6 +6,7 @@ href="https://github.com/labwc/labwc-scope#readme">Scope</a>] [<a
 href="https://web.libera.chat/gamja/?channels=#labwc">IRC&nbsp;Channel</a>] [<a
 href="NEWS.md">Release&nbsp;Notes</a>]</h3>
 
+- [0. Direction](#direction)
 - [1. Project Description](#1-project-description)
   - [1.1 What Is This?](#11-what-is-this)
   - [1.2 Why](#12-why)
@@ -20,6 +21,35 @@ href="NEWS.md">Release&nbsp;Notes</a>]</h3>
   - [5.1 Gaming](#51-gaming)
 - [6. Integration](#6-integration)
 - [7. Translations](#7-translations)
+
+## 0. Direction
+
+Labwc has been conservative with new features since the beginning of 2026, and
+the project lead (@johanmalm) consider labwc to be in a good spot in terms of
+features. To set expectations, feature additions are expected to be rare and
+always in line with philosophy(7).
+
+This should not be interpreted as labwc being a dormant or "finished" project.
+Quite the opposite - we consider this a sign that labwc has reached a degree of
+maturity where development can focus less on adding features and more on making
+what already exists work well.
+
+There is still substantial work to do. Wayland and the libraries on which labwc
+depends continue to evolve, hardware and desktop environments continue to
+change, bugs will always need fixing, and existing functionality can always be
+improved. These things provide an ongoing stream of meaningful development
+without requiring labwc's feature set to continually expand.
+
+New features are therefore not prohibited. They simply need to justify their
+place in a project whose shape is now reasonably well established. We would
+rather see labwc remain a small, focused and dependable compositor than
+gradually accumulate features that do not clearly belong.
+
+References:
+
+- [Philosophy](https://labwc.github.io/labwc-philosophy.7.html)
+- [Use of AI generated content](https://github.com/labwc/labwc/blob/master/CONTRIBUTING.md#use-of-ai-generated-content)
+- [Project Scope](https://github.com/labwc/labwc-scope)
 
 ## 1. Project Description
 

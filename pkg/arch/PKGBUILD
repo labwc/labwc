@@ -1,0 +1,45 @@
+# Maintainer: grigio <grigio@users.noreply.github.com>
+#
+# labwc-blur: labwc with the ext-background-effect-v1 (blur) patch stack.
+#
+# Built automatically by .github/workflows/labwc-blur.yml: each
+# labwc-blur-<upstream tag> git tag is upstream labwc + the rebased
+# patch stack.  CI rewrites pkgver/pkgrel/sha256sums; the defaults
+# below point at the most recent release.
+
+pkgname=labwc-blur
+pkgver=0.20.2
+pkgrel=1
+pkgdesc='Wayland compositor with ext-background-effect blur (labwc fork)'
+arch=('x86_64')
+url='https://github.com/grigio/labwc'
+license=('GPL-2.0-only')
+depends=('cairo' 'glib2' 'glibc' 'libinput' 'libpng' 'librsvg' 'libsfdo'
+	'libwlroots-0.20.so=libwlroots-0.20.so-64' 'libxcb' 'libxkbcommon'
+	'libxml2' 'pango' 'pixman' 'scenefx' 'seatd' 'ttf-font' 'wayland')
+makedepends=('git' 'meson' 'scdoc' 'wayland-protocols' 'xorg-xwayland'
+	'xcb-util-wm')
+provides=('labwc')
+conflicts=('labwc')
+
+# GitHub tarball prefix is <repo>-<tag>, i.e. labwc-labwc-blur-<pkgver>
+source=("$pkgname-$pkgver.tar.gz::$url/archive/refs/tags/labwc-blur-$pkgver.tar.gz")
+# CI replaces this with the checksum of the tag tarball
+sha256sums=('SKIP')
+
+build() {
+	cd "$srcdir/labwc-labwc-blur-$pkgver"
+	meson setup build \
+		--prefix=/usr \
+		--sysconfdir=/etc \
+		-Dbuildtype=release \
+		-Db_ndebug=true \
+		-Dxwayland=enabled \
+		-Dman-pages=enabled
+	meson compile -C build
+}
+
+package() {
+	cd "$srcdir/labwc-labwc-blur-$pkgver"
+	DESTDIR="$pkgdir" meson install -C build
+}

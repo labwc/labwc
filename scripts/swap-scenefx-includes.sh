@@ -1,5 +1,5 @@
 #!/bin/sh
-# Swap #include <wlr/types/wlr_scene.h> for the SceneFX equivalent.
+# Swap #include <scenefx/types/wlr_scene.h> for the SceneFX equivalent.
 #
 # labwc-blur links against SceneFX instead of the wlroots scene library
 # (libscenefx re-exports the wlr_scene_* symbols, see the meson.build
@@ -14,7 +14,7 @@ set -eu
 
 cd "$(git rev-parse --show-toplevel)"
 
-old='#include <wlr/types/wlr_scene.h>'
+old='#include <scenefx/types/wlr_scene.h>'
 new='#include <scenefx/types/wlr_scene.h>'
 
 files=$(git grep -l -F "$old" -- . || true)

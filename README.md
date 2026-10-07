@@ -6,7 +6,7 @@ href="https://github.com/labwc/labwc-scope#readme">Scope</a>] [<a
 href="https://web.libera.chat/gamja/?channels=#labwc">IRC&nbsp;Channel</a>] [<a
 href="NEWS.md">Release&nbsp;Notes</a>]</h3>
 
-- [0. Direction](#direction)
+- [0. Direction](#0-direction)
 - [1. Project Description](#1-project-description)
   - [1.1 What Is This?](#11-what-is-this)
   - [1.2 Why](#12-why)

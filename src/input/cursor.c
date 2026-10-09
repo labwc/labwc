@@ -740,7 +740,10 @@ static void
 warp_cursor_to_constraint_hint(struct seat *seat,
 		struct wlr_pointer_constraint_v1 *constraint)
 {
-	if (!server.active_view) {
+	struct view *view = server.active_view;
+	struct wlr_layer_surface_v1 *layer = server.seat.focused_layer;
+	struct wlr_surface *surface = constraint ? constraint->surface : NULL;
+	if (!surface || (!view && !layer)) {
 		return;
 	}
 
@@ -748,9 +751,19 @@ warp_cursor_to_constraint_hint(struct seat *seat,
 			& WLR_POINTER_CONSTRAINT_V1_STATE_CURSOR_HINT) {
 		double sx = constraint->current.cursor_hint.x;
 		double sy = constraint->current.cursor_hint.y;
-		wlr_cursor_warp(seat->cursor, NULL,
-			server.active_view->current.x + sx,
-			server.active_view->current.y + sy);
+		int x = 0;
+		int y = 0;
+		if (view && view->surface == surface) {
+			x = view->current.x;
+			y = view->current.y;
+		} else if (layer && layer->surface == surface) {
+			struct wlr_scene_tree *scene_tree = surface->data;
+			x = scene_tree->node.x;
+			y = scene_tree->node.y;
+		} else {
+			return;
+		}
+		wlr_cursor_warp(seat->cursor, NULL, x + sx, y + sy);
 
 		/* Make sure we are not sending unnecessary surface movements */
 		wlr_seat_pointer_warp(seat->wlr_seat, sx, sy);
@@ -801,7 +814,9 @@ create_constraint(struct wl_listener *listener, void *data)
 	wl_signal_add(&wlr_constraint->events.destroy, &constraint->destroy);
 
 	struct view *view = server.active_view;
-	if (view && view->surface == wlr_constraint->surface) {
+	struct wlr_layer_surface_v1 *layer = server.seat.focused_layer;
+	if ((view && view->surface == wlr_constraint->surface)
+			|| (layer && layer->surface == wlr_constraint->surface)) {
 		constrain_cursor(wlr_constraint);
 	}
 }
@@ -840,7 +855,13 @@ constrain_cursor(struct wlr_pointer_constraint_v1
 static void
 apply_constraint(struct seat *seat, struct wlr_pointer *pointer, double *x, double *y)
 {
-	if (!server.active_view) {
+	struct view *view = server.active_view;
+	struct wlr_layer_surface_v1 *layer = server.seat.focused_layer;
+	struct wlr_surface *surface = seat->current_constraint
+		? seat->current_constraint->surface
+		: NULL;
+
+	if (!surface || (!view && !layer)) {
 		return;
 	}
 	if (!seat->current_constraint
@@ -853,8 +874,16 @@ apply_constraint(struct seat *seat, struct wlr_pointer *pointer, double *x, doub
 	double sx = seat->cursor->x;
 	double sy = seat->cursor->y;
 
-	sx -= server.active_view->current.x;
-	sy -= server.active_view->current.y;
+	if (view && view->surface == surface) {
+		sx -= view->current.x;
+		sy -= view->current.y;
+	} else if (layer && layer->surface == surface) {
+		struct wlr_scene_tree *scene_tree = surface->data;
+		sx -= scene_tree->node.x;
+		sy -= scene_tree->node.y;
+	} else {
+		return;
+	}
 
 	double sx_confined, sy_confined;
 	if (!wlr_region_confine(&seat->current_constraint->region, sx, sy,

@@ -904,6 +904,9 @@ seat_focus_surface(struct seat *seat, struct wlr_surface *surface)
 void
 seat_focus_lock_surface(struct seat *seat, struct wlr_surface *surface)
 {
+	if (wlr_seat_keyboard_has_grab(seat->wlr_seat)) {
+		wlr_seat_keyboard_end_grab(seat->wlr_seat);
+	}
 	seat_focus(seat, surface, /*replace_exclusive_layer*/ true,
 		/*is_lock_surface*/ true);
 }

@@ -449,6 +449,7 @@ handle_menu_keys(struct keysyms *syms)
 			};
 			break;
 		case XKB_KEY_Escape:
+		case XKB_KEY_Super_L:
 			menu_close_root();
 			cursor_update_focus();
 			break;

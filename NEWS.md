@@ -90,6 +90,40 @@ The format is based on [Keep a Changelog]
 
 [unreleased-commits]
 
+### Added
+
+- Add `overrideInhibition` option to `<mousebind>` @elviosak` [#3738]
+- Add libinput options `<clickfingerButtonMap>` and `<rotationAngle>`
+  @RyoheiHashimoto [#3719] [#3720]
+- Add opt-in native libinput `custom` acceleration through `<accelProfile>`,
+  with separate `<motionCurve>`, `<scrollCurve>` and `<fallbackCurve>`
+  profiles. This allows precise low-speed scrolling while keeping faster
+  scrolling responsive. @kgagne [#3715]
+- Add config option `<snapping><overlay><placement>` to optionally place the
+  snap-overlay above the dragged window @Blackseafisher1 [#3683]
+
+### Fixed
+
+- Fix some rare XWayland window focus and geometry issues by delaying the
+  connection of the commit signal to avoid using old dimensions @elviosak
+  [#3711] [#3746]
+- Fix internal menus (for example `client-list-combined-menu`) breaking if a
+  label is defined @ch3rn1ka [#3754]
+- Fix xdg-shell regression whereby unmaximizing an initially maximized window
+  keeps the maximized geometry @johanmalm [#3750] [#3755]
+- Wait for pipemenus to open before entering via accelerator @ch3rn1ka [#3700]
+- Fix `<privilegedInterfaces><allow>` logic to achieve intended behaviour which
+  is to disable all on first encounter with `<privilegedInterfaces>` and then
+  add interface specified by `<allow>`. @xi [#3705]
+
+### Changed
+
+- Allow xkbcommon to use getenv() which is required when labwc is running with
+  elevated privileges, for example with a non-empty permitted capability set
+  on the executable or when running on Android. @Consolatis [#3662] [#3690]
+- Limit tilde expansion to make it more POSIX shell compliant @domo141 [#3716]
+- Allow `Close` and `Kill` actions while window switching @typebrook [#3710]
+
 ## Notes on wlroots-0.20
 
 There are some regression warnings worth noting for the switch to wlroots 0.20:
@@ -3432,7 +3466,23 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
 [#3641]: https://github.com/labwc/labwc/pull/3641
 [#3654]: https://github.com/labwc/labwc/pull/3654
 [#3656]: https://github.com/labwc/labwc/pull/3656
+[#3662]: https://github.com/labwc/labwc/pull/3662
 [#3667]: https://github.com/labwc/labwc/pull/3667
+[#3683]: https://github.com/labwc/labwc/pull/3683
 [#3685]: https://github.com/labwc/labwc/pull/3685
+[#3690]: https://github.com/labwc/labwc/pull/3690
 [#3697]: https://github.com/labwc/labwc/pull/3697
+[#3700]: https://github.com/labwc/labwc/pull/3700
 [#3701]: https://github.com/labwc/labwc/pull/3701
+[#3705]: https://github.com/labwc/labwc/pull/3705
+[#3710]: https://github.com/labwc/labwc/pull/3710
+[#3711]: https://github.com/labwc/labwc/pull/3711
+[#3715]: https://github.com/labwc/labwc/pull/3715
+[#3716]: https://github.com/labwc/labwc/pull/3716
+[#3719]: https://github.com/labwc/labwc/pull/3719
+[#3720]: https://github.com/labwc/labwc/pull/3720
+[#3738]: https://github.com/labwc/labwc/pull/3738
+[#3746]: https://github.com/labwc/labwc/pull/3746
+[#3750]: https://github.com/labwc/labwc/pull/3750
+[#3754]: https://github.com/labwc/labwc/pull/3754
+[#3755]: https://github.com/labwc/labwc/pull/3755

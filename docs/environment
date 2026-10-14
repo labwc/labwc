@@ -10,6 +10,7 @@
 ## /usr/share/X11/xkb/rules/evdev.lst
 ##
 ## Multiple keyboard layouts can be set by comma-separating the country codes.
+## Custom user layouts lookup path: $HOME/.config/xkb/symbols/
 ## If a variant layout is needed, the syntax is layout(variant)
 ## If multiple layouts are used, specify the toggle-keybind using
 ## XKB_DEFAULT_OPTIONS as show below.

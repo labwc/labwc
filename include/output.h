@@ -12,6 +12,7 @@ struct output {
 	struct wlr_output *wlr_output;
 	struct wlr_output_state pending;
 	struct wlr_scene_output *scene_output;
+	struct wlr_scene_tree *background_tree;
 	struct wlr_scene_tree *layer_tree[LAB_NR_LAYERS];
 	struct wlr_scene_tree *layer_popup_tree;
 	struct wlr_scene_tree *cycle_osd_tree;
@@ -74,6 +75,9 @@ void output_enable_adaptive_sync(struct output *output, bool enabled);
 void output_enable_hdr(struct output *output, struct wlr_output_state *os,
 	bool enabled, bool silent);
 void output_state_setup_hdr(struct output *output, bool silent);
+
+/* reconfigure background for all outputs */
+void outputs_reconfigure_background(void);
 
 /**
  * Notifies whether a fullscreen view is displayed on the given output.

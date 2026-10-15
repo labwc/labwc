@@ -9,9 +9,11 @@
 #include <wlr/types/wlr_security_context_v1.h>
 #include <wlr/types/wlr_xdg_shell.h>
 #include "action.h"
+#include "animation.h"
 #include "buffer.h"
 #include "common/box.h"
 #include "common/list.h"
+#include "common/macros.h"
 #include "common/match.h"
 #include "common/mem.h"
 #include "common/string-helpers.h"
@@ -727,6 +729,13 @@ view_adjust_size(struct view *view, int *w, int *h)
 }
 
 static void
+finish_animation(struct wl_listener *listener, void *data)
+{
+	struct view *view = wl_container_of(listener, view, animation_finished);
+	view_update_visibility(view);
+}
+
+static void
 _minimize(struct view *view, bool minimized, bool *need_refocus)
 {
 	assert(view);
@@ -740,7 +749,15 @@ _minimize(struct view *view, bool minimized, bool *need_refocus)
 
 	view->minimized = minimized;
 	wl_signal_emit_mutable(&view->events.minimized, NULL);
-	view_update_visibility(view);
+	if (minimized) {
+		struct animation* animation =
+			zoom_animation_start(view, 0.2, animation_curve_linear_out);
+		view->animation_finished.notify = finish_animation;
+		wl_signal_add(&animation->events.finished, &view->animation_finished);
+	} else {
+		view_update_visibility(view);
+		zoom_animation_start(view, 0.2, animation_curve_linear_in);
+	}
 
 	/*
 	 * Need to focus a different view when:
@@ -2486,6 +2503,7 @@ view_init(struct view *view)
 	view->capture.scene = wlr_scene_create();
 	view->capture.scene->restack_xwayland_surfaces = false;
 	wl_list_init(&view->capture.on_capture_source_destroy.link);
+	wl_list_init(&view->animation_finished.link);
 }
 
 void
@@ -2508,6 +2526,7 @@ view_destroy(struct view *view)
 	wl_list_remove(&view->set_title.link);
 	wl_list_remove(&view->destroy.link);
 	wl_list_remove(&view->capture.on_capture_source_destroy.link);
+	wl_list_remove(&view->animation_finished.link);
 
 	wlr_scene_node_destroy(&view->capture.scene->tree.node);
 

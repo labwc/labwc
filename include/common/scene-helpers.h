@@ -14,6 +14,8 @@ struct wlr_surface *lab_wlr_surface_from_node(struct wlr_scene_node *node);
 
 /* variants of wlr_scene_*_create() functions that don't return NULL */
 struct wlr_scene_tree *lab_wlr_scene_tree_create(struct wlr_scene_tree *parent);
+struct wlr_scene_transform *lab_wlr_scene_transform_create(
+	struct wlr_scene_tree *parent);
 struct wlr_scene_rect *lab_wlr_scene_rect_create(struct wlr_scene_tree *parent,
 	int width, int height, const float color[static 4]);
 struct wlr_scene_buffer *lab_wlr_scene_buffer_create(

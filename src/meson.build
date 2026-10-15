@@ -1,5 +1,6 @@
 labwc_sources = files(
   'action.c',
+  'animation.c',
   'buffer.c',
   'debug.c',
   'desktop.c',

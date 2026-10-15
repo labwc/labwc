@@ -21,8 +21,8 @@
 /* Holds layout -> surface offsets to report motion events in relative coords */
 struct touch_point {
 	int32_t touch_id;
-	uint32_t x_offset;
-	uint32_t y_offset;
+	double x_offset;
+	double y_offset;
 	struct wlr_surface *surface;
 	struct wl_list link; /* seat.touch_points */
 };

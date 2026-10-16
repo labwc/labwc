@@ -532,6 +532,8 @@ static void
 theme_builtin(struct theme *theme)
 {
 	theme->border_width = 1;
+	theme->handle_width = 6;
+	theme->grip_width = 20;
 	theme->window_titlebar_padding_height = 0;
 	theme->window_titlebar_padding_width = 0;
 
@@ -550,6 +552,30 @@ theme_builtin(struct theme *theme)
 	theme->window[SSD_INACTIVE].title_bg.color_to[0] = FLT_MIN;
 	theme->window[SSD_ACTIVE].title_bg.color_to_split_to[0] = FLT_MIN;
 	theme->window[SSD_INACTIVE].title_bg.color_to_split_to[0] = FLT_MIN;
+
+	/* handle background defaults */
+	theme->window[SSD_ACTIVE].handle_bg.gradient = LAB_GRADIENT_NONE;
+	theme->window[SSD_INACTIVE].handle_bg.gradient = LAB_GRADIENT_NONE;
+	parse_hexstr("#a0a0a0", theme->window[SSD_ACTIVE].handle_bg.color);
+	parse_hexstr("#c0c0c0", theme->window[SSD_INACTIVE].handle_bg.color);
+	theme->window[SSD_ACTIVE].handle_bg.color_split_to[0] = FLT_MIN;
+	theme->window[SSD_INACTIVE].handle_bg.color_split_to[0] = FLT_MIN;
+	theme->window[SSD_ACTIVE].handle_bg.color_to[0] = FLT_MIN;
+	theme->window[SSD_INACTIVE].handle_bg.color_to[0] = FLT_MIN;
+	theme->window[SSD_ACTIVE].handle_bg.color_to_split_to[0] = FLT_MIN;
+	theme->window[SSD_INACTIVE].handle_bg.color_to_split_to[0] = FLT_MIN;
+
+	/* grip background defaults (FLT_MIN sentinel = inherit from handle) */
+	theme->window[SSD_ACTIVE].grip_bg.gradient = LAB_GRADIENT_NONE;
+	theme->window[SSD_INACTIVE].grip_bg.gradient = LAB_GRADIENT_NONE;
+	theme->window[SSD_ACTIVE].grip_bg.color[0] = FLT_MIN;
+	theme->window[SSD_INACTIVE].grip_bg.color[0] = FLT_MIN;
+	theme->window[SSD_ACTIVE].grip_bg.color_split_to[0] = FLT_MIN;
+	theme->window[SSD_INACTIVE].grip_bg.color_split_to[0] = FLT_MIN;
+	theme->window[SSD_ACTIVE].grip_bg.color_to[0] = FLT_MIN;
+	theme->window[SSD_INACTIVE].grip_bg.color_to[0] = FLT_MIN;
+	theme->window[SSD_ACTIVE].grip_bg.color_to_split_to[0] = FLT_MIN;
+	theme->window[SSD_INACTIVE].grip_bg.color_to_split_to[0] = FLT_MIN;
 
 	parse_hexstr("#000000", theme->window[SSD_ACTIVE].label_text_color);
 	parse_hexstr("#000000", theme->window[SSD_INACTIVE].label_text_color);
@@ -755,6 +781,82 @@ entry(struct theme *theme, const char *key, const char *value)
 	}
 	if (match_glob(key, "window.inactive.title.bg.colorTo.splitTo")) {
 		parse_color(value, theme->window[SSD_INACTIVE].title_bg.color_to_split_to);
+	}
+
+	/* handle width (Openbox "window.handle.width" is actually the height) */
+	if (match_glob(key, "window.handle.width")) {
+		theme->handle_width = get_int_if_positive(
+			value, "window.handle.width");
+	}
+
+	/* grip width */
+	if (match_glob(key, "window.grip.width")) {
+		theme->grip_width = get_int_if_positive(
+			value, "window.grip.width");
+	}
+
+	/* handle background */
+	if (match_glob(key, "window.active.handle.bg")) {
+		theme->window[SSD_ACTIVE].handle_bg.gradient = parse_gradient(value);
+	}
+	if (match_glob(key, "window.inactive.handle.bg")) {
+		theme->window[SSD_INACTIVE].handle_bg.gradient = parse_gradient(value);
+	}
+	if (match_glob(key, "window.active.handle.bg.color")) {
+		parse_color(value, theme->window[SSD_ACTIVE].handle_bg.color);
+	}
+	if (match_glob(key, "window.inactive.handle.bg.color")) {
+		parse_color(value, theme->window[SSD_INACTIVE].handle_bg.color);
+	}
+	if (match_glob(key, "window.active.handle.bg.color.splitTo")) {
+		parse_color(value, theme->window[SSD_ACTIVE].handle_bg.color_split_to);
+	}
+	if (match_glob(key, "window.inactive.handle.bg.color.splitTo")) {
+		parse_color(value, theme->window[SSD_INACTIVE].handle_bg.color_split_to);
+	}
+	if (match_glob(key, "window.active.handle.bg.colorTo")) {
+		parse_color(value, theme->window[SSD_ACTIVE].handle_bg.color_to);
+	}
+	if (match_glob(key, "window.inactive.handle.bg.colorTo")) {
+		parse_color(value, theme->window[SSD_INACTIVE].handle_bg.color_to);
+	}
+	if (match_glob(key, "window.active.handle.bg.colorTo.splitTo")) {
+		parse_color(value, theme->window[SSD_ACTIVE].handle_bg.color_to_split_to);
+	}
+	if (match_glob(key, "window.inactive.handle.bg.colorTo.splitTo")) {
+		parse_color(value, theme->window[SSD_INACTIVE].handle_bg.color_to_split_to);
+	}
+
+	/* grip background */
+	if (match_glob(key, "window.active.grip.bg")) {
+		theme->window[SSD_ACTIVE].grip_bg.gradient = parse_gradient(value);
+	}
+	if (match_glob(key, "window.inactive.grip.bg")) {
+		theme->window[SSD_INACTIVE].grip_bg.gradient = parse_gradient(value);
+	}
+	if (match_glob(key, "window.active.grip.bg.color")) {
+		parse_color(value, theme->window[SSD_ACTIVE].grip_bg.color);
+	}
+	if (match_glob(key, "window.inactive.grip.bg.color")) {
+		parse_color(value, theme->window[SSD_INACTIVE].grip_bg.color);
+	}
+	if (match_glob(key, "window.active.grip.bg.color.splitTo")) {
+		parse_color(value, theme->window[SSD_ACTIVE].grip_bg.color_split_to);
+	}
+	if (match_glob(key, "window.inactive.grip.bg.color.splitTo")) {
+		parse_color(value, theme->window[SSD_INACTIVE].grip_bg.color_split_to);
+	}
+	if (match_glob(key, "window.active.grip.bg.colorTo")) {
+		parse_color(value, theme->window[SSD_ACTIVE].grip_bg.color_to);
+	}
+	if (match_glob(key, "window.inactive.grip.bg.colorTo")) {
+		parse_color(value, theme->window[SSD_INACTIVE].grip_bg.color_to);
+	}
+	if (match_glob(key, "window.active.grip.bg.colorTo.splitTo")) {
+		parse_color(value, theme->window[SSD_ACTIVE].grip_bg.color_to_split_to);
+	}
+	if (match_glob(key, "window.inactive.grip.bg.colorTo.splitTo")) {
+		parse_color(value, theme->window[SSD_INACTIVE].grip_bg.color_to_split_to);
 	}
 
 	if (match_glob(key, "window.active.label.text.color")) {
@@ -1410,6 +1512,28 @@ create_backgrounds(struct theme *theme)
 			theme->window[active].titlebar_pattern,
 			theme->titlebar_height);
 	}
+
+	/* Create handle and grip fill buffers if handle is enabled */
+	if (theme->handle_width > 0) {
+		FOR_EACH_ACTIVE_STATE(active) {
+			theme->window[active].handle_pattern =
+				create_titlebar_pattern(
+					&theme->window[active].handle_bg,
+					theme->handle_width);
+			theme->window[active].handle_fill =
+				create_titlebar_fill(
+					theme->window[active].handle_pattern,
+					theme->handle_width);
+			theme->window[active].grip_pattern =
+				create_titlebar_pattern(
+					&theme->window[active].grip_bg,
+					theme->handle_width);
+			theme->window[active].grip_fill =
+				create_titlebar_fill(
+					theme->window[active].grip_pattern,
+					theme->handle_width);
+		}
+	}
 }
 
 static void
@@ -1686,6 +1810,35 @@ post_processing(struct theme *theme)
 	fill_background_colors(&theme->window[SSD_INACTIVE].title_bg);
 	fill_background_colors(&theme->window[SSD_ACTIVE].title_bg);
 
+	/* Clamp handle_width to a sensible maximum */
+	if (theme->handle_width > 100) {
+		wlr_log(WLR_ERROR,
+			"window.handle.width clamped from %d to 100",
+			theme->handle_width);
+		theme->handle_width = 100;
+	}
+
+	/* Clamp grip_width minimum to 1 */
+	if (theme->grip_width < 1) {
+		theme->grip_width = 1;
+	}
+
+	/* Fill handle gradient color defaults */
+	fill_background_colors(&theme->window[SSD_INACTIVE].handle_bg);
+	fill_background_colors(&theme->window[SSD_ACTIVE].handle_bg);
+
+	/* Inherit grip from handle if grip color was not explicitly set */
+	enum ssd_active_state active;
+	FOR_EACH_ACTIVE_STATE(active) {
+		struct theme_background *grip = &theme->window[active].grip_bg;
+		struct theme_background *handle = &theme->window[active].handle_bg;
+		if (grip->color[0] == FLT_MIN) {
+			memcpy(grip, handle, sizeof(*grip));
+		} else {
+			fill_background_colors(grip);
+		}
+	}
+
 	theme->menu_item_height = font_height(&rc.font_menuitem)
 		+ 2 * theme->menu_items_padding_y;
 
@@ -1877,5 +2030,9 @@ theme_finish(struct theme *theme)
 		zdrop(&theme->window[active].shadow_corner_top);
 		zdrop(&theme->window[active].shadow_corner_bottom);
 		zdrop(&theme->window[active].shadow_edge);
+		zfree_pattern(theme->window[active].handle_pattern);
+		zfree_pattern(theme->window[active].grip_pattern);
+		zdrop(&theme->window[active].handle_fill);
+		zdrop(&theme->window[active].grip_fill);
 	}
 }

@@ -38,6 +38,7 @@ enum lab_rotation {
 enum lab_ssd_mode {
 	LAB_SSD_MODE_NONE = 0,
 	LAB_SSD_MODE_BORDER,
+	LAB_SSD_MODE_BORDER_HANDLE,
 	LAB_SSD_MODE_FULL,
 	LAB_SSD_MODE_INVALID,
 };

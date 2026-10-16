@@ -2260,14 +2260,13 @@ view_get_modal_dialog(struct view *view)
 		return view;
 	}
 
-	/* check sibling views */
+	/* check child views */
 	struct view *dialog = NULL;
-	struct view *root = view_get_root(view);
 	struct wl_array children;
 	struct view **child;
 
 	wl_array_init(&children);
-	view_append_children(root, &children);
+	view_append_children(view, &children);
 	wl_array_for_each(child, &children) {
 		if (view_is_modal_dialog(*child)) {
 			dialog = *child;

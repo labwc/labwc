@@ -161,7 +161,7 @@ desktop_focus_view_internal(struct view *view, bool raise, bool allow_delay)
 	}
 
 	/*
-	 * If any child/sibling of the view is a modal dialog, focus
+	 * If any child of the view is a modal dialog, focus
 	 * the dialog instead. It does not need to be raised separately
 	 * since view_move_to_front() raises all sibling views together.
 	 */
@@ -444,4 +444,3 @@ get_cursor_context(void)
 	 */
 	return ret;
 }
-

@@ -17,6 +17,43 @@ static int pipe_w = -1;
 static struct wl_event_source *write_notifier = NULL;
 static size_t remaining = 0;
 
+static void
+xml_error_log_cb(void *data, const char *fmt, ...)
+{
+	/*
+	 * libxml2 will call this functions for small parts
+	 * of a line so we can't use the usual logging as it
+	 * adds various line breaks within the message.
+	 *
+	 * Instead we rely on vfprintf() and buf_add_vfmt()
+	 * directly.
+	 */
+
+	va_list args;
+
+	/* Write to stderr as usual */
+	va_start(args, fmt);
+	vfprintf(stderr, fmt, args);
+	va_end(args);
+
+	/* But also to the nag log buffer */
+	if (write_notifier) {
+		wlr_log(WLR_ERROR, "Not writing to log buffer while sending to client");
+		return;
+	}
+
+	has_error = true;
+	va_start(args, fmt);
+	buf_add_vfmt(&log_buf, fmt, args);
+	va_end(args);
+}
+
+void
+nag_init(void)
+{
+	xmlSetGenericErrorFunc(NULL, xml_error_log_cb);
+}
+
 struct buf *
 nag_get_buf(void)
 {

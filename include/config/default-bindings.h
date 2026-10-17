@@ -440,6 +440,16 @@ static struct mouse_combos {
 		.event = "Press",
 		.action = "Raise",
 	}, {
+		.context = "WindowSwitcher",
+		.button = "Up",
+		.event = "Scroll",
+		.action = "PreviousWindow",
+	}, {
+		.context = "WindowSwitcher",
+		.button = "Down",
+		.event = "Scroll",
+		.action = "NextWindow",
+	}, {
 		.context = NULL,
 	},
 };

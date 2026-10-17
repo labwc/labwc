@@ -6,6 +6,7 @@
 #include <sys/wait.h>
 #include <wlr/util/log.h>
 #include "common/buf.h"
+#include "common/xml.h"
 
 /* May return NULL if the buffer is currently written to a client */
 struct buf *nag_get_buf(void);
@@ -21,7 +22,7 @@ do { \
 	wlr_log(verbosity, fmt, ##__VA_ARGS__); \
 	nag_set_error(verbosity); \
 	if (nag_get_buf()) { \
-		buf_add_fmt(nag_get_buf(), fmt "\n", ##__VA_ARGS__); \
+		buf_add_fmt(nag_get_buf(), "%s" fmt "\n", lab_xml_line_string(), ##__VA_ARGS__); \
 	} \
 } while (0)
 

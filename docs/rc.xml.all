@@ -316,16 +316,18 @@
     <keybind key="XF86MonBrightnessDown">
       <action name="Execute" command="brightnessctl set 10%-" />
     </keybind>
+    <!--
+    The following keys combinations are not bound by default, but the examples show how users can associate then with programs
+    -->
+    <!--
     <keybind key="XF86Display">
       <action name="Execute">
         <command>wdisplays</command>
       </action>
-    </keybind-->
+    </keybind>
     <keybind key="XF86Mail">
-      <action name="Execute">
-        <command>convey</command>
-      </action>
-    </keybind-->
+      <action name="Execute" command="convey" />
+    </keybind>
     <keybind key="XF86MyComputer">
     	<action name="Execute" command="spiral" />
     </keybind>
@@ -338,6 +340,7 @@
     <keybind key="XF86WWW">
       <action name="Execute" command = "firefox" />
     </keybind>
+    -->
   <!-- SnapToRegion via W-Numpad -->
   <!--
     <keybind key="W-KP_7">

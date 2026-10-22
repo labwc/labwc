@@ -316,6 +316,28 @@
     <keybind key="XF86MonBrightnessDown">
       <action name="Execute" command="brightnessctl set 10%-" />
     </keybind>
+    <keybind key="XF86Display">
+      <action name="Execute">
+        <command>wdisplays</command>
+      </action>
+    </keybind-->
+    <keybind key="XF86Mail">
+      <action name="Execute">
+        <command>convey</command>
+      </action>
+    </keybind-->
+    <keybind key="XF86MyComputer">
+    	<action name="Execute" command="spiral" />
+    </keybind>
+    <keybind key="XF86Calculator">
+    	<action name="Execute" command="gnome-calculator" />
+    </keybind>
+    <keybind key="XF86Music">
+    	<action name="Execute" command="decibels" />
+    </keybind>
+    <keybind key="XF86WWW">
+      <action name="Execute" command = "firefox" />
+    </keybind>
   <!-- SnapToRegion via W-Numpad -->
   <!--
     <keybind key="W-KP_7">

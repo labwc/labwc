@@ -33,7 +33,8 @@ render_node(struct wlr_render_pass *pass,
 		struct wlr_scene_node *node, int x, int y)
 {
 	switch (node->type) {
-	case WLR_SCENE_NODE_TREE: {
+	case WLR_SCENE_NODE_TREE:
+	case WLR_SCENE_NODE_TRANSFORM: {
 		struct wlr_scene_tree *tree = wlr_scene_tree_from_node(node);
 		struct wlr_scene_node *child;
 		wl_list_for_each(child, &tree->children, link) {

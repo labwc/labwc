@@ -33,6 +33,15 @@ lab_wlr_scene_tree_create(struct wlr_scene_tree *parent)
 	return tree;
 }
 
+struct wlr_scene_transform *
+lab_wlr_scene_transform_create(struct wlr_scene_tree *parent)
+{
+	struct wlr_scene_transform *transform =
+		wlr_scene_transform_create(parent);
+	die_if_null(transform);
+	return transform;
+}
+
 struct wlr_scene_rect *
 lab_wlr_scene_rect_create(struct wlr_scene_tree *parent,
 		int width, int height, const float color[static 4])

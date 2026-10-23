@@ -80,6 +80,8 @@ bool input_method_keyboard_grab_forward_key(struct keyboard *keyboard,
  */
 bool input_method_keyboard_grab_forward_modifiers(struct keyboard *keyboard);
 
+bool keyboard_is_emulated_by_input_method(struct keyboard *keyboard);
+
 struct input_method_relay *input_method_relay_create(struct seat *seat);
 
 void input_method_relay_finish(struct input_method_relay *relay);

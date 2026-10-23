@@ -36,6 +36,17 @@ is_keyboard_emulated_by_input_method(struct wlr_keyboard *keyboard,
 	return virtual_keyboard && SAME_CLIENT(virtual_keyboard, input_method);
 }
 
+bool
+keyboard_is_emulated_by_input_method(struct keyboard *keyboard)
+{
+	if (!keyboard || !keyboard->base.seat
+			|| !keyboard->base.seat->input_method_relay) {
+		return false;
+	}
+	return is_keyboard_emulated_by_input_method(keyboard->wlr_keyboard,
+		keyboard->base.seat->input_method_relay->input_method);
+}
+
 /*
  * Get keyboard grab of the seat from keyboard if we should forward events
  * to it.

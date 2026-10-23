@@ -24,11 +24,13 @@
 #include <wlr/types/wlr_xdg_output_v1.h>
 #include <wlr/types/wlr_scene.h>
 #include <wlr/util/log.h>
+#include "buffer.h"
 #include "common/macros.h"
 #include "common/mem.h"
 #include "common/scene-helpers.h"
 #include "common/string-helpers.h"
 #include "config/rcxml.h"
+#include "img/img.h"
 #include "labwc.h"
 #include "layers.h"
 #include "node.h"
@@ -312,6 +314,7 @@ handle_output_destroy(struct wl_listener *listener, void *data)
 	wl_list_remove(&output->request_state.link);
 	seat_output_layout_changed(seat);
 
+	wlr_scene_node_destroy(&output->background_tree->node);
 	for (size_t i = 0; i < ARRAY_SIZE(output->layer_tree); i++) {
 		wlr_scene_node_destroy(&output->layer_tree[i]->node);
 	}
@@ -625,6 +628,88 @@ get_unused_output_id_bit(void)
 }
 
 static void
+output_update_background(struct output *output)
+{
+	struct wlr_box box;
+	wlr_output_layout_get_box(server.output_layout, output->wlr_output, &box);
+	wlr_scene_node_set_position(&output->background_tree->node, box.x, box.y);
+
+	struct wlr_scene_node *child;
+	wl_list_for_each(child, &output->background_tree->children, link) {
+		if (child->type == WLR_SCENE_NODE_BUFFER) {
+			struct wlr_scene_buffer *scene_buffer = wlr_scene_buffer_from_node(child);
+			wlr_scene_buffer_set_dest_size(scene_buffer, box.width, box.height);
+			return;
+		}
+	}
+}
+
+static void
+output_set_background(struct output *output)
+{
+	const char *path = rc.background_image;
+	if (!path) {
+		return;
+	}
+	size_t len = strlen(path);
+	if (len < 4) {
+		return;
+	}
+	float xbm_color = 0;
+	struct lab_img *img = NULL;
+	const char *ext = &path[len - 4];
+	if (!strcasecmp(ext, ".png")) {
+		img = lab_img_load(LAB_IMG_PNG, path, &xbm_color);
+	} else if (!strcasecmp(ext, ".xbm")) {
+		img = lab_img_load(LAB_IMG_XBM, path, &xbm_color);
+	} else if (!strcasecmp(ext, ".xpm")) {
+		img = lab_img_load(LAB_IMG_XPM, path, &xbm_color);
+	} else if (!strcasecmp(ext, ".svg")) {
+#if HAVE_RSVG
+		img = lab_img_load(LAB_IMG_SVG, path, &xbm_color);
+#endif
+	}
+	if (!img) {
+		wlr_log(WLR_ERROR, "Failed to load background image: %s", path);
+		return;
+	}
+	int width, height;
+	if (!lab_img_get_size(img, &width, &height)) {
+		/*
+		 * When using output size, the image will resize to fit, then stretch
+		 * on resize, probably only happens with some bad svg images.
+		 * This is just a fallback in case the image still renders in the next step.
+		 */
+		width = output->wlr_output->width;
+		height = output->wlr_output->height;
+	}
+	struct lab_data_buffer *buffer = lab_img_render(img, width, height, 1);
+	lab_img_destroy(img);
+	if (!buffer) {
+		wlr_log(WLR_ERROR, "Failed to render buffer for background image");
+		return;
+	}
+	lab_wlr_scene_buffer_create(output->background_tree, &buffer->base);
+	output_update_background(output);
+}
+
+void
+outputs_reconfigure_background(void)
+{
+	struct output *output;
+	wl_list_for_each(output, &server.outputs, link) {
+		if (!wl_list_empty(&output->background_tree->children)) {
+			struct wlr_scene_node *child, *tmp;
+			wl_list_for_each_safe(child, tmp,
+					&output->background_tree->children, link) {
+				wlr_scene_node_destroy(child);
+			}
+		}
+		output_set_background(output);
+	}
+}
+
+static void
 handle_new_output(struct wl_listener *listener, void *data)
 {
 	/*
@@ -715,6 +800,7 @@ handle_new_output(struct wl_listener *listener, void *data)
 	 * Create layer-trees (background, bottom, top and overlay) and
 	 * a layer-popup-tree.
 	 */
+	output->background_tree = lab_wlr_scene_tree_create(&server.scene->tree);
 	for (size_t i = 0; i < ARRAY_SIZE(output->layer_tree); i++) {
 		output->layer_tree[i] =
 			lab_wlr_scene_tree_create(&server.scene->tree);
@@ -738,6 +824,7 @@ handle_new_output(struct wl_listener *listener, void *data)
 	 */
 	wlr_scene_node_lower_to_bottom(&output->layer_tree[1]->node);
 	wlr_scene_node_lower_to_bottom(&output->layer_tree[0]->node);
+	wlr_scene_node_lower_to_bottom(&output->background_tree->node);
 
 	struct wlr_scene_node *menu_node = &server.menu_tree->node;
 	wlr_scene_node_place_below(&output->layer_tree[2]->node, menu_node);
@@ -758,6 +845,8 @@ handle_new_output(struct wl_listener *listener, void *data)
 	}
 
 	do_output_layout_change();
+
+	output_set_background(output);
 }
 
 static void output_manager_init(void);
@@ -1232,6 +1321,7 @@ update_usable_area(struct output *output)
 {
 	struct wlr_box old = output->usable_area;
 	layers_arrange(output);
+	output_update_background(output);
 
 #if HAVE_XWAYLAND
 	struct view *view;

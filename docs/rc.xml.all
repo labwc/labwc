@@ -251,12 +251,13 @@
     The following keybind modifiers are supported:
       W - window/super/logo
       A - alt
-      C - ctrl
       S - shift
+      C - ctrl
 
     Note that the names above are only for modifiers. To use them as stand-
-    alone keybinds, use Super_L, Alt_L, Ctrl_L, or Shift_L respectively (or
-    their _R counterparts if desired).
+    alone keybinds, use Super_L, Alt_L, or Shift_L respectively (or their
+    _R counterparts if desired). Ctrl_L and Ctrl_R are not supported as
+    keybinds.
 
     Use <keyboard><default /> to load all the default keybinds (those listed
     below). If the default keybinds are largely what you want, a sensible

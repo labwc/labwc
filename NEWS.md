@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog]
 
 | Date       | All Changes   | wlroots version | lines-of-code |
 |------------|---------------|-----------------|---------------|
+| 2026-10-30 | [0.20.3]      | 0.20.2          | 28822         |
 | 2026-08-21 | [0.20.2]      | 0.20.2          | 28553         |
 | 2026-06-15 | [0.20.1]      | 0.20.1          | 28337         |
 | 2026-05-25 | [0.20.0]      | 0.20.1          | 28313         |
@@ -48,6 +49,7 @@ The format is based on [Keep a Changelog]
 | 2021-03-05 | [0.1.0]       | 0.12.0          | 4627          |
 
 [unreleased]: NEWS.md#unreleased
+[0.20.3]: NEWS.md#0203---2026-10-30
 [0.20.2]: NEWS.md#0202---2026-08-21
 [0.20.1]: NEWS.md#0201---2026-06-15
 [0.20.0]: NEWS.md#0200---2026-05-25
@@ -90,6 +92,10 @@ The format is based on [Keep a Changelog]
 
 [unreleased-commits]
 
+## 0.20.3 - 2026-10-30
+
+[0.20.3-commits]
+
 ### Added
 
 - Add `overrideInhibition` option to `<mousebind>` @elviosak` [#3738]
@@ -104,6 +110,13 @@ The format is based on [Keep a Changelog]
 
 ### Fixed
 
+- Fix coordinate overflow due to unsigned offsets with touch devices @johanmalm
+  [#3764] [#3765]
+- Close menu on Super_L press @johanmalm [#3762]
+- Fix issue where the lock-screen does not get input focus if a popup with grab
+  is active when the screen is locked. @elviosak [#3758]
+- Fix Lan Mouse (https://github.com/feschber/lan-mouse) input capture issue by
+  applying pointer constraints to layer-shell surfaces @elviosak [#3745] [#3759]
 - Fix some rare XWayland window focus and geometry issues by delaying the
   connection of the commit signal to avoid using old dimensions @elviosak
   [#3711] [#3746]
@@ -2874,7 +2887,8 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
   ShowMenu
 
 [Keep a Changelog]: https://keepachangelog.com/en/1.0.0/
-[unreleased-commits]: https://github.com/labwc/labwc/compare/0.20.2...HEAD
+[unreleased-commits]: https://github.com/labwc/labwc/compare/0.20.3...HEAD
+[0.20.3-commits]: https://github.com/labwc/labwc/compare/0.20.2..0.20.3
 [0.20.2-commits]: https://github.com/labwc/labwc/compare/0.20.1..0.20.2
 [0.20.1-commits]: https://github.com/labwc/labwc/compare/0.20.0..0.20.1
 [0.20.0-commits]: https://github.com/labwc/labwc/compare/0.9.5..0.20.0
@@ -3482,7 +3496,13 @@ Compile with wlroots 0.12.0 and wayland-server >=1.16
 [#3719]: https://github.com/labwc/labwc/pull/3719
 [#3720]: https://github.com/labwc/labwc/pull/3720
 [#3738]: https://github.com/labwc/labwc/pull/3738
+[#3745]: https://github.com/labwc/labwc/pull/3745
 [#3746]: https://github.com/labwc/labwc/pull/3746
 [#3750]: https://github.com/labwc/labwc/pull/3750
 [#3754]: https://github.com/labwc/labwc/pull/3754
 [#3755]: https://github.com/labwc/labwc/pull/3755
+[#3758]: https://github.com/labwc/labwc/pull/3758
+[#3759]: https://github.com/labwc/labwc/pull/3759
+[#3762]: https://github.com/labwc/labwc/pull/3762
+[#3764]: https://github.com/labwc/labwc/pull/3764
+[#3765]: https://github.com/labwc/labwc/pull/3765

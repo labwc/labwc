@@ -254,6 +254,10 @@
       C - ctrl
       S - shift
 
+    Note that the names above are only for modifiers. To use them as stand-
+    alone keybinds, use Super_L, Alt_L, Ctrl_L, or Shift_L respectively (or
+    their _R counterparts if desired).
+
     Use <keyboard><default /> to load all the default keybinds (those listed
     below). If the default keybinds are largely what you want, a sensible
     approach could be to start the <keyboard> section with a <default />

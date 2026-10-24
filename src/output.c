@@ -1118,13 +1118,7 @@ output_manager_finish(void)
 struct output *
 output_from_wlr_output(struct wlr_output *wlr_output)
 {
-	struct output *output;
-	wl_list_for_each(output, &server.outputs, link) {
-		if (output->wlr_output == wlr_output) {
-			return output;
-		}
-	}
-	return NULL;
+	return wlr_output ? wlr_output->data : NULL;
 }
 
 struct output *

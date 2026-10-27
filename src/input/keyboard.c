@@ -465,6 +465,23 @@ handle_menu_keys(struct keysyms *syms)
 	}
 }
 
+static enum lab_cycle_dir
+cycle_dir_from_xkb(unsigned int xkb_key)
+{
+	switch (xkb_key) {
+	case XKB_KEY_Left:
+		return LAB_CYCLE_DIR_BACKWARD;
+	case XKB_KEY_Right:
+		return LAB_CYCLE_DIR_FORWARD;
+	case XKB_KEY_Up:
+		return LAB_CYCLE_DIR_UP;
+	case XKB_KEY_Down:
+		return LAB_CYCLE_DIR_DOWN;
+	default:
+		return LAB_CYCLE_DIR_NONE;
+	}
+}
+
 /* Returns true if the keystroke is consumed */
 static bool
 handle_cycle_view_key(struct keyinfo *keyinfo)
@@ -480,16 +497,9 @@ handle_cycle_view_key(struct keyinfo *keyinfo)
 			cycle_finish(/*switch_focus*/ false);
 			return true;
 		}
-		if (keyinfo->translated.syms[i] == XKB_KEY_Up
-				|| keyinfo->translated.syms[i] == XKB_KEY_Left) {
-			/* Up/Left cycles the window backward */
-			cycle_step(LAB_CYCLE_DIR_BACKWARD);
-			return true;
-		}
-		if (keyinfo->translated.syms[i] == XKB_KEY_Down
-				|| keyinfo->translated.syms[i] == XKB_KEY_Right) {
-			/* Down/Right cycles the window forward */
-			cycle_step(LAB_CYCLE_DIR_FORWARD);
+		enum lab_cycle_dir dir = cycle_dir_from_xkb(keyinfo->translated.syms[i]);
+		if (dir != LAB_CYCLE_DIR_NONE) {
+			cycle_step(dir);
 			return true;
 		}
 	}

@@ -320,7 +320,75 @@ cycle_osd_thumbnail_update(struct cycle_osd_output *osd_output)
 	}
 }
 
+/* Returns the view to select next in the window switcher. */
+static struct view *
+osd_thumbnail_next_selected_view(enum lab_cycle_dir dir)
+{
+	struct cycle_state *cycle = &server.cycle;
+	assert(cycle->selected_view);
+	assert(!wl_list_empty(&server.cycle.views));
+
+	struct wl_list *link = NULL;
+	if (dir == LAB_CYCLE_DIR_FORWARD) {
+		link = cycle->selected_view->cycle_link.next;
+		if (link == &server.cycle.views) {
+			link = link->next;
+		}
+	} else if (dir == LAB_CYCLE_DIR_BACKWARD) {
+		link = cycle->selected_view->cycle_link.prev;
+		if (link == &server.cycle.views) {
+			link = link->prev;
+		}
+	} else {
+		int nr_views = wl_list_length(&server.cycle.views);
+		int nr_cols, nr_rows, nr_visible_rows;
+		get_items_geometry(cycle->selected_view->output,
+			nr_views, &nr_cols, &nr_rows, &nr_visible_rows);
+		if (nr_rows == 1) {
+			return cycle->selected_view;
+		}
+
+		int index, next = -1;
+		struct view *current;
+		if (dir == LAB_CYCLE_DIR_DOWN) {
+			index = 0;
+			wl_list_for_each(current, &cycle->views, cycle_link) {
+				if (current == cycle->selected_view) {
+					int row = index / nr_cols;
+					if (row == nr_rows - 1) {
+						return cycle->selected_view;
+					}
+					next = MIN(index + nr_cols, nr_views - 1);
+				} else if (index == next) {
+					link = &current->cycle_link;
+					break;
+				}
+				index++;
+			}
+		} else { /* LAB_CYCLE_DIR_UP */
+			index = nr_views - 1;
+			wl_list_for_each_reverse(current, &cycle->views, cycle_link) {
+				if (current == cycle->selected_view) {
+					int row = index / nr_cols;
+					if (row == 0) {
+						return cycle->selected_view;
+					}
+					next = index - nr_cols;
+				} else if (index == next) {
+					link = &current->cycle_link;
+					break;
+				}
+				index--;
+			}
+		}
+	}
+	struct view *view = link ? wl_container_of(link, view, cycle_link)
+		: cycle->selected_view;
+	return view;
+}
+
 struct cycle_osd_impl cycle_osd_thumbnail_impl = {
 	.init = cycle_osd_thumbnail_init,
 	.update = cycle_osd_thumbnail_update,
+	.next_selected_view = osd_thumbnail_next_selected_view,
 };

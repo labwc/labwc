@@ -107,7 +107,7 @@ render_thumb(struct output *output, struct view *view)
 static struct scaled_font_buffer *
 create_label(struct wlr_scene_tree *parent, struct view *view,
 		struct window_switcher_thumbnail_theme *switcher_theme,
-		const float *text_color, const float *bg_color, int y)
+		const float *text_color, const float *bg_color, int y, int item_width)
 {
 	struct buf buf = BUF_INIT;
 	cycle_osd_field_set_custom(&buf, view,
@@ -115,17 +115,17 @@ create_label(struct wlr_scene_tree *parent, struct view *view,
 	struct scaled_font_buffer *buffer =
 		scaled_font_buffer_create(parent);
 	scaled_font_buffer_update(buffer, buf.data,
-		switcher_theme->item_width - 2 * switcher_theme->item_padding,
+		item_width - 2 * switcher_theme->item_padding,
 		&rc.font_osd, text_color, bg_color);
 	buf_reset(&buf);
 	wlr_scene_node_set_position(&buffer->scene_buffer->node,
-		(switcher_theme->item_width - buffer->width) / 2, y);
+		(item_width - buffer->width) / 2, y);
 	return buffer;
 }
 
 static struct cycle_osd_thumbnail_item *
 create_item_scene(struct wlr_scene_tree *parent, struct view *view,
-		struct cycle_osd_output *osd_output)
+		struct cycle_osd_output *osd_output, int item_width)
 {
 	struct theme *theme = rc.theme;
 	struct window_switcher_thumbnail_theme *switcher_theme =
@@ -135,7 +135,7 @@ create_item_scene(struct wlr_scene_tree *parent, struct view *view,
 	struct wlr_box thumb_bounds = {
 		.x = padding,
 		.y = padding,
-		.width = switcher_theme->item_width - 2 * padding,
+		.width = item_width - 2 * padding,
 		.height = title_y - 2 * padding,
 	};
 	if (thumb_bounds.width <= 0 || thumb_bounds.height <= 0) {
@@ -156,13 +156,13 @@ create_item_scene(struct wlr_scene_tree *parent, struct view *view,
 		.nr_borders = 1,
 		.border_width = switcher_theme->item_active_border_width,
 		.bg_color = switcher_theme->item_active_bg_color,
-		.width = switcher_theme->item_width,
+		.width = item_width,
 		.height = switcher_theme->item_height,
 	};
 	item->active_bg = lab_scene_rect_create(tree, &opts);
 
 	/* hitbox for mouse clicks */
-	lab_wlr_scene_rect_create(tree, switcher_theme->item_width,
+	lab_wlr_scene_rect_create(tree, item_width,
 		switcher_theme->item_height, (float[4]) {0});
 
 	/* thumbnail */
@@ -183,17 +183,17 @@ create_item_scene(struct wlr_scene_tree *parent, struct view *view,
 	/* title */
 	item->normal_label = create_label(tree, view,
 		switcher_theme, theme->osd_label_text_color,
-		theme->osd_bg_color, title_y);
+		theme->osd_bg_color, title_y, item_width);
 	item->active_label = create_label(tree, view,
 		switcher_theme, theme->osd_label_text_color,
-		switcher_theme->item_active_bg_color, title_y);
+		switcher_theme->item_active_bg_color, title_y, item_width);
 
 	/* icon */
 	int icon_size = switcher_theme->item_icon_size;
 	struct scaled_icon_buffer *icon_buffer =
 		scaled_icon_buffer_create(tree, icon_size, icon_size);
 	scaled_icon_buffer_set_view(icon_buffer, view);
-	int x = (switcher_theme->item_width - icon_size) / 2;
+	int x = (item_width - icon_size) / 2;
 	int y = title_y - padding - icon_size + 10; /* slide by 10px */
 	wlr_scene_node_set_position(&icon_buffer->scene_buffer->node, x, y);
 
@@ -202,7 +202,7 @@ create_item_scene(struct wlr_scene_tree *parent, struct view *view,
 
 static void
 get_items_geometry(struct output *output, int nr_thumbs,
-		int *nr_cols, int *nr_rows, int *nr_visible_rows)
+		int *nr_cols, int *nr_rows, int *nr_visible_rows, int *item_width)
 {
 	struct theme *theme = rc.theme;
 	struct window_switcher_thumbnail_theme *switcher_theme =
@@ -216,22 +216,31 @@ get_items_geometry(struct output *output, int nr_thumbs,
 	if (switcher_theme->max_width_is_percent) {
 		max_bg_width = output_width * switcher_theme->max_width / 100;
 	}
-
-	*nr_rows = 1;
-	*nr_cols = nr_thumbs;
-	while (1) {
-		assert(*nr_rows <= nr_thumbs);
-		int bg_width = *nr_cols * switcher_theme->item_width + 2 * padding;
-		if (bg_width < max_bg_width) {
-			break;
+	*item_width = switcher_theme->item_width;
+	int cols = switcher_theme->columns;
+	if (cols) {
+		*nr_rows = ceilf((float)nr_thumbs / cols);
+		*nr_cols = cols < nr_thumbs ? cols : nr_thumbs;
+		int temp_width = (max_bg_width - 2 * padding) / (*nr_cols);
+		if (*item_width > temp_width) {
+			*item_width = temp_width;
 		}
-		if (*nr_rows >= nr_thumbs) {
-			break;
+	} else {
+		*nr_rows = 1;
+		*nr_cols = nr_thumbs;
+		while (1) {
+			assert(*nr_rows <= nr_thumbs);
+			int bg_width = *nr_cols * (*item_width) + 2 * padding;
+			if (bg_width < max_bg_width) {
+				break;
+			}
+			if (*nr_rows >= nr_thumbs) {
+				break;
+			}
+			(*nr_rows)++;
+			*nr_cols = ceilf((float)nr_thumbs / *nr_rows);
 		}
-		(*nr_rows)++;
-		*nr_cols = ceilf((float)nr_thumbs / *nr_rows);
 	}
-
 	*nr_visible_rows = MIN(*nr_rows,
 		(output_height - 2 * padding) / switcher_theme->item_height);
 }
@@ -250,25 +259,25 @@ cycle_osd_thumbnail_init(struct cycle_osd_output *osd_output)
 
 	int nr_views = wl_list_length(&server.cycle.views);
 	assert(nr_views > 0);
-	int nr_cols, nr_rows, nr_visible_rows;
-	get_items_geometry(output, nr_views, &nr_cols, &nr_rows, &nr_visible_rows);
+	int nr_cols, nr_rows, nr_visible_rows, item_width;
+	get_items_geometry(output, nr_views, &nr_cols, &nr_rows, &nr_visible_rows, &item_width);
 
 	/* items */
 	struct view *view;
 	int index = 0;
 	wl_list_for_each(view, &server.cycle.views, cycle_link) {
 		struct cycle_osd_thumbnail_item *item = create_item_scene(
-			osd_output->items_tree, view, osd_output);
+			osd_output->items_tree, view, osd_output, item_width);
 		if (!item) {
 			break;
 		}
-		int x = (index % nr_cols) * switcher_theme->item_width + padding;
+		int x = (index % nr_cols) * item_width + padding;
 		int y = (index / nr_cols) * switcher_theme->item_height + padding;
 		wlr_scene_node_set_position(&item->base.tree->node, x, y);
 		index++;
 	}
 
-	int items_width = switcher_theme->item_width * nr_cols;
+	int items_width = item_width * nr_cols;
 	int items_height = switcher_theme->item_height * nr_visible_rows;
 
 	struct wlr_box scrollbar_area = {
@@ -341,9 +350,12 @@ osd_thumbnail_next_selected_view(enum lab_cycle_dir dir)
 		}
 	} else {
 		int nr_views = wl_list_length(&server.cycle.views);
-		int nr_cols, nr_rows, nr_visible_rows;
-		get_items_geometry(cycle->selected_view->output,
-			nr_views, &nr_cols, &nr_rows, &nr_visible_rows);
+		int nr_cols, nr_rows, nr_visible_rows, item_width;
+		struct output *output = server.active_view
+			? server.active_view->output
+			: cycle->selected_view->output;
+		get_items_geometry(output, nr_views,
+			&nr_cols, &nr_rows, &nr_visible_rows, &item_width);
 		if (nr_rows == 1) {
 			return cycle->selected_view;
 		}

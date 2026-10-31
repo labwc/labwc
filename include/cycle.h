@@ -14,6 +14,8 @@ enum lab_cycle_dir {
 	LAB_CYCLE_DIR_NONE,
 	LAB_CYCLE_DIR_FORWARD,
 	LAB_CYCLE_DIR_BACKWARD,
+	LAB_CYCLE_DIR_UP,
+	LAB_CYCLE_DIR_DOWN,
 };
 
 /* TODO: add field with keyboard layout? */
@@ -140,6 +142,10 @@ struct cycle_osd_impl {
 	 * Update the OSD to highlight server.cycle.selected_view.
 	 */
 	void (*update)(struct cycle_osd_output *osd_output);
+	/*
+	 * Get the next view in the provided direction.
+	 */
+	struct view * (*next_selected_view)(enum lab_cycle_dir dir);
 };
 
 #define SCROLLBAR_W 10

@@ -83,6 +83,13 @@ keyboard_get_all_modifiers(struct seat *seat)
 		}
 		struct keyboard *kb = wl_container_of(input, kb, base);
 		if (kb->is_virtual) {
+			/*
+			 * Exclude IME virtual keyboards so stuck modifiers
+			 * don't keep OSDs (like window switchers) open.
+			 */
+			if (keyboard_is_emulated_by_input_method(kb)) {
+				continue;
+			}
 			modifiers |= wlr_keyboard_get_modifiers(kb->wlr_keyboard);
 		}
 	}

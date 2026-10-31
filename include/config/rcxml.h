@@ -86,6 +86,7 @@ struct rcxml {
 	uint32_t allowed_interfaces;
 	bool xwayland_persistence;
 	bool primary_selection;
+	char *background_image;
 	char *prompt_command;
 	char *error_command;
 

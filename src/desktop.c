@@ -344,6 +344,12 @@ get_cursor_context(void)
 		ret.type = LAB_NODE_ROOT;
 		return ret;
 	}
+	struct output *output = output_nearest_to_cursor();
+	if (output && output_is_usable(output)
+			&& output->background_tree == node->parent) {
+		ret.type = LAB_NODE_ROOT;
+		return ret;
+	}
 	ret.node = node;
 	ret.surface = lab_wlr_surface_from_node(node);
 

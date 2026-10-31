@@ -117,6 +117,7 @@ reload_config_and_theme(void)
 	cycle_finish(/*switch_focus*/ false);
 	menu_reconfigure();
 	seat_reconfigure();
+	outputs_reconfigure_background();
 	regions_reconfigure();
 	resize_indicator_reconfigure();
 	kde_server_decoration_update_default();

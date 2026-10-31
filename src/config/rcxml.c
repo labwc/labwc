@@ -1208,6 +1208,8 @@ entry(xmlNode *node, char *nodename, char *content)
 	} else if (!strcasecmp(nodename, "primarySelection.core")) {
 		set_bool(content, &rc.primary_selection);
 
+	} else if (!strcasecmp(nodename, "backgroundImage.core")) {
+		xstrdup_replace(rc.background_image, content);
 	} else if (!strcasecmp(nodename, "promptCommand.core")) {
 		xstrdup_replace(rc.prompt_command, content);
 	} else if (!strcasecmp(nodename, "errorCommand.core")) {
@@ -2113,6 +2115,7 @@ rcxml_finish(void)
 	zfree(rc.font_menuheader.name);
 	zfree(rc.font_menuitem.name);
 	zfree(rc.font_osd.name);
+	zfree(rc.background_image);
 	zfree(rc.prompt_command);
 	zfree(rc.error_command);
 	zfree(rc.theme_name);

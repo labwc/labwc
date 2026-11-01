@@ -186,6 +186,7 @@ struct theme {
 	struct window_switcher_thumbnail_theme {
 		int max_width;
 		int padding;
+		int columns;
 		int item_width;
 		int item_height;
 		int item_padding;

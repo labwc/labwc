@@ -1,5 +1,6 @@
 labwc_sources = files(
   'action.c',
+  'animation.c',
   'buffer.c',
   'debug.c',
   'desktop.c',
@@ -48,6 +49,7 @@ if have_libsfdo
   )
 endif
 
+subdir('animations')
 subdir('common')
 subdir('config')
 subdir('cycle')

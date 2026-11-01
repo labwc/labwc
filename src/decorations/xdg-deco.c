@@ -118,7 +118,7 @@ void
 xdg_server_decoration_init(void)
 {
 	struct wlr_xdg_decoration_manager_v1 *xdg_deco_mgr = NULL;
-	xdg_deco_mgr = wlr_xdg_decoration_manager_v1_create(server.wl_display);
+	xdg_deco_mgr = wlr_xdg_decoration_manager_v1_create(server.wl_display, 1);
 	if (!xdg_deco_mgr) {
 		wlr_log(WLR_ERROR, "unable to create the XDG deco manager");
 		exit(EXIT_FAILURE);

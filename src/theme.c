@@ -1493,16 +1493,12 @@ shadow_edge_gradient(struct lab_data_buffer *buffer,
  * from `start_color` at the top-left to clear at the opposite edge.
  *
  * If the window is translucent we don't want the shadow to be visible through
- * it.  For the bottom corners of the window this is easy, we just erase the
- * square of the buffer which will be behind the window.  For the top it's a
- * little more complicated because the titlebar can have rounded corners.
- * However, the titlebar itself is always opaque so we only have to erase the
- * L-shaped area of the buffer which can appear behind the non-titlebar part of
- * the window.
+ * it, so we erase the inset area from the buffer, according to `corner_radius`.
+ * If `corner_radius` is 0, the area removed is a square.
  */
 static void
 shadow_corner_gradient(struct lab_data_buffer *buffer, int visible_size,
-	int total_size, int titlebar_height, float start_color[4])
+	int total_size, int corner_radius, float start_color[4])
 {
 	if (!buffer) {
 		/* This type of shadow is disabled, do nothing */
@@ -1533,15 +1529,15 @@ shadow_corner_gradient(struct lab_data_buffer *buffer, int visible_size,
 			double alpha = gauss_x * gauss_y;
 
 			/*
-			 * Erase the L-shaped region which could be visible
-			 * through a transparent window but not obscured by the
-			 * titlebar. If inset is smaller than the titlebar
-			 * height then there's nothing to do, this is handled by
-			 * (inset - titlebar_height) being negative.
+			 * Erase the inset area which could be visible
+			 * through a transparent window or titlebar.
 			 */
-			bool in1 = x < inset && y < inset - titlebar_height;
-			bool in2 = x < inset - titlebar_height && y < inset;
-			if (in1 || in2) {
+			int radius_start = inset - corner_radius;
+			int dx = x - radius_start;
+			int dy = y - radius_start;
+			if ((dx < 0 && y < inset) || (x < inset && dy < 0)
+					|| (corner_radius /* Avoid some calculations */
+					&& (dx * dx + dy * dy) < (corner_radius * corner_radius))) {
 				alpha = 0.0;
 			}
 
@@ -1587,8 +1583,8 @@ create_shadow(struct theme *theme, enum ssd_active_state active)
 	shadow_edge_gradient(theme->window[active].shadow_edge, visible_size,
 		total_size, theme->window[active].shadow_color);
 	shadow_corner_gradient(theme->window[active].shadow_corner_top,
-		visible_size, total_size,
-		theme->titlebar_height, theme->window[active].shadow_color);
+		visible_size, total_size, rc.corner_radius,
+		theme->window[active].shadow_color);
 	shadow_corner_gradient(theme->window[active].shadow_corner_bottom,
 		visible_size, total_size, 0,
 		theme->window[active].shadow_color);

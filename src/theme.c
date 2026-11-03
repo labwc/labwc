@@ -1536,7 +1536,8 @@ shadow_corner_gradient(struct lab_data_buffer *buffer, int visible_size,
 			int dx = x - radius_start;
 			int dy = y - radius_start;
 			if ((dx < 0 && y < inset) || (x < inset && dy < 0)
-					|| (corner_radius /* Avoid some calculations */
+					|| (corner_radius
+					&& dx < corner_radius && dy < corner_radius
 					&& (dx * dx + dy * dy) < (corner_radius * corner_radius))) {
 				alpha = 0.0;
 			}

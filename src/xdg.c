@@ -332,9 +332,12 @@ handle_commit(struct wl_listener *listener, void *data)
 		 * actual geometry (size *and* position, depending on the edge
 		 * from which the resize was attempted). When no other
 		 * configure is pending, re-sync the pending geometry with the
-		 * actual view.
+		 * actual view. Fullscreen, fully maximized and tiled views must
+		 * retain the compositor's requested size for subsequent configures.
 		 */
-		if (!view->pending_configure_serial) {
+		if (!view->pending_configure_serial && !view->fullscreen
+				&& view->maximized != VIEW_AXIS_BOTH
+				&& !view_is_tiled(view)) {
 			snap_constraints_update(view);
 			view->pending = view->current;
 
@@ -425,9 +428,12 @@ handle_configure_timeout(void *data)
 	center_fullscreen_if_needed(view);
 	view_moved(view);
 
-	/* Re-sync pending view with current state */
-	snap_constraints_update(view);
-	view->pending = view->current;
+	/* Preserve the requested size for fullscreen/fully maximized/tiled views. */
+	if (!view->fullscreen && view->maximized != VIEW_AXIS_BOTH
+			&& !view_is_tiled(view)) {
+		snap_constraints_update(view);
+		view->pending = view->current;
+	}
 
 	return 0; /* ignored per wl_event_loop docs */
 }

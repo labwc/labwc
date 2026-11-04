@@ -12,6 +12,35 @@ struct ssd_state_title_width {
 	bool truncated;
 };
 
+/* Interaction state for handle and grip elements */
+enum ssd_handle_state {
+	SSD_HANDLE_STATE_NORMAL = 0,
+	SSD_HANDLE_STATE_HOVER,
+	SSD_HANDLE_STATE_PRESSED,  /* clicked but not yet moved */
+	SSD_HANDLE_STATE_DRAGGING, /* clicked and moved */
+};
+
+/* Indices into ssd_handle_scene.element_states[] */
+#define SSD_HANDLE_ELEMENT_GRIP_LEFT  0
+#define SSD_HANDLE_ELEMENT_CENTER     1
+#define SSD_HANDLE_ELEMENT_GRIP_RIGHT 2
+#define SSD_HANDLE_ELEMENT_COUNT      3
+
+/* Indices into ssd_handle_subtree.rects[] for border/separator rects */
+enum handle_rect_idx {
+	HRECT_BORDER_LEFT,
+	HRECT_BORDER_RIGHT,
+	HRECT_BORDER_BOTTOM_LEFT,
+	HRECT_BORDER_BOTTOM_CENTER,
+	HRECT_BORDER_BOTTOM_RIGHT,
+	HRECT_BORDER_TOP_LEFT,
+	HRECT_BORDER_TOP_CENTER,
+	HRECT_BORDER_TOP_RIGHT,
+	HRECT_SEPARATOR_LEFT,
+	HRECT_SEPARATOR_RIGHT,
+	HRECT_COUNT,
+};
+
 /*
  * The scene-graph of SSD looks like below. The parentheses indicate the
  * type of each node (enum lab_node_type, stored in the node_descriptor
@@ -50,6 +79,14 @@ struct ssd_state_title_width {
  * +--extents
  *    +--top
  *    +--...
+ * +--handle (optional, when handle_width > 0)
+ *    +--inactive
+ *    |  +--textures[3] (grip_left, handle, grip_right wlr_scene_buffers)
+ *    |  +--rects[HRECT_COUNT] (borders and separators, all border_color)
+ *    |  +--overlay[3] (per-element hover/pressed dimming)
+ *    |  +--inset shadow rects (per-element top, left, bottom, right)
+ *    +--active
+ *       +--...
  */
 struct ssd {
 	struct view *view;
@@ -127,6 +164,27 @@ struct ssd {
 		} subtrees[2]; /* indexed by enum ssd_active_state */
 	} shadow;
 
+	/* Bottom handle/grip assembly (optional, created when handle_width > 0) */
+	struct ssd_handle_scene {
+		struct wlr_scene_tree *tree;
+		struct ssd_handle_subtree {
+			struct wlr_scene_tree *tree;
+			/* Per-element texture buffers (1px wide, stretched) */
+			struct wlr_scene_buffer *textures[SSD_HANDLE_ELEMENT_COUNT];
+			/* Border and separator rects (all border_color) */
+			struct wlr_scene_rect *rects[HRECT_COUNT];
+			/* Per-element overlays for hover/pressed dimming */
+			struct wlr_scene_rect *overlay[SSD_HANDLE_ELEMENT_COUNT];
+			/* Inset shadow rects (per-element, for pressed/dragging) */
+			struct wlr_scene_rect *inset_top[SSD_HANDLE_ELEMENT_COUNT];
+			struct wlr_scene_rect *inset_left[SSD_HANDLE_ELEMENT_COUNT];
+			struct wlr_scene_rect *inset_bottom[SSD_HANDLE_ELEMENT_COUNT];
+			struct wlr_scene_rect *inset_right[SSD_HANDLE_ELEMENT_COUNT];
+		} subtrees[2]; /* indexed by enum ssd_active_state */
+		/* Interaction state per element */
+		enum ssd_handle_state element_states[SSD_HANDLE_ELEMENT_COUNT];
+	} handle;
+
 	/*
 	 * Space between the extremities of the view's wlr_surface
 	 * and the max extents of the server-side decorations.
@@ -185,5 +243,12 @@ void ssd_extents_destroy(struct ssd *ssd);
 void ssd_shadow_create(struct ssd *ssd);
 void ssd_shadow_update(struct ssd *ssd);
 void ssd_shadow_destroy(struct ssd *ssd);
+
+void ssd_handle_create(struct ssd *ssd);
+void ssd_handle_update(struct ssd *ssd);
+void ssd_handle_destroy(struct ssd *ssd);
+void ssd_handle_set_element_state(struct ssd *ssd, int element,
+	enum ssd_handle_state state);
+void ssd_handle_clear_all_states(struct ssd *ssd);
 
 #endif /* LABWC_SSD_INTERNAL_H */

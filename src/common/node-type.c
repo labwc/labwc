@@ -42,6 +42,12 @@ node_type_parse(const char *context)
 		return LAB_NODE_BORDER_BOTTOM;
 	} else if (!strcasecmp(context, "Left")) {
 		return LAB_NODE_BORDER_LEFT;
+	} else if (!strcasecmp(context, "Handle")) {
+		return LAB_NODE_HANDLE;
+	} else if (!strcasecmp(context, "BLGrip")) {
+		return LAB_NODE_GRIP_LEFT;
+	} else if (!strcasecmp(context, "BRGrip")) {
+		return LAB_NODE_GRIP_RIGHT;
 	} else if (!strcasecmp(context, "Frame")) {
 		return LAB_NODE_FRAME;
 	} else if (!strcasecmp(context, "Client")) {
@@ -80,9 +86,16 @@ node_type_contains(enum lab_node_type whole, enum lab_node_type part)
 		return part >= LAB_NODE_BUTTON_FIRST
 			&& part <= LAB_NODE_CLIENT;
 	}
+	if (whole == LAB_NODE_HANDLE) {
+		return part == LAB_NODE_GRIP_LEFT
+			|| part == LAB_NODE_GRIP_RIGHT;
+	}
 	if (whole == LAB_NODE_BORDER) {
-		return part >= LAB_NODE_CORNER_TOP_LEFT
-			&& part <= LAB_NODE_BORDER_LEFT;
+		return (part >= LAB_NODE_CORNER_TOP_LEFT
+			&& part <= LAB_NODE_BORDER_LEFT)
+			|| part == LAB_NODE_HANDLE
+			|| part == LAB_NODE_GRIP_LEFT
+			|| part == LAB_NODE_GRIP_RIGHT;
 	}
 	if (whole == LAB_NODE_BORDER_TOP) {
 		return part == LAB_NODE_CORNER_TOP_LEFT
@@ -94,7 +107,10 @@ node_type_contains(enum lab_node_type whole, enum lab_node_type part)
 	}
 	if (whole == LAB_NODE_BORDER_BOTTOM) {
 		return part == LAB_NODE_CORNER_BOTTOM_RIGHT
-			|| part == LAB_NODE_CORNER_BOTTOM_LEFT;
+			|| part == LAB_NODE_CORNER_BOTTOM_LEFT
+			|| part == LAB_NODE_HANDLE
+			|| part == LAB_NODE_GRIP_LEFT
+			|| part == LAB_NODE_GRIP_RIGHT;
 	}
 	if (whole == LAB_NODE_BORDER_LEFT) {
 		return part == LAB_NODE_CORNER_TOP_LEFT
@@ -123,6 +139,12 @@ node_type_to_edges(enum lab_node_type type)
 		return LAB_EDGES_BOTTOM_RIGHT;
 	case LAB_NODE_CORNER_BOTTOM_LEFT:
 		return LAB_EDGES_BOTTOM_LEFT;
+	case LAB_NODE_HANDLE:
+		return LAB_EDGE_BOTTOM;
+	case LAB_NODE_GRIP_LEFT:
+		return LAB_EDGES_BOTTOM_LEFT;
+	case LAB_NODE_GRIP_RIGHT:
+		return LAB_EDGES_BOTTOM_RIGHT;
 	default:
 		return LAB_EDGE_NONE;
 	}

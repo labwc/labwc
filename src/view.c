@@ -484,6 +484,15 @@ view_set_activated(struct view *view, bool activated)
 }
 
 void
+view_set_suspended(struct view *view, bool suspended)
+{
+	assert(view);
+	if (view->impl->set_suspended) {
+		view->impl->set_suspended(view, suspended);
+	}
+}
+
+void
 view_set_output(struct view *view, struct output *output)
 {
 	assert(view);
@@ -1592,6 +1601,13 @@ view_move_to_workspace(struct view *view, struct workspace *workspace)
 		view->workspace = workspace;
 		wlr_scene_node_reparent(&view->scene_tree->node,
 			workspace->view_trees[view->layer]);
+		if (workspace != server.workspaces.current) {
+			if (!view->visible_on_all_workspaces) {
+				view_set_suspended(view, true);
+			}
+		} else {
+			view_set_suspended(view, false);
+		}
 	}
 }
 

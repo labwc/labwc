@@ -427,6 +427,22 @@ workspaces_init(void)
 }
 
 /*
+ * QWaylandXdgSurface::isExposed() depends on the xdg-shell suspended status.
+ * See: https://github.com/labwc/labwc/discussions/3747
+ */
+static void
+suspend_all_views_on_current_workspace(bool suspended)
+{
+	struct view *view;
+	for_each_view(view, &server.views, LAB_VIEW_CRITERIA_CURRENT_WORKSPACE) {
+		if (view->visible_on_all_workspaces) {
+			continue;
+		}
+		view_set_suspended(view, suspended);
+	}
+}
+
+/*
  * update_focus should normally be set to true. It is set to false only
  * when this function is called from desktop_focus_view(), in order to
  * avoid unnecessary extra focus changes and possible recursion.
@@ -438,6 +454,8 @@ workspaces_switch_to(struct workspace *target, bool update_focus)
 	if (target == server.workspaces.current) {
 		return;
 	}
+
+	suspend_all_views_on_current_workspace(true);
 
 	/* Disable the old workspace */
 	wlr_scene_node_set_enabled(
@@ -496,6 +514,8 @@ workspaces_switch_to(struct workspace *target, bool update_focus)
 	desktop_update_top_layer_visibility();
 
 	wlr_ext_workspace_handle_v1_set_active(target->ext_workspace, true);
+
+	suspend_all_views_on_current_workspace(false);
 
 	show_desktop_reset();
 }

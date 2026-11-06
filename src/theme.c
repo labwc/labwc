@@ -610,6 +610,7 @@ theme_builtin(struct theme *theme)
 
 	theme->osd_window_switcher_thumbnail.max_width = 80;
 	theme->osd_window_switcher_thumbnail.max_width_is_percent = true;
+	theme->osd_window_switcher_thumbnail.columns = 0;
 	theme->osd_window_switcher_thumbnail.padding = 4;
 	theme->osd_window_switcher_thumbnail.item_width = 300;
 	theme->osd_window_switcher_thumbnail.item_height = 250;
@@ -1021,6 +1022,10 @@ entry(struct theme *theme, const char *key, const char *value)
 	if (match_glob(key, "osd.window-switcher.style-thumbnail.padding")) {
 		switcher_thumb_theme->padding = get_int_if_positive(
 			value, "osd.window-switcher.style-thumbnail.padding");
+	}
+	if (match_glob(key, "osd.window-switcher.style-thumbnail.columns")) {
+		switcher_thumb_theme->columns = get_int_if_positive(
+			value, "osd.window-switcher.style-thumbnail.columns");
 	}
 	if (match_glob(key, "osd.window-switcher.style-thumbnail.item.width")) {
 		switcher_thumb_theme->item_width = get_int_if_positive(

@@ -105,6 +105,7 @@ osd.window-switcher.style-classic.item.active.bg.color: #bfbcba
 
 osd.window-switcher.style-thumbnail.width.max: 80%
 osd.window-switcher.style-thumbnail.padding: 4
+osd.window-switcher.style-thumbnail.columns: 0
 osd.window-switcher.style-thumbnail.item.width: 300
 osd.window-switcher.style-thumbnail.item.height: 250
 osd.window-switcher.style-thumbnail.item.padding: 10

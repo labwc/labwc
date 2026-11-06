@@ -23,6 +23,8 @@ static bool init_cycle(struct cycle_filter filter);
 static void update_cycle(void);
 static void destroy_cycle(void);
 
+static struct cycle_osd_impl *get_osd_impl(void);
+
 static void
 update_preview_outlines(struct view *view)
 {
@@ -50,30 +52,6 @@ update_preview_outlines(struct view *view)
 	wlr_scene_node_set_position(&rect->tree->node, geo.x, geo.y);
 }
 
-/* Returns the view to select next in the window switcher. */
-static struct view *
-get_next_selected_view(enum lab_cycle_dir dir)
-{
-	struct cycle_state *cycle = &server.cycle;
-	assert(cycle->selected_view);
-	assert(!wl_list_empty(&server.cycle.views));
-
-	struct wl_list *link;
-	if (dir == LAB_CYCLE_DIR_FORWARD) {
-		link = cycle->selected_view->cycle_link.next;
-		if (link == &server.cycle.views) {
-			link = link->next;
-		}
-	} else {
-		link = cycle->selected_view->cycle_link.prev;
-		if (link == &server.cycle.views) {
-			link = link->prev;
-		}
-	}
-	struct view *view = wl_container_of(link, view, cycle_link);
-	return view;
-}
-
 static struct view *
 get_first_view(struct wl_list *views)
 {
@@ -94,7 +72,7 @@ cycle_reinitialize(void)
 
 	struct view *selected_view = cycle->selected_view;
 	struct view *selected_view_prev =
-		get_next_selected_view(LAB_CYCLE_DIR_BACKWARD);
+		get_osd_impl()->next_selected_view(LAB_CYCLE_DIR_BACKWARD);
 	struct cycle_filter filter = cycle->filter;
 
 	destroy_cycle();
@@ -175,7 +153,7 @@ cycle_begin(enum lab_cycle_dir direction,
 		server.cycle.selected_view = get_first_view(&server.cycle.views);
 	}
 	/* Pre-select the next view in the given direction */
-	server.cycle.selected_view = get_next_selected_view(direction);
+	server.cycle.selected_view = get_osd_impl()->next_selected_view(direction);
 
 	seat_focus_override_begin(&server.seat,
 		LAB_INPUT_STATE_CYCLE, LAB_CURSOR_DEFAULT);
@@ -190,7 +168,7 @@ cycle_step(enum lab_cycle_dir direction)
 {
 	assert(server.input_mode == LAB_INPUT_STATE_CYCLE);
 
-	server.cycle.selected_view = get_next_selected_view(direction);
+	server.cycle.selected_view = get_osd_impl()->next_selected_view(direction);
 	update_cycle();
 }
 

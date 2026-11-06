@@ -30,6 +30,29 @@ struct lab_img_data {
 #endif
 };
 
+bool
+lab_img_get_size(struct lab_img *img, int *width, int *height)
+{
+	if (!img || !img->data) {
+		return false;
+	}
+	if (img->data->type != LAB_IMG_SVG && img->data->buffer) {
+		*width = img->data->buffer->base.width;
+		*height = img->data->buffer->base.height;
+		return *width > 0 && *height > 0;
+	} else if (img->data->type == LAB_IMG_SVG) {
+#if HAVE_RSVG
+		gdouble d_width, d_height;
+		if (rsvg_handle_get_intrinsic_size_in_pixels(img->data->svg, &d_width, &d_height)) {
+			*width = ceil(d_width);
+			*height = ceil(d_height);
+			return true;
+		}
+#endif
+	}
+	return false;
+}
+
 static struct lab_img *
 create_img(struct lab_img_data *img_data)
 {

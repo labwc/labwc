@@ -22,6 +22,16 @@ struct lab_img *lab_img_load(enum lab_img_type type, const char *path,
 	float *xbm_color);
 
 /**
+ * lab_img_get_size() - get width and height of an image
+ * @img: loaded lab_img
+ * @width: assigned the image width on success
+ * @height: assigned the image height on success
+ *
+ * Returns true on success.
+ */
+bool lab_img_get_size(struct lab_img *img, int *width, int *height);
+
+/**
  * lab_img_load_from_bitmap() - create button from monochrome bitmap
  * @bitmap: bitmap data array in hexadecimal xbm format
  * @rgba: color

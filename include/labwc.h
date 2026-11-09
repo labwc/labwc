@@ -324,6 +324,7 @@ struct server {
 	pid_t primary_client_pid;
 
 	char *title_fmt;
+	const char *socket_name;
 };
 
 /* defined in main.c */

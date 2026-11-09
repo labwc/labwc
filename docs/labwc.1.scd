@@ -48,6 +48,9 @@ the `--exit` and `--reconfigure` options use.
 *-h, --help*
 	Show help message and quit
 
+*-l, --listen-on* <name>
+	Specify Wayland socket name to listen on
+
 *-m, --merge-config*
 	Merge user config/theme files in all XDG Base Directories
 

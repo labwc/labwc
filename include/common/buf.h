@@ -8,6 +8,8 @@
 #ifndef LABWC_BUF_H
 #define LABWC_BUF_H
 
+#include <stdarg.h>
+
 struct buf {
 	/**
 	 * Pointer to underlying string buffer. If alloc != 0, then
@@ -49,6 +51,16 @@ void buf_expand_shell_variables(struct buf *s);
  * @fmt: format string to be added
  */
 void buf_add_fmt(struct buf *s, const char *fmt, ...);
+
+/**
+ * buf_add_vfmt - add format string to C string buffer
+ * @s: buffer
+ * @fmt: format string to be added
+ * @args: variable arguments created by va_start() by the caller
+ *
+ * The caller is responsible to match its va_start() with a va_end()
+ */
+void buf_add_vfmt(struct buf *s, const char *fmt, va_list args);
 
 /**
  * buf_add_hex_color - add rgb color as hex string to C string buffer

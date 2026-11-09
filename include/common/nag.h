@@ -10,6 +10,7 @@
 /* May return NULL if the buffer is currently written to a client */
 struct buf *nag_get_buf(void);
 
+void nag_init(void);
 void nag_set_error(enum wlr_log_importance importance);
 bool nag_check_pid(pid_t exited_pid);
 void nag_reset(void);

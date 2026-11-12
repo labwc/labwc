@@ -1781,31 +1781,30 @@ view_adjust_for_layout_change(struct view *view)
 
 	view->adjusting_for_layout_change = true;
 
-	struct wlr_box new_geo;
-	struct output *output = output_from_name(view->last_placement.output_name);
-	if (output_is_usable(output)) {
-		/*
-		 * When the previous output (which might have been reconnected
-		 * or relocated) is available, keep the relative position on it.
-		 */
-		new_geo = view->last_placement.relative_geo;
-		new_geo.x += output->scene_output->x;
-		new_geo.y += output->scene_output->y;
-		view->output = output;
-	} else {
-		/*
-		 * Otherwise, evacuate the view to another output. Use the last
-		 * layout geometry so that the view position is kept when the
-		 * user reconnects the previous output in a different connector
-		 * or the reconnected output somehow gets a different name.
-		 */
-		view_discover_output(view, &view->last_placement.layout_geo);
-		new_geo = view->last_placement.layout_geo;
-	}
-
 	if (!view_is_floating(view)) {
 		view_apply_special_geometry(view);
 	} else {
+		struct wlr_box new_geo;
+		struct output *output = output_from_name(view->last_placement.output_name);
+		if (output_is_usable(output)) {
+			/*
+			 * When the previous output (which might have been reconnected
+			 * or relocated) is available, keep the relative position on it.
+			 */
+			new_geo = view->last_placement.relative_geo;
+			new_geo.x += output->scene_output->x;
+			new_geo.y += output->scene_output->y;
+			view->output = output;
+		} else {
+			/*
+			 * Otherwise, evacuate the view to another output. Use the last
+			 * layout geometry so that the view position is kept when the
+			 * user reconnects the previous output in a different connector
+			 * or the reconnected output somehow gets a different name.
+			 */
+			view_discover_output(view, &view->last_placement.layout_geo);
+			new_geo = view->last_placement.layout_geo;
+		}
 		/* Ensure view is on-screen */
 		adjust_floating_geometry(view, &new_geo,
 			/* midpoint_visibility */ true);

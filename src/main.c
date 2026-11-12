@@ -28,15 +28,19 @@
 struct rcxml rc = { 0 };
 struct server server = { 0 };
 
+enum {
+	OPT_SOCKET = 256,
+};
+
 static const struct option long_options[] = {
 	{"config", required_argument, NULL, 'c'},
 	{"config-dir", required_argument, NULL, 'C'},
 	{"debug", no_argument, NULL, 'd'},
 	{"exit", no_argument, NULL, 'e'},
 	{"help", no_argument, NULL, 'h'},
-	{"listen-on", required_argument, NULL, 'l'},
 	{"merge-config", no_argument, NULL, 'm'},
 	{"reconfigure", no_argument, NULL, 'r'},
+	{"socket", required_argument, NULL, OPT_SOCKET},
 	{"startup", required_argument, NULL, 's'},
 	{"session", required_argument, NULL, 'S'},
 	{"title", required_argument, NULL, 't'},
@@ -52,11 +56,11 @@ static const char labwc_usage[] =
 "  -d, --debug              Enable full logging, including debug information\n"
 "  -e, --exit               Exit the compositor\n"
 "  -h, --help               Show help message and quit\n"
-"  -l, --listen-on <name>   Specify Wayland socket name to listen on\n"
 "  -m, --merge-config       Merge user config files/theme in all XDG Base Dirs\n"
 "  -r, --reconfigure        Reload the compositor configuration\n"
 "  -s, --startup <command>  Run command on startup\n"
 "  -S, --session <command>  Run command on startup and terminate on exit\n"
+"      --socket <name>      Specify Wayland socket name\n"
 "  -t, --title <fmtstr>     Specify title to use when running in a window\n"
 "  -v, --version            Show version number and quit\n"
 "  -V, --verbose            Enable more verbose logging\n";
@@ -183,7 +187,7 @@ main(int argc, char *argv[])
 	int c;
 	while (1) {
 		int index = 0;
-		c = getopt_long(argc, argv, "c:C:dehl:mrs:S:t:vV", long_options, &index);
+		c = getopt_long(argc, argv, "c:C:dehmrs:S:t:vV", long_options, &index);
 		if (c == -1) {
 			break;
 		}
@@ -200,9 +204,6 @@ main(int argc, char *argv[])
 		case 'e':
 			send_signal_to_labwc_pid(SIGTERM);
 			exit(0);
-		case 'l':
-			server.socket_name = optarg;
-			break;
 		case 'm':
 			rc.merge_config = true;
 			break;
@@ -214,6 +215,9 @@ main(int argc, char *argv[])
 			break;
 		case 'S':
 			primary_client = optarg;
+			break;
+		case OPT_SOCKET:
+			server.socket_name = optarg;
 			break;
 		case 't':
 			server.title_fmt = optarg;

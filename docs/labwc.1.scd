@@ -48,9 +48,6 @@ the `--exit` and `--reconfigure` options use.
 *-h, --help*
 	Show help message and quit
 
-*-l, --listen-on* <name>
-	Specify Wayland socket name to listen on
-
 *-m, --merge-config*
 	Merge user config/theme files in all XDG Base Directories
 
@@ -72,6 +69,9 @@ the `--exit` and `--reconfigure` options use.
 	Compositor needs to be running before the session can function. As some
 	session clients support both X11 and Wayland, this command line option
 	avoids re-writes and fragmentation.
+
+*--socket* <name>
+	Specify Wayland socket name to listen on
 
 *-t, --title* <fmtstr>
 	Set the window title for labwc to use when it is running in a window

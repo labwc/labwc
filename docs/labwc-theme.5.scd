@@ -368,8 +368,13 @@ all are supported.
 	Padding of window switcher in pixels. This is the space between the
 	window-switcher border and its items. Default is 4.
 
+*osd.window-switcher.style-thumbnail.columns*
+	Number of columns in the grid. If 0, the number of columns is determined
+	by `width.max` above and `item.width` below. Default is 0.
+
 *osd.window-switcher.style-thumbnail.item.width*
-	Width of window switcher items in pixels. Default is 300.
+	Maximum width of window switcher items in pixels. Actual width may be
+	smaller depending on `width.max` and  and `columns` above. Default is 300.
 
 *osd.window-switcher.style-thumbnail.item.height*
 	Height of window switcher items in pixels. Default is 250.

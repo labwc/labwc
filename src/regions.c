@@ -35,6 +35,26 @@ regions_from_name(const char *region_name, struct output *output)
 	return NULL;
 }
 
+static struct region *
+region_from_drop_at(struct output *output, double x, double y)
+{
+	struct wlr_scene_node *node = wlr_scene_node_at(
+		&output->region_drop_indicator_tree->node, x, y, NULL, NULL);
+	if (node) {
+		while (node) {
+			struct node_descriptor *desc = node->data;
+			if (desc && desc->type == LAB_NODE_REGION_DROP_INDICATOR) {
+				return desc->data;
+			}
+			if (!node->parent) {
+				break;
+			}
+			node = &node->parent->node;
+		}
+	}
+	return NULL;
+}
+
 struct region *
 regions_from_cursor(void)
 {
@@ -59,21 +79,9 @@ regions_from_cursor(void)
 	}
 
 	if (rc.regions_drop_indicator) {
-		struct wlr_scene_node *node = wlr_scene_node_at(
-			&output->region_drop_indicator_tree->node, lx, ly, NULL, NULL);
-		if (node) {
-			while (node) {
-				if (node->parent == output->region_drop_indicator_tree) {
-					struct node_descriptor *desc = node->data;
-					if (desc->type == LAB_NODE_REGION_DROP_INDICATOR) {
-						return desc->data;
-					}
-				}
-				if (!node->parent) {
-					break;
-				}
-				node = &node->parent->node;
-			}
+		struct region *region = region_from_drop_at(output, lx, ly);
+		if (region) {
+			return region;
 		}
 	}
 

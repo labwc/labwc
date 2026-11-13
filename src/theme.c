@@ -658,6 +658,20 @@ theme_builtin(struct theme *theme)
 	zero_array(theme->snapping_overlay_edge.border_color);
 	theme->snapping_overlay_edge.border_color[0][0] = FLT_MIN;
 
+	theme->region_drop_indicator.width = 80;
+	theme->region_drop_indicator.height = 60;
+	theme->region_drop_indicator.border_width = 1;
+	/*
+	 * Copied from:
+	 * "theme->window[SSD_ACTIVE].border_color"
+	 * "theme->window[SSD_ACTIVE].title_bg.color"
+	 * "theme->window[SSD_ACTIVE].label_text_color"
+	 * and added some transparency.
+	 */
+	parse_color("#aaaaaa80", theme->region_drop_indicator.border_color);
+	parse_color("#e1dedb80", theme->region_drop_indicator.bg_color);
+	parse_color("#000000", theme->region_drop_indicator.text_color);
+
 	/* magnifier */
 	parse_hexstr("#ff0000", theme->mag_border_color);
 	theme->mag_border_width = 1;
@@ -1106,6 +1120,28 @@ entry(struct theme *theme, const char *key, const char *value)
 	}
 	if (match_glob(key, "snapping.overlay.edge.border.color")) {
 		parse_hexstrs(value, theme->snapping_overlay_edge.border_color);
+	}
+
+	if (match_glob(key, "region_drop_indicator.width")) {
+		theme->region_drop_indicator.width = get_int_if_positive(
+			value, "region_drop_indicator.width");
+	}
+	if (match_glob(key, "region_drop_indicator.height")) {
+		theme->region_drop_indicator.height = get_int_if_positive(
+			value, "region_drop_indicator.height");
+	}
+	if (match_glob(key, "region_drop_indicator.border.width")) {
+		theme->region_drop_indicator.border_width = get_int_if_positive(
+			value, "region_drop_indicator.border.width");
+	}
+	if (match_glob(key, "region_drop_indicator.border.color")) {
+		parse_color(value, theme->region_drop_indicator.border_color);
+	}
+	if (match_glob(key, "region_drop_indicator.bg.color")) {
+		parse_color(value, theme->region_drop_indicator.bg_color);
+	}
+	if (match_glob(key, "region_drop_indicator.text.color")) {
+		parse_color(value, theme->region_drop_indicator.text_color);
 	}
 
 	if (match_glob(key, "magnifier.border.width")) {

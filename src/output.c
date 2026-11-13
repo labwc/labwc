@@ -316,6 +316,9 @@ handle_output_destroy(struct wl_listener *listener, void *data)
 		wlr_scene_node_destroy(&output->layer_tree[i]->node);
 	}
 	wlr_scene_node_destroy(&output->layer_popup_tree->node);
+	if (output->region_drop_indicator_tree) {
+		wlr_scene_node_destroy(&output->region_drop_indicator_tree->node);
+	}
 	wlr_scene_node_destroy(&output->cycle_osd_tree->node);
 	wlr_scene_node_destroy(&output->session_lock_tree->node);
 	if (output->workspace_osd) {
@@ -720,6 +723,10 @@ handle_new_output(struct wl_listener *listener, void *data)
 			lab_wlr_scene_tree_create(&server.scene->tree);
 	}
 	output->layer_popup_tree = lab_wlr_scene_tree_create(&server.scene->tree);
+	if (rc.regions_drop_indicator) {
+		output->region_drop_indicator_tree =
+			lab_wlr_scene_tree_create(&server.scene->tree);
+	}
 	output->cycle_osd_tree = lab_wlr_scene_tree_create(&server.scene->tree);
 	output->session_lock_tree = lab_wlr_scene_tree_create(&server.scene->tree);
 
@@ -743,7 +750,9 @@ handle_new_output(struct wl_listener *listener, void *data)
 	wlr_scene_node_place_below(&output->layer_tree[2]->node, menu_node);
 	wlr_scene_node_place_below(&output->layer_tree[3]->node, menu_node);
 	wlr_scene_node_place_below(&output->layer_popup_tree->node, menu_node);
-
+	if (rc.regions_drop_indicator) {
+		wlr_scene_node_raise_to_top(&output->region_drop_indicator_tree->node);
+	}
 	wlr_scene_node_raise_to_top(&output->cycle_osd_tree->node);
 	wlr_scene_node_raise_to_top(&output->session_lock_tree->node);
 
@@ -927,6 +936,7 @@ output_config_apply(struct wlr_output_configuration_v1 *config)
 
 	server.pending_output_layout_change--;
 	do_output_layout_change();
+
 	return success;
 }
 

@@ -7,27 +7,19 @@
 #include <math.h>
 #include <string.h>
 #include <wlr/types/wlr_cursor.h>
+#include <wlr/types/wlr_scene.h>
 #include <wlr/util/box.h>
+#include "common/lab-scene-rect.h"
 #include "common/list.h"
 #include "common/mem.h"
 #include "config/rcxml.h"
 #include "input/keyboard.h"
 #include "labwc.h"
+#include "node.h"
 #include "output.h"
+#include "scaled-buffer/scaled-font-buffer.h"
+#include "theme.h"
 #include "view.h"
-
-bool
-regions_should_snap(void)
-{
-	if (server.input_mode != LAB_INPUT_STATE_MOVE
-			|| wl_list_empty(&rc.regions)
-			|| server.seat.region_prevent_snap
-			|| !view_is_floating(server.grabbed_view)) {
-		return false;
-	}
-
-	return keyboard_get_all_modifiers(&server.seat);
-}
 
 struct region *
 regions_from_name(const char *region_name, struct output *output)
@@ -46,6 +38,16 @@ regions_from_name(const char *region_name, struct output *output)
 struct region *
 regions_from_cursor(void)
 {
+	if (server.input_mode != LAB_INPUT_STATE_MOVE
+			|| wl_list_empty(&rc.regions)
+			|| server.seat.region_prevent_snap
+			|| !view_is_floating(server.grabbed_view)) {
+		return NULL;
+	}
+	uint32_t modifiers = keyboard_get_all_modifiers(&server.seat);
+	if (!modifiers && !rc.regions_drop_indicator) {
+		return NULL;
+	}
 	double lx = server.seat.cursor->x;
 	double ly = server.seat.cursor->y;
 
@@ -53,6 +55,30 @@ regions_from_cursor(void)
 		server.output_layout, lx, ly);
 	struct output *output = output_from_wlr_output(wlr_output);
 	if (!output_is_usable(output)) {
+		return NULL;
+	}
+
+	if (rc.regions_drop_indicator) {
+		struct wlr_scene_node *node = wlr_scene_node_at(
+			&output->region_drop_indicator_tree->node, lx, ly, NULL, NULL);
+		if (node) {
+			while (node) {
+				if (node->parent == output->region_drop_indicator_tree) {
+					struct node_descriptor *desc = node->data;
+					if (desc->type == LAB_NODE_REGION_DROP_INDICATOR) {
+						return desc->data;
+					}
+				}
+				if (!node->parent) {
+					break;
+				}
+				node = &node->parent->node;
+			}
+		}
+	}
+
+	/* Check again in case "regions_show_indicator" is true but didn't find a region */
+	if (!modifiers) {
 		return NULL;
 	}
 
@@ -71,6 +97,72 @@ regions_from_cursor(void)
 		}
 	}
 	return closest_region;
+}
+
+static void
+create_region_drop_indicators(struct output *output)
+{
+	if (!rc.regions_drop_indicator) {
+		return;
+	}
+	struct region *region;
+	wl_list_for_each(region, &output->regions, link) {
+		struct drop_indicator_theme *theme = &rc.theme->region_drop_indicator;
+		struct wlr_scene_tree *tree = output->region_drop_indicator_tree;
+		struct lab_scene_rect_options opts = {
+			.border_colors = (float *[1]) { theme->border_color },
+			.nr_borders = 1,
+			.border_width = theme->border_width,
+			.bg_color = theme->bg_color,
+			.width = theme->width,
+			.height = theme->height,
+		};
+		struct lab_scene_rect *rect = lab_scene_rect_create(tree, &opts);
+		node_descriptor_create(&rect->tree->node, LAB_NODE_REGION_DROP_INDICATOR,
+			NULL, region);
+		int x = region->center.x - theme->width / 2;
+		int y = region->center.y - theme->height / 2;
+		wlr_scene_node_set_position(&rect->tree->node, x, y);
+
+		struct scaled_font_buffer *font_buffer = scaled_font_buffer_create(tree);
+		node_descriptor_create(&font_buffer->scene_buffer->node,
+			LAB_NODE_REGION_DROP_INDICATOR, NULL, region);
+		scaled_font_buffer_update(font_buffer, region->name, theme->width,
+			&rc.font_regiondrop, theme->text_color, theme->bg_color);
+
+		x = MAX(x, region->center.x - font_buffer->width / 2);
+		y = MAX(y, region->center.y - font_buffer->height / 2);
+		wlr_scene_node_set_position(&font_buffer->scene_buffer->node, x, y);
+	}
+}
+
+static void
+destroy_region_drop_indicators(struct output *output)
+{
+	struct wlr_scene_node *node, *tmp;
+	wl_list_for_each_safe(node, tmp,
+			&output->region_drop_indicator_tree->children, link) {
+		wlr_scene_node_destroy(node);
+	}
+}
+
+void
+regions_set_drop_indicator_enabled(bool enabled)
+{
+	if (!rc.regions_drop_indicator) {
+		return;
+	}
+	struct output *output;
+	wl_list_for_each(output, &server.outputs, link) {
+		struct wlr_scene_tree *tree = output->region_drop_indicator_tree;
+		if (tree) {
+			if (enabled && wl_list_empty(&tree->children)
+					&& !wl_list_empty(&output->regions)) {
+				create_region_drop_indicators(output);
+			}
+			wlr_scene_node_set_enabled(&tree->node, enabled);
+		}
+	}
 }
 
 void
@@ -142,6 +234,7 @@ regions_update_geometry(struct output *output)
 		region->center.x = geo->x + geo->width / 2;
 		region->center.y = geo->y + geo->height / 2;
 	}
+	destroy_region_drop_indicators(output);
 }
 
 void
@@ -170,4 +263,3 @@ regions_destroy(struct seat *seat, struct wl_list *regions)
 		zfree(region);
 	}
 }
-

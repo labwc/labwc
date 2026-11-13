@@ -848,10 +848,20 @@ void
 server_start(void)
 {
 	/* Add a Unix socket to the Wayland display. */
-	const char *socket = wl_display_add_socket_auto(server.wl_display);
-	if (!socket) {
-		wlr_log_errno(WLR_ERROR, "unable to open wayland socket");
-		exit(EXIT_FAILURE);
+	const char *socket = NULL;
+	if (server.socket_name) {
+		if (wl_display_add_socket(server.wl_display, server.socket_name) < 0) {
+			wlr_log_errno(WLR_ERROR, "unable to open wayland socket '%s'",
+				server.socket_name);
+			exit(EXIT_FAILURE);
+		}
+		socket = server.socket_name;
+	} else {
+		socket = wl_display_add_socket_auto(server.wl_display);
+		if (!socket) {
+			wlr_log_errno(WLR_ERROR, "unable to open wayland socket");
+			exit(EXIT_FAILURE);
+		}
 	}
 
 	/*

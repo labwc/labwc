@@ -70,6 +70,9 @@ the `--exit` and `--reconfigure` options use.
 	session clients support both X11 and Wayland, this command line option
 	avoids re-writes and fragmentation.
 
+*--socket* <name>
+	Specify Wayland socket name to listen on
+
 *-t, --title* <fmtstr>
 	Set the window title for labwc to use when it is running in a window
 	(i.e. nested in a compositor). <fmtstr> is a format string to be used as

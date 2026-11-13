@@ -28,6 +28,10 @@
 struct rcxml rc = { 0 };
 struct server server = { 0 };
 
+enum {
+	OPT_SOCKET = 256,
+};
+
 static const struct option long_options[] = {
 	{"config", required_argument, NULL, 'c'},
 	{"config-dir", required_argument, NULL, 'C'},
@@ -36,6 +40,7 @@ static const struct option long_options[] = {
 	{"help", no_argument, NULL, 'h'},
 	{"merge-config", no_argument, NULL, 'm'},
 	{"reconfigure", no_argument, NULL, 'r'},
+	{"socket", required_argument, NULL, OPT_SOCKET},
 	{"startup", required_argument, NULL, 's'},
 	{"session", required_argument, NULL, 'S'},
 	{"title", required_argument, NULL, 't'},
@@ -55,6 +60,7 @@ static const char labwc_usage[] =
 "  -r, --reconfigure        Reload the compositor configuration\n"
 "  -s, --startup <command>  Run command on startup\n"
 "  -S, --session <command>  Run command on startup and terminate on exit\n"
+"      --socket <name>      Specify Wayland socket name\n"
 "  -t, --title <fmtstr>     Specify title to use when running in a window\n"
 "  -v, --version            Show version number and quit\n"
 "  -V, --verbose            Enable more verbose logging\n";
@@ -209,6 +215,9 @@ main(int argc, char *argv[])
 			break;
 		case 'S':
 			primary_client = optarg;
+			break;
+		case OPT_SOCKET:
+			server.socket_name = optarg;
 			break;
 		case 't':
 			server.title_fmt = optarg;

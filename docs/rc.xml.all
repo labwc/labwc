@@ -233,7 +233,7 @@
 
   <!-- Percent based regions based on output usable area, % char is required -->
   <!--
-    <regions>
+    <regions dropIndicator="yes">
       <region name="top-left"     x="0%"  y="0%"  height="50%"  width="50%"  />
       <region name="top"          x="0%"  y="0%"  height="50%"  width="100%" />
       <region name="top-right"    x="50%" y="0%"  height="50%"  width="50%"  />

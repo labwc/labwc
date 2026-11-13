@@ -658,9 +658,9 @@ theme_builtin(struct theme *theme)
 	zero_array(theme->snapping_overlay_edge.border_color);
 	theme->snapping_overlay_edge.border_color[0][0] = FLT_MIN;
 
-	theme->region_drop_indicator.width = 80;
+	theme->region_drop_indicator.width = 90;
 	theme->region_drop_indicator.height = 60;
-	theme->region_drop_indicator.border_width = 1;
+	theme->region_drop_indicator.border_width = 2;
 	/*
 	 * Copied from:
 	 * "theme->window[SSD_ACTIVE].border_color"

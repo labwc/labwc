@@ -466,6 +466,24 @@ all are supported.
 	*window.inactive.border.color*. This is obsolete, but supported for
 	backward compatibility as some themes still contain it.
 
+*region_drop_indicator.width*
+	Width of the region drop indicator. Default is 90.
+
+*region_drop_indicator.height*
+	Height of the region drop indicator. Default is 60.
+
+*region_drop_indicator.border.width*
+	Width of the border for the region drop indicator. Default is 2.
+
+*region_drop_indicator.border.color*
+	Color of the border for the region drop indicator. Default is #aaaaaa80.
+
+*region_drop_indicator.bg.color*
+	Color of the background for the region drop indicator. Default is #e1dedb80.
+
+*region_drop_indicator.text.color*
+	Color of the text for the region drop indicator. Default is #000000.
+
 *magnifier.border.width*
 	Width of magnifier window border in pixels. Default is 1.
 

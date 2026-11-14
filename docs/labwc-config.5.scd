@@ -594,7 +594,7 @@ extending outward from the snapped edge.
 
 ## REGIONS
 *<regions dropIndicator="">*
-	dropIndicator [yes|no] Show "drop zones" when moving a window without
+	*dropIndicator* [yes|no] Show "drop zones" when moving a window without
 	any pressed modifier, in the center of each defined <region>. The window
 	is snapped to the region when dropped in it. Default is yes.
 

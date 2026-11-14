@@ -593,6 +593,10 @@ extending outward from the snapped edge.
 	The default is "always".
 
 ## REGIONS
+*<regions dropIndicator="">*
+	*dropIndicator* [yes|no] Show "drop zones" when moving a window without
+	any pressed modifier, in the center of each defined <region>. The window
+	is snapped to the region when dropped in it. Default is yes.
 
 *<regions><region name="snap-1" x="10%" y="10%" width="80%" height="80%">*
 	Define snap regions. The regions are calculated based on the usable area
@@ -691,6 +695,8 @@ extending outward from the snapped edge.
 	- MenuHeader - menu title
 	- MenuItem - menu item (currently only root menu)
 	- OnScreenDisplay - items in the on screen display
+	- RegionDrop - Label for region drop indicators when
+	  <regions dropIndicator=""> is enabled.
 	If no place attribute is provided, the setting will be applied to all
 	places.
 

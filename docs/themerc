@@ -138,3 +138,10 @@ snapping.overlay.region.border.width: 1
 snapping.overlay.edge.border.width: 1
 snapping.overlay.region.border.color: #dddda6,#000000,#dddda6
 snapping.overlay.edge.border.color: #dddda6,#000000,#dddda6
+
+region_drop_indicator.width: 90
+region_drop_indicator.height: 60
+region_drop_indicator.border.width: 2
+region_drop_indicator.border.color: #aaaaaa80
+region_drop_indicator.bg.color: #e1dedb80
+region_drop_indicator.text.color: #000000

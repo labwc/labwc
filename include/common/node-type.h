@@ -59,6 +59,7 @@ enum lab_node_type {
 	LAB_NODE_SESSION_LOCK_SURFACE,
 	LAB_NODE_IME_POPUP,
 
+	LAB_NODE_REGION_DROP_INDICATOR,
 	/*
 	 * translated to LAB_CORNER_* or LAB_BORDER* by
 	 * ssd_get_resizing_type()

@@ -50,6 +50,7 @@ enum font_place {
 	FONT_PLACE_MENUHEADER,
 	FONT_PLACE_MENUITEM,
 	FONT_PLACE_OSD,
+	FONT_PLACE_REGION_DROP,
 	/* TODO: Add all places based on Openbox's rc.xml */
 };
 
@@ -442,6 +443,8 @@ fill_regions(xmlNode *node)
 	LAB_XML_FOR_EACH(node, child, key, content) {
 		if (!strcasecmp(key, "region")) {
 			fill_region(child);
+		} else if (!strcasecmp(key, "dropIndicator")) {
+			set_bool(content, &rc.regions_drop_indicator);
 		}
 	}
 }
@@ -1038,6 +1041,8 @@ enum_font_place(const char *place)
 	} else if (!strcasecmp(place, "OnScreenDisplay")
 			|| !strcasecmp(place, "OSD")) {
 		return FONT_PLACE_OSD;
+	} else if (!strcasecmp(place, "RegionDrop")) {
+		return FONT_PLACE_REGION_DROP;
 	}
 	return FONT_PLACE_UNKNOWN;
 }
@@ -1081,7 +1086,9 @@ fill_font(xmlNode *node)
 		case FONT_PLACE_OSD:
 			set_font_attr(&rc.font_osd, key, content);
 			break;
-
+		case FONT_PLACE_REGION_DROP:
+			set_font_attr(&rc.font_regiondrop, key, content);
+			break;
 			/* TODO: implement for all font places */
 
 		default:
@@ -1594,6 +1601,7 @@ rcxml_init(void)
 	init_font_defaults(&rc.font_menuheader);
 	init_font_defaults(&rc.font_menuitem);
 	init_font_defaults(&rc.font_osd);
+	init_font_defaults(&rc.font_regiondrop);
 
 	rc.focus_follow_mouse = false;
 	rc.focus_follow_mouse_requires_movement = true;
@@ -1645,6 +1653,8 @@ rcxml_init(void)
 	rc.resize_draw_contents = true;
 	rc.resize_corner_range = -1;
 	rc.resize_minimum_area = 8;
+
+	rc.regions_drop_indicator = true;
 
 	rc.workspace_config.popuptime = INT_MIN;
 	rc.workspace_config.min_nr_workspaces = 1;
@@ -1910,6 +1920,9 @@ post_processing(void)
 	if (!rc.font_osd.name) {
 		rc.font_osd.name = xstrdup("sans");
 	}
+	if (!rc.font_regiondrop.name) {
+		rc.font_regiondrop.name = xstrdup("sans");
+	}
 	if (!libinput_category_get_default()) {
 		/* So we set default values of <tap> and <scrollFactor> */
 		struct libinput_category *l = libinput_category_create();
@@ -2113,6 +2126,7 @@ rcxml_finish(void)
 	zfree(rc.font_menuheader.name);
 	zfree(rc.font_menuitem.name);
 	zfree(rc.font_osd.name);
+	zfree(rc.font_regiondrop.name);
 	zfree(rc.prompt_command);
 	zfree(rc.error_command);
 	zfree(rc.theme_name);

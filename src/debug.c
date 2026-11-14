@@ -37,6 +37,8 @@ get_node_type(struct wlr_scene_node *node)
 		return "tree";
 	case WLR_SCENE_NODE_RECT:
 		return "rect";
+	case WLR_SCENE_NODE_TRANSFORM:
+		return "transform";
 	case WLR_SCENE_NODE_BUFFER:
 		if (lab_wlr_surface_from_node(node)) {
 			return "surface";
@@ -245,7 +247,8 @@ dump_tree(struct wlr_scene_node *node,
 		return;
 	}
 
-	if (node->type == WLR_SCENE_NODE_TREE) {
+	if (node->type == WLR_SCENE_NODE_TREE
+			|| node->type == WLR_SCENE_NODE_TRANSFORM) {
 		struct wlr_scene_node *child;
 		struct wlr_scene_tree *tree = wlr_scene_tree_from_node(node);
 		wl_list_for_each(child, &tree->children, link) {

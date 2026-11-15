@@ -150,12 +150,10 @@ void
 overlay_update(struct seat *seat)
 {
 	/* Region-snapping overlay */
-	if (regions_should_snap()) {
-		struct region *region = regions_from_cursor();
-		if (region) {
-			show_region_overlay(seat, region);
-			return;
-		}
+	struct region *region = regions_from_cursor();
+	if (region) {
+		show_region_overlay(seat, region);
+		return;
 	}
 
 	/* Edge-snapping overlay */

@@ -25,9 +25,8 @@ struct region {
 	} center;
 };
 
-/* Returns true if we should show the region overlay or snap to region */
-bool regions_should_snap(void);
-
+/* Show or hide the regions drop indicators (shown on interactive move) */
+void regions_set_drop_indicator_enabled(bool enabled);
 /**
  * regions_reconfigure*() - re-initializes all regions from struct rc.
  *

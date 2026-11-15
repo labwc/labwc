@@ -121,6 +121,7 @@ struct rcxml {
 	struct font font_menuheader;
 	struct font font_menuitem;
 	struct font font_osd;
+	struct font font_regiondrop;
 
 	/* Pointer to current theme */
 	struct theme *theme;
@@ -193,6 +194,7 @@ struct rcxml {
 
 	/* Regions */
 	struct wl_list regions;  /* struct region.link */
+	bool regions_drop_indicator;
 
 	/* Window Switcher */
 	struct {

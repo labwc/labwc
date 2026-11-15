@@ -205,6 +205,15 @@ struct theme {
 	int osd_workspace_switcher_boxes_height;
 	int osd_workspace_switcher_boxes_border_width;
 
+	struct drop_indicator_theme {
+		int width;
+		int height;
+		int border_width;
+		float border_color[4];
+		float bg_color[4];
+		float text_color[4];
+	} region_drop_indicator;
+
 	struct theme_snapping_overlay
 		snapping_overlay_region, snapping_overlay_edge;
 

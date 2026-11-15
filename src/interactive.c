@@ -189,6 +189,9 @@ interactive_begin(struct view *view, enum input_mode mode, enum lab_edge edges)
 	if (rc.window_edge_strength) {
 		edges_calculate_visibility(view);
 	}
+	if (!seat->region_prevent_snap && mode == LAB_INPUT_STATE_MOVE) {
+		regions_set_drop_indicator_enabled(true);
+	}
 }
 
 bool
@@ -304,10 +307,6 @@ snap_to_edge(struct view *view)
 static bool
 snap_to_region(struct view *view)
 {
-	if (!regions_should_snap()) {
-		return false;
-	}
-
 	struct region *region = regions_from_cursor();
 	if (region) {
 		view_snap_to_region(view, region);
@@ -322,6 +321,7 @@ interactive_finish(struct view *view)
 	assert(view);
 
 	if (server.grabbed_view != view) {
+		regions_set_drop_indicator_enabled(false);
 		return;
 	}
 
@@ -330,7 +330,7 @@ interactive_finish(struct view *view)
 			snap_to_edge(view);
 		}
 	}
-
+	regions_set_drop_indicator_enabled(false);
 	interactive_cancel(view);
 }
 

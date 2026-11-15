@@ -472,6 +472,8 @@ fill_action_query(struct action *action, xmlNode *node, struct view_query *query
 			query->focused = parse_tristate(content);
 		} else if (!strcasecmp(key, "omnipresent")) {
 			query->omnipresent = parse_tristate(content);
+		} else if (!strcasecmp(key, "fullscreen")) {
+			query->fullscreen = parse_tristate(content);
 		} else if (!strcasecmp(key, "tiled")) {
 			query->tiled = lab_edge_parse(content,
 				/*tiled*/ true, /*any*/ true);

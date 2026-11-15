@@ -93,6 +93,8 @@ struct action_arg_list {
 	X(MAXIMIZE, "Maximize") \
 	X(UNMAXIMIZE, "UnMaximize") \
 	X(TOGGLE_FULLSCREEN, "ToggleFullscreen") \
+	X(SET_FULLSCREEN, "SetFullscreen") \
+	X(UNSET_FULLSCREEN, "UnsetFullscreen") \
 	X(SET_DECORATIONS, "SetDecorations") \
 	X(TOGGLE_DECORATIONS, "ToggleDecorations") \
 	X(TOGGLE_ALWAYS_ON_TOP, "ToggleAlwaysOnTop") \
@@ -1209,6 +1211,16 @@ run_action(struct view *view, struct action *action,
 	case ACTION_TYPE_TOGGLE_FULLSCREEN:
 		if (view) {
 			view_toggle_fullscreen(view);
+		}
+		break;
+	case ACTION_TYPE_SET_FULLSCREEN:
+		if (view) {
+			view_set_fullscreen(view, true);
+		}
+		break;
+	case ACTION_TYPE_UNSET_FULLSCREEN:
+		if (view) {
+			view_set_fullscreen(view, false);
 		}
 		break;
 	case ACTION_TYPE_SET_DECORATIONS:

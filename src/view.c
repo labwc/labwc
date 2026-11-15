@@ -186,6 +186,10 @@ view_matches_query(struct view *view, struct view_query *query)
 		return false;
 	}
 
+	if (!query_tristate_match(query->fullscreen, view->fullscreen)) {
+		return false;
+	}
+
 	if (query->tiled == LAB_EDGE_ANY) {
 		if (!view->tiled) {
 			return false;

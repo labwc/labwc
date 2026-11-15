@@ -309,6 +309,7 @@ struct view_query {
 	enum lab_tristate iconified;
 	enum lab_tristate focused;
 	enum lab_tristate omnipresent;
+	enum lab_tristate fullscreen;
 	enum lab_edge tiled;
 	char *tiled_region;
 	char *desktop;

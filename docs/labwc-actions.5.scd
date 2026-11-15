@@ -235,6 +235,15 @@ Actions are used in menus and keyboard/mouse bindings.
 *<action name="ToggleFullscreen" />*
 	Toggle fullscreen state of focused window.
 
+*<action name="SetFullscreen" />*
+	Set the fullscreen state of focused window. This makes the focused window
+	fullscreen. It has no effect if the focused window is already fullscreen.
+
+*<action name="UnsetFullscreen" />*
+	Unset the fullscreen state of the focused window. This returns the focused
+	window to its original dimensions. It has no effect if the focused window is
+	not fullscreen.
+
 *<action name="ToggleMaximize" direction="value" />*
 	Toggle maximize state of focused window. Supported directions are
 	"both" (default), "horizontal", and "vertical".
@@ -517,6 +526,9 @@ Actions that execute other actions. Used in keyboard/mouse bindings.
 
 		*omnipresent* [yes|no]
 			Whether or not the client is visible on all desktops.
+
+		*fullscreen* [yes|no]
+			Whether or not the client is fullscreen.
 
 		*desktop*
 			The desktop the client is currently on. This can be the

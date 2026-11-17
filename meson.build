@@ -17,6 +17,8 @@ add_project_arguments(
   language: 'c',
 )
 
+fs = import('fs')
+
 cc = meson.get_compiler('c')
 
 add_project_arguments(cc.get_supported_arguments([
@@ -41,11 +43,13 @@ add_project_arguments(cc.get_supported_arguments([
 ]), language: 'c')
 
 version='"@0@"'.format(meson.project_version())
-git = find_program('git', native: true, required: false)
-if git.found()
-  git_commit = run_command([git, 'describe', '--dirty'], check: false)
-  if git_commit.returncode() == 0
-    version = '"@0@"'.format(git_commit.stdout().strip())
+if fs.is_dir('.git')
+  git = find_program('git', native: true, required: false)
+  if git.found()
+    git_commit = run_command([git, 'describe', '--dirty'], check: false)
+    if git_commit.returncode() == 0
+      version = '"@0@"'.format(git_commit.stdout().strip())
+    endif
   endif
 endif
 add_project_arguments('-DLABWC_VERSION=@0@'.format(version), language: 'c')

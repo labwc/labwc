@@ -456,7 +456,7 @@ handle_toplevel_capture_source_destroy(struct wl_listener *listener, void *data)
 static void
 handle_toplevel_capture_request(struct wl_listener *listener, void *data)
 {
-	struct wlr_ext_foreign_toplevel_image_capture_source_manager_v1_request *request = data;
+	struct wlr_ext_foreign_toplevel_image_capture_source_manager_v1_request_event *request = data;
 	struct view *view = request->toplevel_handle->data;
 	assert(view);
 	wlr_log(WLR_INFO, "Capturing toplevel %s", view->app_id);
@@ -761,7 +761,7 @@ server_init(void)
 			server.wl_display, 1);
 	if (server.toplevel_capture.manager) {
 		server.toplevel_capture.on.new_request.notify = handle_toplevel_capture_request;
-		wl_signal_add(&server.toplevel_capture.manager->events.new_request,
+		wl_signal_add(&server.toplevel_capture.manager->events.capture_request,
 			&server.toplevel_capture.on.new_request);
 	} else {
 		/* Allow safe removal on shutdown */

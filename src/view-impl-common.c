@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /* view-impl-common.c: common code for shell view->impl functions */
 #include "view-impl-common.h"
+#include "animation.h"
 #include "foreign-toplevel/foreign.h"
 #include "labwc.h"
 #include "view.h"
@@ -18,6 +19,7 @@ view_impl_map(struct view *view)
 
 	if (!view->been_mapped) {
 		window_rules_apply(view, LAB_WINDOW_RULE_EVENT_ON_FIRST_MAP);
+		zoom_animation_start(view, 1.0, animation_curve_elastic_in);
 	}
 
 	/*

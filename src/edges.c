@@ -320,7 +320,8 @@ subtract_node_tree(struct wlr_scene_tree *tree, pixman_region32_t *available,
 			if (view != ignored_view) {
 				subtract_view_from_space(view, available);
 			}
-		} else if (node->type == WLR_SCENE_NODE_TREE) {
+		} else if (node->type == WLR_SCENE_NODE_TREE
+				|| node->type == WLR_SCENE_NODE_TRANSFORM) {
 			subtract_node_tree(wlr_scene_tree_from_node(node),
 				available, ignored_view);
 		}

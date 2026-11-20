@@ -1,0 +1,81 @@
+# Labwc pot file
+# Copyright (C) 2024
+# This file is distributed under the same license as the labwc package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: labwc\n"
+"Report-Msgid-Bugs-To: https://github.com/labwc/labwc/issues\n"
+"POT-Creation-Date: 2024-09-19 21:09+1000\n"
+"PO-Revision-Date: 2026-11-20 14:30+0000\n"
+"Last-Translator: rprieditis <rprieditis@gmail.com>\n"
+"Language-Team: Latvian <https://translate.lxqt-project.org/projects/labwc/"
+"labwc/lv/>\n"
+"Language: lv\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n % 10 == 0 || n % 100 >= 11 && n % 100 <= "
+"19) ? 0 : ((n % 10 == 1 && n % 100 != 11) ? 1 : 2);\n"
+"X-Generator: Weblate 4.2.1\n"
+
+#: src/menu/menu.c:1016
+msgid "Go there..."
+msgstr "Doties uz..."
+
+#: src/menu/menu.c:1034
+msgid "Terminal"
+msgstr "Terminālis"
+
+#: src/menu/menu.c:1040
+msgid "Reconfigure"
+msgstr "Pārkonfigurēt"
+
+#: src/menu/menu.c:1042
+msgid "Exit"
+msgstr "Iziet"
+
+#: src/menu/menu.c:1056
+msgid "Minimize"
+msgstr "Minimizēt"
+
+#: src/menu/menu.c:1058
+msgid "Maximize"
+msgstr "Maksimizēt"
+
+#: src/menu/menu.c:1060
+msgid "Fullscreen"
+msgstr "Pilnekrāns"
+
+#: src/menu/menu.c:1062
+msgid "Roll Up/Down"
+msgstr "Uzrullēt/atrullēt"
+
+#: src/menu/menu.c:1064
+msgid "Decorations"
+msgstr "Dekorācijas"
+
+#: src/menu/menu.c:1066
+msgid "Always on Top"
+msgstr "Vienmēr virspusē"
+
+#: src/menu/menu.c:1071
+msgid "Move Left"
+msgstr "Pārvietot pa kreisi"
+
+#: src/menu/menu.c:1078
+msgid "Move Right"
+msgstr "Pārvietot pa labi"
+
+#: src/menu/menu.c:1083
+msgid "Always on Visible Workspace"
+msgstr "Vienmēr redzamajā darba vietā"
+
+#: src/menu/menu.c:1086
+msgid "Workspace"
+msgstr "Darba vieta"
+
+#: src/menu/menu.c:1089
+msgid "Close"
+msgstr "Aizvērt"

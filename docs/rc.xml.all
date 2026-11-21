@@ -4,9 +4,7 @@
 
   Values for [yes|no] can be replaced by [true|false], [on|off] or [1|0].
 -->
-
 <labwc_config>
-
   <core>
     <decoration>server</decoration>
     <gap>0</gap>
@@ -24,7 +22,6 @@
       <errorCommand></errorCommand>
     -->
   </core>
-
   <placement>
     <policy>cascade</policy>
     <!--
@@ -33,7 +30,6 @@
       <cascadeOffset x="40" y="30" />
     -->
   </placement>
-
   <!-- <font><theme> can be defined without an attribute to set all places -->
   <theme>
     <!-- <name>Numix</name> -->
@@ -79,7 +75,6 @@
       <weight>normal</weight>
     </font>
   </theme>
-
   <windowSwitcher preview="yes" outlines="yes" unshade="yes">
     <osd show="yes" style="classic" output="all" thumbnailLabelFormat="%T" />
     <fields>
@@ -95,7 +90,6 @@
       -->
     </fields>
   </windowSwitcher>
-
   <!--
     Many other kinds of content are supported in the window switcher like below.
     Some contents are fixed-length and others are variable-length.
@@ -129,7 +123,6 @@
       </fields>
     </windowSwitcher>
   -->
-
   <!-- edge strength is in pixels -->
   <resistance>
     <screenEdgeStrength>20</screenEdgeStrength>
@@ -139,7 +132,6 @@
     <!-- resistance for vertically/horizontally maximized windows -->
     <unMaximizeThreshold>150</unMaximizeThreshold>
   </resistance>
-
   <resize>
     <!-- Show a simple resize and move indicator -->
     <popupShow>Never</popupShow>
@@ -147,7 +139,6 @@
     <drawContents>yes</drawContents>
     <!-- Borders are effectively 8 pixels wide regardless of visual appearance -->
     <minimumArea>8</minimumArea>
-
     <!--
       Set cornerRange to a positive value to increase the size of corner
       regions for mouse actions and diagonal window resizing. When omitted,
@@ -156,7 +147,6 @@
       <cornerRange>8</cornerRange>
     -->
   </resize>
-
   <focus>
     <followMouse>no</followMouse>
     <followMouseRequiresMovement>yes</followMouseRequiresMovement>
@@ -164,7 +154,6 @@
     <!-- Delay (ms) before applying raise-on-focus. 0 = immediate. -->
     <raiseOnFocusDelay>0</raiseOnFocusDelay>
   </focus>
-
   <snapping>
     <!-- Set inner and outer range to 0 to disable window snapping completely -->
     <range inner="10" outer="10" />
@@ -177,7 +166,6 @@
     <topMaximize>yes</topMaximize>
     <notifyClient>always</notifyClient>
   </snapping>
-
   <!--
     Workspaces can be configured like this:
     <desktops>
@@ -219,7 +207,6 @@
       <name>Default</name>
     </names>
   </desktops>
-
   <!--
     <margin> can be used to reserve space where new/maximized/tiled
     windows will not be placed. Clients using layer-shell protocol reserve
@@ -230,7 +217,6 @@
 
     <margin top="10" bottom="10" left="10" right="10" output="HDMI-A-1" />
   -->
-
   <!-- Percent based regions based on output usable area, % char is required -->
   <!--
     <regions>
@@ -245,7 +231,6 @@
       <region name="bottom-right" x="50%" y="50%" height="50%"  width="50%"  />
     </regions>
   -->
-
   <!--
     Keybind actions are specified in labwc-actions(5)
     The following keybind modifiers are supported:
@@ -346,8 +331,8 @@
       <action name="Execute" command = "firefox" />
     </keybind>
     -->
-  <!-- SnapToRegion via W-Numpad -->
-  <!--
+    <!-- SnapToRegion via W-Numpad -->
+    <!--
     <keybind key="W-KP_7">
       <action name="SnapToRegion" region="top-left" />
     </keybind>
@@ -376,8 +361,8 @@
       <action name="SnapToRegion" region="bottom-right" />
     </keybind>
   -->
-  <!-- keybind for client-list-combined-menu - will center in middle of screen -->
-  <!--
+    <!-- keybind for client-list-combined-menu - will center in middle of screen -->
+    <!--
     <keybind key="W-Space">
       <action name="ShowMenu" menu="client-list-combined-menu" />
       <position>
@@ -387,7 +372,6 @@
     </keybind>
   -->
   </keyboard>
-
   <!--
     Multiple <mousebind> can exist within one <context>
     Multiple <actions> can exist within one <mousebind>
@@ -400,10 +384,8 @@
     example.
   -->
   <mouse>
-
     <!-- time is in ms -->
     <doubleClickTime>500</doubleClickTime>
-
     <context name="Frame">
       <mousebind button="W-Left" action="Press">
         <action name="Focus" />
@@ -420,7 +402,6 @@
         <action name="Resize" />
       </mousebind>
     </context>
-
     <context name="Border">
       <mousebind button="Left" action="Press">
         <action name="Focus" />
@@ -430,7 +411,6 @@
         <action name="Resize" />
       </mousebind>
     </context>
-
     <context name="TitleBar">
       <mousebind button="Left" action="Press">
         <action name="Focus" />
@@ -449,7 +429,6 @@
         <action name="Shade" />
       </mousebind>
     </context>
-
     <context name="Title">
       <mousebind button="Left" action="Drag">
         <action name="Move" />
@@ -461,7 +440,6 @@
         <action name="ShowMenu" menu="client-menu" />
       </mousebind>
     </context>
-
     <context name="Maximize">
       <mousebind button="Left" action="Click">
         <action name="ToggleMaximize" />
@@ -473,7 +451,6 @@
         <action name="ToggleMaximize" direction="vertical" />
       </mousebind>
     </context>
-
     <context name="WindowMenu">
       <mousebind button="Left" action="Click">
         <action name="ShowMenu" menu="client-menu" atCursor="no" />
@@ -482,7 +459,6 @@
         <action name="ShowMenu" menu="client-menu" atCursor="no" />
       </mousebind>
     </context>
-
     <context name="Icon">
       <mousebind button="Left" action="Click">
         <action name="ShowMenu" menu="client-menu" atCursor="no" />
@@ -491,31 +467,26 @@
         <action name="ShowMenu" menu="client-menu" atCursor="no" />
       </mousebind>
     </context>
-
     <context name="Shade">
       <mousebind button="Left" action="Click">
         <action name="ToggleShade" />
       </mousebind>
     </context>
-
     <context name="AllDesktops">
       <mousebind button="Left" action="Click">
         <action name="ToggleOmnipresent" />
       </mousebind>
     </context>
-
     <context name="Iconify">
       <mousebind button="Left" action="Click">
         <action name="Iconify" />
       </mousebind>
     </context>
-
     <context name="Close">
       <mousebind button="Left" action="Click">
         <action name="Close" />
       </mousebind>
     </context>
-
     <context name="Client">
       <mousebind button="Left" action="Press">
         <action name="Focus" />
@@ -530,7 +501,6 @@
         <action name="Raise" />
       </mousebind>
     </context>
-
     <context name="Root">
       <mousebind button="Left" action="Press">
         <action name="ShowMenu" menu="root-menu" />
@@ -550,9 +520,7 @@
         <action name="GoToDesktop" to="right" wrap="yes" />
       </mousebind>
     </context>
-
   </mouse>
-
   <!--
     A touch configuration can be bound to a specific device. If device
     name is left empty, the touch configuration applies to all touch
@@ -571,7 +539,6 @@
     <!-- <mapToOutput>HDMI-A-1</mapToOutput> -->
     <mouseEmulation>no</mouseEmulation>
   </touch>
-
   <!--
     The tablet cursor movement can be restricted to a single output.
     If output is left empty or the output does not exists, the tablet
@@ -605,7 +572,6 @@
     <map button="Stylus" to="Right" />
     <map button="Stylus2" to="Middle" />
   </tablet>
-
   <!--
     All tablet tools, except of type mouse and lens, use absolute
     positioning by default. The *motion* attribute allows to set tools
@@ -616,9 +582,7 @@
     The pressure range of a tablet tool can be controlled by adjusting
     *minPressure* and *maxPressure*.
   -->
-  <tabletTool motion="absolute" relativeMotionSensitivity="1.0"
-              minPressure="0.0" maxPressure="1.0" />
-
+  <tabletTool motion="absolute" relativeMotionSensitivity="1.0" minPressure="0.0" maxPressure="1.0" />
   <!--
     The *category* attribute is optional and can be set to touch, touchpad,
     non-touch, default or the name of a device. You can obtain device names by
@@ -644,7 +608,6 @@
     if you require to override the default. Valid values must be inserted.
 
   -->
-
   <libinput>
     <device category="default">
       <!-- <naturalScroll>no</naturalScroll> -->
@@ -682,7 +645,6 @@
       -->
     </device>
   </libinput>
-
   <!--
     # Window Rules
     #   - Criteria can consist of 'identifier', 'title', 'sandboxEngine' or
@@ -726,12 +688,10 @@
       </windowRule>
     </windowRules>
   -->
-
   <menu>
     <ignoreButtonReleasePeriod>250</ignoreButtonReleasePeriod>
     <showIcons>yes</showIcons>
   </menu>
-
   <!--
     Magnifier settings
     'width' sets the width in pixels of the magnifier window.
@@ -749,5 +709,4 @@
     <increment>0.2</increment>
     <useFilter>yes</useFilter>
   </magnifier>
-
 </labwc_config>

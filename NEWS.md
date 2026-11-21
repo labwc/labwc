@@ -88,6 +88,23 @@ The format is based on [Keep a Changelog]
 [0.2.0]: NEWS.md#020---2021-04-15
 [0.1.0]: NEWS.md#010---2021-03-05
 
+## Notes on wlroots-0.20
+
+There are some regression warnings worth noting for the switch to wlroots 0.20:
+
+- With wlroots < 0.20.2 lxqt-panel auto-hiding does not work with a panel size
+  greater than 40 [#3600] [wlroots-5392] [wlroots-5407]
+- Some Wine game windows disappear after alt-tab. It is not yet clear where the
+  bug is, but the issue manifests itself when running wlroots-0.20 [#3615]
+  [wlroots-4103]
+- `wl_output` make/model properties are no longer sent because these are legacy
+  and should not be relied on [wlroots-5045]
+
+[wlroots-5392]: https://gitlab.freedesktop.org/wlroots/wlroots/-/merge_requests/5392
+[wlroots-5407]: https://gitlab.freedesktop.org/wlroots/wlroots/-/merge_requests/5407
+[wlroots-4103]: https://gitlab.freedesktop.org/wlroots/wlroots/-/work_items/4103
+[wlroots-5045]: https://gitlab.freedesktop.org/wlroots/wlroots/-/merge_requests/5045
+
 ## unreleased
 
 [unreleased-commits]
@@ -136,23 +153,6 @@ The format is based on [Keep a Changelog]
   on the executable or when running on Android. @Consolatis [#3662] [#3690]
 - Limit tilde expansion to make it more POSIX shell compliant @domo141 [#3716]
 - Allow `Close` and `Kill` actions while window switching @typebrook [#3710]
-
-## Notes on wlroots-0.20
-
-There are some regression warnings worth noting for the switch to wlroots 0.20:
-
-- With wlroots < 0.20.2 lxqt-panel auto-hiding does not work with a panel size
-  greater than 40 [#3600] [wlroots-5392] [wlroots-5407]
-- Some Wine game windows disappear after alt-tab. It is not yet clear where the
-  bug is, but the issue manifests itself when running wlroots-0.20 [#3615]
-  [wlroots-4103]
-- `wl_output` make/model properties are no longer sent because these are legacy
-  and should not be relied on [wlroots-5045]
-
-[wlroots-5392]: https://gitlab.freedesktop.org/wlroots/wlroots/-/merge_requests/5392
-[wlroots-5407]: https://gitlab.freedesktop.org/wlroots/wlroots/-/merge_requests/5407
-[wlroots-4103]: https://gitlab.freedesktop.org/wlroots/wlroots/-/work_items/4103
-[wlroots-5045]: https://gitlab.freedesktop.org/wlroots/wlroots/-/merge_requests/5045
 
 ## 0.20.2 - 2026-08-21
 

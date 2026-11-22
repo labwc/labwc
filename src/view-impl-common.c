@@ -13,7 +13,7 @@ view_impl_map(struct view *view)
 
 	/* Leave minimized, if minimized before map */
 	if (!view->minimized) {
-		desktop_focus_view(view, /* raise */ true);
+		desktop_autofocus_view(view);
 	}
 
 	if (!view->been_mapped) {

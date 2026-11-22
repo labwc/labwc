@@ -196,6 +196,56 @@ desktop_focus_view_or_surface(struct seat *seat, struct view *view,
 	}
 }
 
+static struct wl_client *
+desktop_view_wl_client(struct view *view)
+{
+	if (view->surface && view->surface->resource) {
+		return view->surface->resource->client;
+	}
+	return NULL;
+}
+
+static struct view *
+client_get_other_view(struct wl_client *client, struct view *view)
+{
+	struct view *v;
+	wl_list_for_each(v, &server.views, link) {
+		if (v == view || !v->mapped) {
+			continue;
+		}
+		if (desktop_view_wl_client(v) == client) {
+			return v;
+		}
+	}
+
+	return NULL;
+}
+
+void
+desktop_autofocus_view(struct view *view)
+{
+	struct wl_client *client = desktop_view_wl_client(view);
+	if (!client) {
+		desktop_focus_view(view, /* raise */ true);
+		return;
+	}
+
+	struct view *other = client_get_other_view(client, view);
+	if (other) {
+		view_set_output(view, other->output);
+		view_move_to_workspace(view, other->workspace);
+	}
+
+	if (!other || other == server.active_view) {
+		desktop_focus_view(view, /* raise */ true);
+	} else {
+		wl_list_remove(&view->link);
+		wl_list_insert(other->link.prev, &view->link);
+		wlr_scene_node_place_above(&view->scene_tree->node,
+			&other->scene_tree->node);
+	}
+}
+
 static struct view *
 desktop_topmost_focusable_view(void)
 {

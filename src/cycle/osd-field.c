@@ -64,6 +64,8 @@ get_type(struct view *view, bool short_form)
 	case LAB_XWAYLAND_VIEW:
 		return short_form ? "[X]" : "[xwayland]";
 #endif
+	case LAB_PLACEHOLDER_VIEW:
+		assert(false);
 	}
 	return "???";
 }

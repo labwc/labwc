@@ -46,6 +46,9 @@ view_impl_unmap(struct view *view)
 {
 	view_update_visibility(view);
 
+	/* Record focus state before it gets reassigned below */
+	desktop_create_placeholder(view);
+
 	/*
 	 * When exiting an xwayland application with multiple views
 	 * mapped, a race condition can occur: after the topmost view

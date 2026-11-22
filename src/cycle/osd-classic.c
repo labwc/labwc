@@ -251,7 +251,32 @@ cycle_osd_classic_update(struct cycle_osd_output *osd_output)
 	}
 }
 
+/* Returns the view to select next in the window switcher. */
+static struct view *
+osd_classic_next_selected_view(enum lab_cycle_dir dir)
+{
+	struct cycle_state *cycle = &server.cycle;
+	assert(cycle->selected_view);
+	assert(!wl_list_empty(&server.cycle.views));
+
+	struct wl_list *link;
+	if (dir == LAB_CYCLE_DIR_FORWARD || dir == LAB_CYCLE_DIR_DOWN) {
+		link = cycle->selected_view->cycle_link.next;
+		if (link == &server.cycle.views) {
+			link = link->next;
+		}
+	} else {
+		link = cycle->selected_view->cycle_link.prev;
+		if (link == &server.cycle.views) {
+			link = link->prev;
+		}
+	}
+	struct view *view = wl_container_of(link, view, cycle_link);
+	return view;
+}
+
 struct cycle_osd_impl cycle_osd_classic_impl = {
 	.init = cycle_osd_classic_init,
 	.update = cycle_osd_classic_update,
+	.next_selected_view = osd_classic_next_selected_view,
 };

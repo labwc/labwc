@@ -8,6 +8,7 @@
 #include "common/fd-util.h"
 #include "common/font.h"
 #include "common/macros.h"
+#include "common/nag.h"
 #include "common/spawn.h"
 #include "common/string-helpers.h"
 #include "config/rcxml.h"
@@ -238,6 +239,7 @@ main(int argc, char *argv[])
 	}
 
 	wlr_log_init(verbosity, NULL);
+	nag_init();
 
 	die_on_detecting_suid();
 	die_on_no_fonts();
@@ -310,6 +312,8 @@ main(int argc, char *argv[])
 	font_finish();
 
 	server_finish();
+
+	nag_finish();
 
 	return 0;
 }

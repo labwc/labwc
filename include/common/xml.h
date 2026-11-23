@@ -34,6 +34,9 @@ bool lab_xml_get_string(xmlNode *node, const char *key, char *s, size_t len);
 bool lab_xml_get_int(xmlNode *node, const char *key, int *i);
 bool lab_xml_get_bool(xmlNode *node, const char *key, bool *b);
 
+void lab_xml_update_line(xmlNode *node);
+const char *lab_xml_line_string(void);
+
 /* also skips other unusual nodes like comments */
 static inline xmlNode *
 lab_xml_skip_text(xmlNode *child)
@@ -48,6 +51,7 @@ static inline void
 lab_xml_get_key_and_content(xmlNode *node, char **name, char **content)
 {
 	if (node) {
+		lab_xml_update_line(node);
 		*name = (char *)node->name;
 		*content = (char *)xmlNodeGetContent(node);
 	}

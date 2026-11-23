@@ -174,8 +174,14 @@ cycle_begin(enum lab_cycle_dir direction,
 		/* Otherwise, select the first view in the cycle list */
 		server.cycle.selected_view = get_first_view(&server.cycle.views);
 	}
-	/* Pre-select the next view in the given direction */
-	server.cycle.selected_view = get_next_selected_view(direction);
+	/*
+	 * The first view is only minimized when all cycle views are minimized
+	 * or showDesktop is toggled, so we keep the first one since it is not
+	 * selected yet, otherwise select the next view in the given direction
+	 */
+	if (!server.cycle.selected_view->minimized) {
+		server.cycle.selected_view = get_next_selected_view(direction);
+	}
 
 	seat_focus_override_begin(&server.seat,
 		LAB_INPUT_STATE_CYCLE, LAB_CURSOR_DEFAULT);

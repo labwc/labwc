@@ -62,6 +62,16 @@ struct theme {
 	int border_width;
 
 	/*
+	 * Height of the bottom handle bar (Openbox calls this
+	 * "window.handle.width" but it is the vertical size).
+	 * Set to 0 to disable the handle/grip assembly.
+	 */
+	int handle_width;
+
+	/* Width of each corner grip in the handle bar */
+	int grip_width;
+
+	/*
 	 * the space between title bar border and
 	 * buttons on the left/right/top
 	 */
@@ -130,6 +140,16 @@ struct theme {
 		struct lab_data_buffer *shadow_corner_top;
 		struct lab_data_buffer *shadow_corner_bottom;
 		struct lab_data_buffer *shadow_edge;
+
+		/* handle and grip backgrounds (Openbox-compatible) */
+		struct theme_background handle_bg;
+		struct theme_background grip_bg;
+
+		/* Pre-rendered handle/grip fill buffers and patterns */
+		cairo_pattern_t *handle_pattern;
+		cairo_pattern_t *grip_pattern;
+		struct lab_data_buffer *handle_fill;
+		struct lab_data_buffer *grip_fill;
 	} window[2];
 
 	/* Derived from font sizes */

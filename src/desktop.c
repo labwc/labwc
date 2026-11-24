@@ -390,6 +390,19 @@ get_cursor_context(void)
 				ret.node = node;
 				ret.type = LAB_NODE_CYCLE_OSD_ITEM;
 				return ret;
+			case LAB_NODE_HANDLE:
+			case LAB_NODE_GRIP_LEFT:
+			case LAB_NODE_GRIP_RIGHT:
+				/*
+				 * Handle/grip nodes have precise types
+				 * assigned via node_descriptor; use them
+				 * directly without ssd_get_resizing_type().
+				 */
+				ret.node = node;
+				ret.view = desc->view;
+				assert(ret.view);
+				ret.type = desc->type;
+				return ret;
 			case LAB_NODE_BUTTON_FIRST...LAB_NODE_BUTTON_LAST:
 			case LAB_NODE_SSD_ROOT:
 			case LAB_NODE_TITLE:

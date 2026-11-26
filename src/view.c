@@ -2205,6 +2205,14 @@ move_to_back(struct view *view)
 	wlr_scene_node_lower_to_bottom(&view->scene_tree->node);
 }
 
+static void
+move_to_below(struct view *view, struct view *ref)
+{
+	wl_list_remove(&view->link);
+	wl_list_insert(&ref->link, &view->link);
+	wlr_scene_node_place_below(&view->scene_tree->node, &ref->scene_tree->node);
+}
+
 /*
  * In the view_move_to_{front,back} functions, a modal dialog is always
  * shown above its parent window, and the two always move together, so
@@ -2263,6 +2271,33 @@ view_move_to_back(struct view *view)
 
 	for_each_subview(root, move_to_back);
 	move_to_back(root);
+
+	cursor_update_focus();
+	desktop_update_top_layer_visibility();
+}
+
+void
+view_move_to_below(struct view *view, struct view *ref)
+{
+	assert(view);
+	struct view *root = view_get_root(view);
+	assert(root);
+
+	assert(ref);
+	struct view *ref_root = view_get_root(ref);
+	assert(ref_root);
+
+	move_to_below(root, ref_root);
+
+	/* for_each_subview() with additional parameter */
+	struct wl_array subviews;
+	struct view **subview;
+	wl_array_init(&subviews);
+	view_append_children(root, &subviews);
+	wl_array_for_each(subview, &subviews) {
+		move_to_below(*subview, ref_root);
+	}
+	wl_array_release(&subviews);
 
 	cursor_update_focus();
 	desktop_update_top_layer_visibility();

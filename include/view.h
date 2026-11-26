@@ -595,6 +595,7 @@ void view_move_to_output(struct view *view, struct output *output);
 
 void view_move_to_front(struct view *view);
 void view_move_to_back(struct view *view);
+void view_move_to_below(struct view *view, struct view *ref);
 
 bool view_is_modal_dialog(struct view *view);
 

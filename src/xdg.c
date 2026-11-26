@@ -955,6 +955,7 @@ static const struct view_impl xdg_toplevel_view_impl = {
 struct token_data {
 	bool had_valid_surface;
 	bool had_valid_seat;
+	bool created_by_compositor;
 	struct wl_listener destroy;
 };
 
@@ -967,16 +968,22 @@ handle_xdg_activation_token_destroy(struct wl_listener *listener, void *data)
 }
 
 static void
-handle_xdg_activation_new_token(struct wl_listener *listener, void *data)
+token_data_create(struct wlr_xdg_activation_token_v1 *token, bool created_by_compositor)
 {
-	struct wlr_xdg_activation_token_v1 *token = data;
 	struct token_data *token_data = znew(*token_data);
 	token_data->had_valid_surface = !!token->surface;
 	token_data->had_valid_seat = !!token->seat;
+	token_data->created_by_compositor = created_by_compositor;
 	token->data = token_data;
 
 	token_data->destroy.notify = handle_xdg_activation_token_destroy;
 	wl_signal_add(&token->events.destroy, &token_data->destroy);
+}
+
+static void
+handle_xdg_activation_new_token(struct wl_listener *listener, void *data)
+{
+	token_data_create(data, /* created_by_compositor */ false);
 }
 
 static void
@@ -998,7 +1005,7 @@ handle_xdg_activation_request(struct wl_listener *listener, void *data)
 		return;
 	}
 
-	if (!token_data->had_valid_seat) {
+	if (!token_data->created_by_compositor && !token_data->had_valid_seat) {
 		wlr_log(WLR_INFO, "Denying focus request, seat wasn't supplied");
 		return;
 	}
@@ -1009,7 +1016,7 @@ handle_xdg_activation_request(struct wl_listener *listener, void *data)
 	 * check when we implement the configuration for activation policy or
 	 * urgency hints.
 	 *
-	 * if (!token_data->had_valid_surface) {
+	 * if (!token_data->created_by_compositor && !token_data->had_valid_surface) {
 	 *	wlr_log(WLR_INFO, "Denying focus request, source surface not set");
 	 *	return;
 	 * }
@@ -1022,6 +1029,24 @@ handle_xdg_activation_request(struct wl_listener *listener, void *data)
 
 	wlr_log(WLR_DEBUG, "Activating surface");
 	desktop_focus_view(view, /*raise*/ true);
+}
+
+char *
+create_xdg_activation_token(void)
+{
+	assert(server.xdg_activation);
+
+	struct wlr_xdg_activation_token_v1 *token =
+		wlr_xdg_activation_token_v1_create(server.xdg_activation);
+	if (!token) {
+		return NULL;
+	}
+
+	token->seat = server.seat.wlr_seat;
+	token_data_create(token, /* created_by_compositor */ true);
+
+	const char *name = wlr_xdg_activation_token_v1_get_name(token);
+	return xstrdup(name);
 }
 
 /*

@@ -10,6 +10,8 @@
 #include <unistd.h>
 #include <wlr/util/log.h>
 #include "common/fd-util.h"
+#include "common/mem.h"
+#include "labwc.h"
 
 static void
 reset_signals_and_limits(void)
@@ -81,12 +83,18 @@ spawn_async_no_shell(char const *command)
 	 */
 	pid_t child = 0, grandchild = 0;
 
+	char *activation_token = create_xdg_activation_token();
+
 	child = fork();
 	switch (child) {
 	case -1:
 		wlr_log(WLR_ERROR, "unable to fork()");
 		goto out;
 	case 0:
+		if (activation_token) {
+			setenv("XDG_ACTIVATION_TOKEN", activation_token, 1);
+		}
+
 		reset_signals_and_limits();
 
 		setsid();
@@ -104,6 +112,7 @@ spawn_async_no_shell(char const *command)
 	waitpid(child, NULL, 0);
 out:
 	g_strfreev(argv);
+	zfree(activation_token);
 }
 
 void

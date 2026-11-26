@@ -13,6 +13,9 @@ pid_t spawn_primary_client(const char *command);
 /**
  * spawn_async_no_shell - execute asynchronously
  * @command: command to be executed
+ *
+ * The spawned process is given an xdg-activation token (as
+ * XDG_ACTIVATION_TOKEN) so it may request focus once it maps a window.
  */
 void spawn_async_no_shell(char const *command);
 

@@ -335,6 +335,14 @@ void xdg_shell_init(void);
 void xdg_shell_finish(void);
 
 /*
+ * Create an xdg-activation token for a process that the compositor is
+ * about to launch. The caller is responsible for freeing the returned
+ * string. The token itself lives on until it is redeemed or wlroots
+ * times it out.
+ */
+char *create_xdg_activation_token(void);
+
+/*
  * desktop.c routines deal with a collection of views
  *
  * Definition of a few keywords used in desktop.c

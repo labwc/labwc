@@ -18,12 +18,15 @@ view_impl_map(struct view *view)
 		if (!server.active_view
 				|| initial_focus == LAB_INITIAL_FOCUS_ALWAYS
 				|| (initial_focus == LAB_INITIAL_FOCUS_SAME_CLIENT
-					&& desktop_view_wl_client(server.active_view) == client)) {
+					&& desktop_view_wl_client(server.active_view) == client)
+				|| (initial_focus == LAB_INITIAL_FOCUS_SAME_CLIENT
+					&& !desktop_client_has_mapped(client))) {
 			desktop_focus_view(view, /* raise */ true);
 		} else {
 			view_move_to_below(view, server.active_view);
 		}
 	}
+	desktop_client_mark_mapped(client);
 
 	if (!view->been_mapped) {
 		window_rules_apply(view, LAB_WINDOW_RULE_EVENT_ON_FIRST_MAP);

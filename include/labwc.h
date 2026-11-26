@@ -406,6 +406,15 @@ void desktop_focus_topmost_view(void);
  */
 struct wl_client *desktop_view_wl_client(struct view *view);
 
+/*
+ * set/return whether the client behind a view has already mapped (any)
+ * window. Used with the initialFocus=sameClient window rule to let a
+ * client's first window steal focus while keeping subsequent windows
+ * from unfocused applications in the background.
+ */
+void desktop_client_mark_mapped(struct wl_client *client);
+bool desktop_client_has_mapped(struct wl_client *client);
+
 void seat_init(void);
 void seat_finish(void);
 void seat_reconfigure(void);

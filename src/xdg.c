@@ -1027,6 +1027,12 @@ handle_xdg_activation_request(struct wl_listener *listener, void *data)
 		return;
 	}
 
+	if (!view->mapped) {
+		wlr_log(WLR_DEBUG, "Deferring activation until view is mapped");
+		view->pending_activation_request = true;
+		return;
+	}
+
 	wlr_log(WLR_DEBUG, "Activating surface");
 	desktop_focus_view(view, /*raise*/ true);
 }

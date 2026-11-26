@@ -16,11 +16,13 @@ view_impl_map(struct view *view)
 	if (!view->minimized) {
 		enum lab_initial_focus initial_focus = window_rules_get_initial_focus(view);
 		if (!server.active_view
+				|| view->pending_activation_request
 				|| initial_focus == LAB_INITIAL_FOCUS_ALWAYS
 				|| (initial_focus == LAB_INITIAL_FOCUS_SAME_CLIENT
 					&& desktop_view_wl_client(server.active_view) == client)
 				|| (initial_focus == LAB_INITIAL_FOCUS_SAME_CLIENT
 					&& !desktop_client_has_mapped(client))) {
+			view->pending_activation_request = false;
 			desktop_focus_view(view, /* raise */ true);
 		} else {
 			view_move_to_below(view, server.active_view);

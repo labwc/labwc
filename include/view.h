@@ -186,6 +186,7 @@ struct view {
 
 	bool mapped;
 	bool been_mapped;
+	bool pending_activation_request;
 	uint64_t creation_id;
 	enum lab_ssd_mode ssd_mode;
 	enum ssd_preference ssd_preference;

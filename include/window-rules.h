@@ -17,6 +17,12 @@ enum property {
 	LAB_PROP_TRUE,
 };
 
+enum lab_initial_focus {
+	LAB_INITIAL_FOCUS_UNSPECIFIED = 0,
+	LAB_INITIAL_FOCUS_ALWAYS,
+	LAB_INITIAL_FOCUS_NEVER,
+};
+
 /*
  * 'identifier' represents:
  *   - 'app_id' for native Wayland windows
@@ -41,6 +47,7 @@ struct window_rule {
 	enum property fixed_position;
 	enum property icon_prefer_client;
 	enum property allow_always_on_top;
+	enum lab_initial_focus initial_focus;
 
 	struct wl_list link; /* struct rcxml.window_rules */
 };
@@ -49,5 +56,6 @@ struct view;
 
 void window_rules_apply(struct view *view, enum window_rule_event event);
 enum property window_rules_get_property(struct view *view, const char *property);
+enum lab_initial_focus window_rules_get_initial_focus(struct view *view);
 
 #endif /* LABWC_WINDOW_RULES_H */

@@ -13,7 +13,12 @@ view_impl_map(struct view *view)
 
 	/* Leave minimized, if minimized before map */
 	if (!view->minimized) {
-		desktop_focus_view(view, /* raise */ true);
+		enum lab_initial_focus initial_focus = window_rules_get_initial_focus(view);
+		if (!server.active_view || initial_focus == LAB_INITIAL_FOCUS_ALWAYS) {
+			desktop_focus_view(view, /* raise */ true);
+		} else {
+			view_move_to_below(view, server.active_view);
+		}
 	}
 
 	if (!view->been_mapped) {

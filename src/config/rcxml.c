@@ -341,6 +341,15 @@ fill_window_rule(xmlNode *node)
 			set_property(content, &window_rule->fixed_position);
 		} else if (!strcasecmp(key, "allowAlwaysOnTop")) {
 			set_property(content, &window_rule->allow_always_on_top);
+		} else if (!strcasecmp(key, "initialFocus")) {
+			if (!strcasecmp(content, "always")) {
+				window_rule->initial_focus = LAB_INITIAL_FOCUS_ALWAYS;
+			} else if (!strcasecmp(content, "never")) {
+				window_rule->initial_focus = LAB_INITIAL_FOCUS_NEVER;
+			} else {
+				wlr_log(WLR_ERROR,
+					"Invalid value for window rule property 'initialFocus'");
+			}
 		}
 	}
 

@@ -10,11 +10,15 @@ void
 view_impl_map(struct view *view)
 {
 	view_update_visibility(view);
+	struct wl_client *client = desktop_view_wl_client(view);
 
 	/* Leave minimized, if minimized before map */
 	if (!view->minimized) {
 		enum lab_initial_focus initial_focus = window_rules_get_initial_focus(view);
-		if (!server.active_view || initial_focus == LAB_INITIAL_FOCUS_ALWAYS) {
+		if (!server.active_view
+				|| initial_focus == LAB_INITIAL_FOCUS_ALWAYS
+				|| (initial_focus == LAB_INITIAL_FOCUS_SAME_CLIENT
+					&& desktop_view_wl_client(server.active_view) == client)) {
 			desktop_focus_view(view, /* raise */ true);
 		} else {
 			view_move_to_below(view, server.active_view);

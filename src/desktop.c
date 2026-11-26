@@ -196,6 +196,15 @@ desktop_focus_view_or_surface(struct seat *seat, struct view *view,
 	}
 }
 
+struct wl_client *
+desktop_view_wl_client(struct view *view)
+{
+	if (view->surface && view->surface->resource) {
+		return view->surface->resource->client;
+	}
+	return NULL;
+}
+
 static struct view *
 desktop_topmost_focusable_view(void)
 {

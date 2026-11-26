@@ -346,6 +346,8 @@ fill_window_rule(xmlNode *node)
 				window_rule->initial_focus = LAB_INITIAL_FOCUS_ALWAYS;
 			} else if (!strcasecmp(content, "never")) {
 				window_rule->initial_focus = LAB_INITIAL_FOCUS_NEVER;
+			} else if (!strcasecmp(content, "sameClient")) {
+				window_rule->initial_focus = LAB_INITIAL_FOCUS_SAME_CLIENT;
 			} else {
 				wlr_log(WLR_ERROR,
 					"Invalid value for window rule property 'initialFocus'");

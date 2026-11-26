@@ -401,6 +401,11 @@ void desktop_update_top_layer_visibility(void);
  */
 void desktop_focus_topmost_view(void);
 
+/*
+ * desktop_view_wl_client() - return the wl_client backing a view, or NULL.
+ */
+struct wl_client *desktop_view_wl_client(struct view *view);
+
 void seat_init(void);
 void seat_finish(void);
 void seat_reconfigure(void);

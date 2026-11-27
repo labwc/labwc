@@ -624,6 +624,7 @@ server_init(void)
 	 * | ---------------------------------- | -------------------------------------
 	 * | output->session_lock_tree          | session lock surfaces (e.g. swaylock)
 	 * | output->cycle_osd_tree             | window switcher's on-screen display
+	 * | output->region_drop_indicator_tree | drop indicator for regions
 	 * | server.cycle_preview_tree         | window switcher's previewed window
 	 * | server.menu_tree                  | labwc's server-side menus
 	 * | output->layer_popup_tree           | xdg popups on layer surfaces

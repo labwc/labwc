@@ -31,11 +31,18 @@ if get_option('labnag').allowed()
     )
   endforeach
 
-  if host_machine.system() in ['freebsd', 'openbsd']
+  if host_machine.system() in ['freebsd', 'openbsd', 'netbsd']
     # For signalfd()
     epoll_dep = dependency('epoll-shim')
   else
     epoll_dep = []
+  endif
+
+  if host_machine.system() == 'netbsd'
+    # For shm_open(), shm_unlink()
+    rt_dep = cc.find_library('rt', required: true)
+  else
+    rt_dep = []
   endif
 
   executable(
@@ -50,6 +57,7 @@ if get_option('labnag').allowed()
       wlroots,
       server_protos,
       epoll_dep,
+      rt_dep,
       xkbcommon,
     ],
     include_directories: [labwc_inc],

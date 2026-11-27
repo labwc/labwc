@@ -1065,6 +1065,9 @@ wlr_output_configuration_v1 *create_output_config(void)
 			head->state.x = output->scene_output->x;
 			head->state.y = output->scene_output->y;
 		}
+		if (!head->state.mode) {
+			head->state.enabled = false;
+		}
 	}
 	return config;
 }

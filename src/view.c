@@ -2210,7 +2210,9 @@ move_to_below(struct view *view, struct view *ref)
 {
 	wl_list_remove(&view->link);
 	wl_list_insert(&ref->link, &view->link);
-	wlr_scene_node_place_below(&view->scene_tree->node, &ref->scene_tree->node);
+	if (view->scene_tree->node.parent == ref->scene_tree->node.parent) {
+		wlr_scene_node_place_below(&view->scene_tree->node, &ref->scene_tree->node);
+	}
 }
 
 /*

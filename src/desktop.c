@@ -9,6 +9,7 @@
 #include <wlr/types/wlr_subcompositor.h>
 #include <wlr/types/wlr_xdg_shell.h>
 #include "common/scene-helpers.h"
+#include "common/mem.h"
 #include "config/rcxml.h"
 #include "dnd.h"
 #include "labwc.h"
@@ -194,6 +195,124 @@ desktop_focus_view_or_surface(struct seat *seat, struct view *view,
 		}
 #endif
 	}
+}
+
+static const struct view_impl placeholder_view_impl = { 0 };
+
+static void
+placeholder_view_destroy(struct view *view)
+{
+	wl_list_remove(&view->destroy.link);
+	wl_list_remove(&view->link);
+	wlr_scene_node_destroy(&view->scene_tree->node);
+	zfree(view);
+}
+
+static void
+placeholder_view_handle_destroy(struct wl_listener *listener, void *data)
+{
+	struct view *view = wl_container_of(listener, view, destroy);
+	placeholder_view_destroy(view);
+}
+
+static struct view *
+placeholder_view_create(struct wl_client *client, struct view *original)
+{
+	struct view *view = znew(*view);
+	view->type = LAB_PLACEHOLDER_VIEW;
+	view->impl = &placeholder_view_impl;
+	view->mapped = false;
+	view->output = original->output;
+	view->workspace = original->workspace;
+	view->placeholder_focus = original == server.active_view;
+
+	view->destroy.notify = placeholder_view_handle_destroy;
+	wl_client_add_destroy_listener(client, &view->destroy);
+
+	view->scene_tree = lab_wlr_scene_tree_create(
+		original->scene_tree->node.parent);
+	wlr_scene_node_set_enabled(&view->scene_tree->node, false);
+
+	return view;
+}
+
+static struct wl_client *
+desktop_view_wl_client(struct view *view)
+{
+	if (view->surface && view->surface->resource) {
+		return view->surface->resource->client;
+	}
+	return NULL;
+}
+
+static struct view *
+client_get_other_view(struct wl_client *client, struct view *view)
+{
+	struct wl_listener *listener =
+		wl_client_get_destroy_listener(client, placeholder_view_handle_destroy);
+	if (listener) {
+		struct view *placeholder = wl_container_of(listener, placeholder, destroy);
+		return placeholder;
+	}
+
+	struct view *v;
+	wl_list_for_each(v, &server.views, link) {
+		if (v == view || !v->mapped) {
+			continue;
+		}
+		if (desktop_view_wl_client(v) == client) {
+			return v;
+		}
+	}
+
+	return NULL;
+}
+
+void
+desktop_autofocus_view(struct view *view)
+{
+	struct wl_client *client = desktop_view_wl_client(view);
+	if (!client) {
+		desktop_focus_view(view, /* raise */ true);
+		return;
+	}
+
+	struct view *other = client_get_other_view(client, view);
+	if (other) {
+		view_set_output(view, other->output);
+		view_move_to_workspace(view, other->workspace);
+	}
+
+	if (!other || other == server.active_view || other->placeholder_focus) {
+		desktop_focus_view(view, /* raise */ true);
+	} else {
+		wl_list_remove(&view->link);
+		wl_list_insert(other->link.prev, &view->link);
+		wlr_scene_node_place_above(&view->scene_tree->node,
+			&other->scene_tree->node);
+	}
+
+	if (other && other->type == LAB_PLACEHOLDER_VIEW) {
+		placeholder_view_destroy(other);
+	}
+}
+
+void
+desktop_create_placeholder(struct view *view)
+{
+	struct wl_client *client = desktop_view_wl_client(view);
+	if (!client) {
+		return;
+	}
+
+	if (client_get_other_view(client, view)) {
+		return;
+	}
+
+	struct view *placeholder = placeholder_view_create(client, view);
+	wlr_scene_node_place_below(&placeholder->scene_tree->node,
+		&view->scene_tree->node);
+	wl_list_insert(&view->link, &placeholder->link);
 }
 
 static struct view *

@@ -37,6 +37,7 @@ enum view_type {
 #if HAVE_XWAYLAND
 	LAB_XWAYLAND_VIEW,
 #endif
+	LAB_PLACEHOLDER_VIEW,
 };
 
 enum ssd_preference {
@@ -201,6 +202,7 @@ struct view {
 	enum lab_edge tiled;
 	enum lab_edge edges_visible;
 	bool inhibits_keybinds; /* also inhibits mousebinds */
+	bool placeholder_focus;
 	xkb_layout_index_t keyboard_layout;
 
 	/* Pointer to an output owned struct region, may be NULL */

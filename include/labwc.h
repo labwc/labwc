@@ -401,6 +401,14 @@ void desktop_update_top_layer_visibility(void);
  */
 void desktop_focus_topmost_view(void);
 
+/*
+ * Position a new view close to one from the same client.
+ * When the last view is removed, create a placeholder view
+ * to remember the position.
+ */
+void desktop_autofocus_view(struct view *view);
+void desktop_create_placeholder(struct view *view);
+
 void seat_init(void);
 void seat_finish(void);
 void seat_reconfigure(void);

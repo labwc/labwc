@@ -8,6 +8,7 @@
 #include <wlr/types/wlr_seat.h>
 #include <wlr/types/wlr_subcompositor.h>
 #include <wlr/types/wlr_xdg_shell.h>
+#include "common/mem.h"
 #include "common/scene-helpers.h"
 #include "config/rcxml.h"
 #include "dnd.h"
@@ -193,6 +194,57 @@ desktop_focus_view_or_surface(struct seat *seat, struct view *view,
 			seat_focus_surface(seat, surface);
 		}
 #endif
+	}
+}
+
+struct wl_client *
+desktop_view_wl_client(struct view *view)
+{
+	if (view->surface && view->surface->resource) {
+		return view->surface->resource->client;
+	}
+	return NULL;
+}
+
+struct client_state {
+	bool has_mapped;
+	struct wl_listener destroy;
+};
+
+static void
+client_state_destroy(struct wl_listener *listener, void *data)
+{
+	struct client_state *state = wl_container_of(listener, state, destroy);
+	zfree(state);
+}
+
+static struct client_state *
+client_state_get(struct wl_client *client)
+{
+	struct client_state *state;
+	struct wl_listener *listener =
+		wl_client_get_destroy_listener(client, client_state_destroy);
+	if (listener) {
+		return wl_container_of(listener, state, destroy);
+	}
+
+	state = znew(*state);
+	state->destroy.notify = client_state_destroy;
+	wl_client_add_destroy_listener(client, &state->destroy);
+	return state;
+}
+
+bool
+desktop_client_has_mapped(struct wl_client *client)
+{
+	return client && client_state_get(client)->has_mapped;
+}
+
+void
+desktop_client_mark_mapped(struct wl_client *client)
+{
+	if (client) {
+		client_state_get(client)->has_mapped = true;
 	}
 }
 

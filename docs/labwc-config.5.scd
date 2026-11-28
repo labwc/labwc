@@ -1520,6 +1520,15 @@ situation.
 	*skipWindowSwitcher* removes window from the Window Switcher (alt-tab
 	on-screen-display).
 
+*<windowRules><windowRule initialFocus="">* [always|never|sameClient]
+	*initialFocus* controls whether a newly mapped (opened) window is
+	focused. `always` is the default behavior. `never` is useful to prevent
+	interruptions (focus stealing). Such a window may still gain focus via
+	the xdg-activation protocol (see *ignoreFocusRequest*). `sameClient`
+	focuses the window only if it belongs to the same client as the
+	currently focused window, unless the client has not yet mapped any
+	window (its first window is focused).
+
 *<windowRules><windowRule ignoreFocusRequest="">* [yes|no|default]
 	*ignoreFocusRequest* prevents window to activate itself.
 

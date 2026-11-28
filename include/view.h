@@ -186,6 +186,7 @@ struct view {
 
 	bool mapped;
 	bool been_mapped;
+	bool pending_activation_request;
 	uint64_t creation_id;
 	enum lab_ssd_mode ssd_mode;
 	enum ssd_preference ssd_preference;
@@ -595,6 +596,7 @@ void view_move_to_output(struct view *view, struct output *output);
 
 void view_move_to_front(struct view *view);
 void view_move_to_back(struct view *view);
+void view_move_to_below(struct view *view, struct view *ref);
 
 bool view_is_modal_dialog(struct view *view);
 

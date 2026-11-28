@@ -118,3 +118,15 @@ window_rules_get_property(struct view *view, const char *property)
 	}
 	return LAB_PROP_UNSPECIFIED;
 }
+
+enum lab_initial_focus
+window_rules_get_initial_focus(struct view *view)
+{
+	struct window_rule *rule;
+	wl_list_for_each_reverse(rule, &rc.window_rules, link) {
+		if (view_matches_rule(rule, view) && rule->initial_focus) {
+			return rule->initial_focus;
+		}
+	}
+	return LAB_INITIAL_FOCUS_ALWAYS;
+}
